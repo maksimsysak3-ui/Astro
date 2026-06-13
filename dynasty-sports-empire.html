@@ -41,8 +41,11 @@ body {
 ::-webkit-scrollbar-track { background: var(--bg-primary); }
 ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 3px; }
 
-.screen { display: none; min-height: 100vh; position: relative; }
-.screen.active { display: block; }
+.screen { display: none !important; min-height: 100vh; position: relative; }
+.screen.active { display: block !important; }
+#titleScreen.active { display: flex !important; }
+#roleSelect.active { display: flex !important; }
+#mainHub.active { display: flex !important; }
 
 /* ===== TITLE SCREEN ===== */
 #titleScreen {
@@ -201,7 +204,7 @@ body {
 }
 
 .role-card.selected::after {
-  content: '✓';
+  content: '';
   position: absolute;
   top: 10px; right: 10px;
   color: var(--gold);
@@ -1717,7 +1720,7 @@ body {
 <!-- ===== TITLE SCREEN ===== -->
 <div class="screen active" id="titleScreen">
   <div class="title-particles" id="particles"></div>
-  <div class="title-crown">👑</div>
+  <div class="title-crown"></div>
   <div class="title-main">DYNASTY</div>
   <div class="title-sub">THE SPORTS EMPIRE</div>
   <div class="title-menu">
@@ -1735,42 +1738,42 @@ body {
   <div class="role-subtitle">HOW WILL YOU BUILD YOUR EMPIRE?</div>
   <div class="role-grid">
     <div class="role-card" onclick="selectRole(this, 'owner')">
-      <div class="role-icon">🏛️</div>
+      <div class="role-icon"></div>
       <div class="role-name">OWNER</div>
       <div class="role-desc">Control finances, hire staff, build arenas, negotiate TV deals</div>
     </div>
     <div class="role-card" onclick="selectRole(this, 'gm')">
-      <div class="role-icon">📋</div>
+      <div class="role-icon"></div>
       <div class="role-name">GM</div>
       <div class="role-desc">Build rosters, make trades, scout talent, manage contracts</div>
     </div>
     <div class="role-card" onclick="selectRole(this, 'coach')">
-      <div class="role-icon">📢</div>
+      <div class="role-icon"></div>
       <div class="role-name">COACH</div>
       <div class="role-desc">Set lineups, draw plays, develop players, manage rotations</div>
     </div>
     <div class="role-card" onclick="selectRole(this, 'scout')">
-      <div class="role-icon">🔍</div>
+      <div class="role-icon"></div>
       <div class="role-name">SCOUT</div>
       <div class="role-desc">Find hidden gems, evaluate prospects, grade potential</div>
     </div>
     <div class="role-card" onclick="selectRole(this, 'player-coach')">
-      <div class="role-icon">⭐</div>
+      <div class="role-icon"></div>
       <div class="role-name">PLAYER-COACH</div>
       <div class="role-desc">Play on the court AND coach the team. Ultimate challenge</div>
     </div>
     <div class="role-card" onclick="selectRole(this, 'president')">
-      <div class="role-icon">🎖️</div>
+      <div class="role-icon"></div>
       <div class="role-name">PRESIDENT</div>
       <div class="role-desc">Oversee basketball operations, long-term vision, culture</div>
     </div>
     <div class="role-card" onclick="selectRole(this, 'player')">
-      <div class="role-icon">🏀</div>
+      <div class="role-icon"></div>
       <div class="role-name">PLAYER</div>
       <div class="role-desc">Career mode. Rise from rookie to legend. Your story</div>
     </div>
     <div class="role-card selected" onclick="selectRole(this, 'full')">
-      <div class="role-icon">👑</div>
+      <div class="role-icon"></div>
       <div class="role-name">FULL CONTROL</div>
       <div class="role-desc">Control EVERYTHING. The ultimate dynasty experience</div>
     </div>
@@ -1804,34 +1807,34 @@ body {
     </div>
     <div class="nav-section">
       <div class="nav-section-title">COMMAND CENTER</div>
-      <div class="nav-item active" onclick="showSection('dashboard',this)"><span class="nav-icon">📊</span><span>Dashboard</span></div>
-      <div class="nav-item" onclick="showSection('roster',this)"><span class="nav-icon">👥</span><span>Roster</span></div>
-      <div class="nav-item" onclick="showSection('schedule',this)"><span class="nav-icon">📅</span><span>Schedule</span></div>
-      <div class="nav-item" onclick="showSection('standings',this)"><span class="nav-icon">🏆</span><span>Standings</span></div>
+      <div class="nav-item active" onclick="showSection('dashboard',this)"><span class="nav-icon"></span><span>Dashboard</span></div>
+      <div class="nav-item" onclick="showSection('roster',this)"><span class="nav-icon"></span><span>Roster</span></div>
+      <div class="nav-item" onclick="showSection('schedule',this)"><span class="nav-icon"></span><span>Schedule</span></div>
+      <div class="nav-item" onclick="showSection('standings',this)"><span class="nav-icon"></span><span>Standings</span></div>
     </div>
     <div class="nav-section">
       <div class="nav-section-title">MANAGEMENT</div>
-      <div class="nav-item" onclick="showSection('trades',this)"><span class="nav-icon">🔄</span><span>Trades</span></div>
-      <div class="nav-item" onclick="showSection('freeagency',this)"><span class="nav-icon">📝</span><span>Free Agency</span></div>
-      <div class="nav-item" onclick="showSection('draft',this)"><span class="nav-icon">🎓</span><span>Draft</span></div>
-      <div class="nav-item" onclick="showSection('training',this)"><span class="nav-icon">💪</span><span>Training</span></div>
+      <div class="nav-item" onclick="showSection('trades',this)"><span class="nav-icon"></span><span>Trades</span></div>
+      <div class="nav-item" onclick="showSection('freeagency',this)"><span class="nav-icon"></span><span>Free Agency</span></div>
+      <div class="nav-item" onclick="showSection('draft',this)"><span class="nav-icon"></span><span>Draft</span></div>
+      <div class="nav-item" onclick="showSection('training',this)"><span class="nav-icon"></span><span>Training</span></div>
     </div>
     <div class="nav-section">
       <div class="nav-section-title">OPERATIONS</div>
-      <div class="nav-item" onclick="showSection('finances',this)"><span class="nav-icon">💰</span><span>Finances</span></div>
-      <div class="nav-item" onclick="showSection('arena',this)"><span class="nav-icon">🏟️</span><span>Arena</span></div>
-      <div class="nav-item" onclick="showSection('staff',this)"><span class="nav-icon">👔</span><span>Staff</span></div>
-      <div class="nav-item" onclick="showSection('media',this)"><span class="nav-icon">📺</span><span>Media</span></div>
+      <div class="nav-item" onclick="showSection('finances',this)"><span class="nav-icon"></span><span>Finances</span></div>
+      <div class="nav-item" onclick="showSection('arena',this)"><span class="nav-icon"></span><span>Arena</span></div>
+      <div class="nav-item" onclick="showSection('staff',this)"><span class="nav-icon"></span><span>Staff</span></div>
+      <div class="nav-item" onclick="showSection('media',this)"><span class="nav-icon"></span><span>Media</span></div>
     </div>
     <div class="nav-section">
       <div class="nav-section-title">LEGACY</div>
-      <div class="nav-item" onclick="showSection('history',this)"><span class="nav-icon">📜</span><span>History</span></div>
-      <div class="nav-item" onclick="showSection('awards',this)"><span class="nav-icon">🏅</span><span>Awards</span></div>
-      <div class="nav-item" onclick="showSection('halloffame',this)"><span class="nav-icon">⭐</span><span>Hall of Fame</span></div>
+      <div class="nav-item" onclick="showSection('history',this)"><span class="nav-icon"></span><span>History</span></div>
+      <div class="nav-item" onclick="showSection('awards',this)"><span class="nav-icon"></span><span>Awards</span></div>
+      <div class="nav-item" onclick="showSection('halloffame',this)"><span class="nav-icon"></span><span>Hall of Fame</span></div>
     </div>
     <div class="nav-section" style="margin-top:auto;padding-top:15px;border-top:1px solid var(--border);">
-      <div class="nav-item" onclick="saveGame()"><span class="nav-icon">💾</span><span>Save</span></div>
-      <div class="nav-item" onclick="showScreen('titleScreen')"><span class="nav-icon">🚪</span><span>Main Menu</span></div>
+      <div class="nav-item" onclick="saveGame()"><span class="nav-icon"></span><span>Save</span></div>
+      <div class="nav-item" onclick="showScreen('titleScreen')"><span class="nav-icon"></span><span>Main Menu</span></div>
     </div>
   </div>
 
@@ -1851,7 +1854,7 @@ body {
           <div class="top-stat-value" id="topCap">$24.5M</div>
         </div>
         <button class="btn btn-gold" onclick="advanceWeek()">ADVANCE ▶</button>
-        <button class="btn btn-gold" onclick="playNextGame()">PLAY GAME 🏀</button>
+        <button class="btn btn-gold" onclick="playNextGame()">PLAY GAME </button>
       </div>
     </div>
 
@@ -1859,22 +1862,22 @@ body {
     <div class="hub-section active" id="sec-dashboard">
       <div class="quick-stats">
         <div class="quick-stat gold-accent">
-          <div class="quick-stat-icon">🏀</div>
+          <div class="quick-stat-icon"></div>
           <div class="quick-stat-value" id="dashWins">0</div>
           <div class="quick-stat-label">WINS</div>
         </div>
         <div class="quick-stat red-accent">
-          <div class="quick-stat-icon">❌</div>
+          <div class="quick-stat-icon"></div>
           <div class="quick-stat-value" id="dashLosses">0</div>
           <div class="quick-stat-label">LOSSES</div>
         </div>
         <div class="quick-stat blue-accent">
-          <div class="quick-stat-icon">⭐</div>
+          <div class="quick-stat-icon"></div>
           <div class="quick-stat-value" id="dashBestPlayer">—</div>
           <div class="quick-stat-label">BEST PLAYER OVR</div>
         </div>
         <div class="quick-stat green-accent">
-          <div class="quick-stat-icon">🔥</div>
+          <div class="quick-stat-icon">[MIA]</div>
           <div class="quick-stat-value" id="dashStreak">—</div>
           <div class="quick-stat-label">STREAK</div>
         </div>
@@ -1886,7 +1889,7 @@ body {
             <span class="panel-title">NEXT GAME</span>
           </div>
           <div id="dashNextGame" style="text-align:center;padding:20px;">
-            <div style="font-size:30px;margin-bottom:10px;">🏀</div>
+            <div style="font-size:30px;margin-bottom:10px;"></div>
             <div style="font-family:'Rajdhani',sans-serif;font-size:18px;">Loading schedule...</div>
           </div>
         </div>
@@ -2033,22 +2036,22 @@ body {
     <div class="hub-section" id="sec-finances">
       <div class="quick-stats" style="margin-bottom:20px;">
         <div class="quick-stat gold-accent">
-          <div class="quick-stat-icon">💰</div>
+          <div class="quick-stat-icon"></div>
           <div class="quick-stat-value" id="finRevenue">$182M</div>
           <div class="quick-stat-label">REVENUE</div>
         </div>
         <div class="quick-stat red-accent">
-          <div class="quick-stat-icon">📉</div>
+          <div class="quick-stat-icon"></div>
           <div class="quick-stat-value" id="finPayroll">$148M</div>
           <div class="quick-stat-label">PAYROLL</div>
         </div>
         <div class="quick-stat green-accent">
-          <div class="quick-stat-icon">📈</div>
+          <div class="quick-stat-icon"></div>
           <div class="quick-stat-value" id="finProfit">$34M</div>
           <div class="quick-stat-label">PROFIT</div>
         </div>
         <div class="quick-stat blue-accent">
-          <div class="quick-stat-icon">🎫</div>
+          <div class="quick-stat-icon"></div>
           <div class="quick-stat-value" id="finAttend">18,200</div>
           <div class="quick-stat-label">AVG ATTENDANCE</div>
         </div>
@@ -2131,7 +2134,7 @@ body {
         <div class="score-team-name" id="awayTeamName">AWAY</div>
         <div class="score-team-record" id="awayTeamRecord">0-0</div>
       </div>
-      <div class="score-team-logo" id="awayTeamLogo">🏀</div>
+      <div class="score-team-logo" id="awayTeamLogo"></div>
     </div>
     <div class="score-center">
       <div class="score-numbers">
@@ -2143,7 +2146,7 @@ body {
       <div class="score-clock" id="gameClock">12:00</div>
     </div>
     <div class="score-team home">
-      <div class="score-team-logo" id="homeTeamLogo">🏀</div>
+      <div class="score-team-logo" id="homeTeamLogo"></div>
       <div>
         <div class="score-team-name" id="homeTeamName">HOME</div>
         <div class="score-team-record" id="homeTeamRecord">0-0</div>
@@ -2152,7 +2155,7 @@ body {
   </div>
 
   <div class="commentary-box">
-    <span class="commentary-icon">🎙️</span>
+    <span class="commentary-icon"></span>
     <span id="commentaryText">Welcome to tonight's game...</span>
   </div>
 
@@ -2169,7 +2172,7 @@ body {
   </div>
 
   <div class="game-controls">
-    <button class="game-btn" id="btnPause" onclick="toggleGamePause()">⏸ PAUSE</button>
+    <button class="game-btn" id="btnPause" onclick="toggleGamePause()"> PAUSE</button>
     <button class="game-btn" onclick="setGameSpeed(1)">1X</button>
     <button class="game-btn active" onclick="setGameSpeed(2)">2X</button>
     <button class="game-btn" onclick="setGameSpeed(5)">5X</button>
@@ -2201,9 +2204,9 @@ body {
 <!-- ===== PLAYER DETAIL MODAL ===== -->
 <div class="modal-overlay" id="playerModal">
   <div class="modal">
-    <button class="modal-close" onclick="closePlayerModal()">✕</button>
+    <button class="modal-close" onclick="closePlayerModal()"></button>
     <div class="player-detail-header">
-      <div class="player-detail-avatar" id="modalAvatar">🏀</div>
+      <div class="player-detail-avatar" id="modalAvatar"></div>
       <div class="player-detail-info">
         <h2 id="modalPlayerName">Player Name</h2>
         <div class="player-detail-meta">
@@ -2252,38 +2255,38 @@ const COLLEGES = ['Duke','Kentucky','Kansas','UNC','Gonzaga','UCLA','Michigan','
 
 const NBA_TEAMS = {
   east: [
-    {name:'Boston Celtics',abbr:'BOS',emoji:'☘️',color:'#007A33'},
-    {name:'Brooklyn Nets',abbr:'BKN',emoji:'🔲',color:'#000000'},
-    {name:'New York Knicks',abbr:'NYK',emoji:'🗽',color:'#006BB6'},
-    {name:'Philadelphia 76ers',abbr:'PHI',emoji:'🔔',color:'#006BB6'},
-    {name:'Toronto Raptors',abbr:'TOR',emoji:'🦖',color:'#CE1141'},
-    {name:'Chicago Bulls',abbr:'CHI',emoji:'🐂',color:'#CE1141'},
-    {name:'Cleveland Cavaliers',abbr:'CLE',emoji:'⚔️',color:'#860038'},
-    {name:'Detroit Pistons',abbr:'DET',emoji:'🔧',color:'#C8102E'},
-    {name:'Indiana Pacers',abbr:'IND',emoji:'🏎️',color:'#002D62'},
-    {name:'Milwaukee Bucks',abbr:'MIL',emoji:'🦌',color:'#00471B'},
-    {name:'Atlanta Hawks',abbr:'ATL',emoji:'🦅',color:'#E03A3E'},
-    {name:'Charlotte Hornets',abbr:'CHA',emoji:'🐝',color:'#1D1160'},
-    {name:'Miami Heat',abbr:'MIA',emoji:'🔥',color:'#98002E'},
-    {name:'Orlando Magic',abbr:'ORL',emoji:'✨',color:'#0077C0'},
-    {name:'Washington Wizards',abbr:'WAS',emoji:'🧙',color:'#002B5C'}
+    {name:'Boston Celtics',abbr:'BOS',emoji:'[BOS]',color:'#007A33'},
+    {name:'Brooklyn Nets',abbr:'BKN',emoji:'[BKN]',color:'#000000'},
+    {name:'New York Knicks',abbr:'NYK',emoji:'[NYK]',color:'#006BB6'},
+    {name:'Philadelphia 76ers',abbr:'PHI',emoji:'[PHI]',color:'#006BB6'},
+    {name:'Toronto Raptors',abbr:'TOR',emoji:'[TOR]',color:'#CE1141'},
+    {name:'Chicago Bulls',abbr:'CHI',emoji:'[CHI]',color:'#CE1141'},
+    {name:'Cleveland Cavaliers',abbr:'CLE',emoji:'[CLE]',color:'#860038'},
+    {name:'Detroit Pistons',abbr:'DET',emoji:'[DET]',color:'#C8102E'},
+    {name:'Indiana Pacers',abbr:'IND',emoji:'[IND]',color:'#002D62'},
+    {name:'Milwaukee Bucks',abbr:'MIL',emoji:'[MIL]',color:'#00471B'},
+    {name:'Atlanta Hawks',abbr:'ATL',emoji:'[ATL]',color:'#E03A3E'},
+    {name:'Charlotte Hornets',abbr:'CHA',emoji:'[CHA]',color:'#1D1160'},
+    {name:'Miami Heat',abbr:'MIA',emoji:'[MIA]',color:'#98002E'},
+    {name:'Orlando Magic',abbr:'ORL',emoji:'[ORL]',color:'#0077C0'},
+    {name:'Washington Wizards',abbr:'WAS',emoji:'[WAS]',color:'#002B5C'}
   ],
   west: [
-    {name:'Denver Nuggets',abbr:'DEN',emoji:'⛏️',color:'#0E2240'},
-    {name:'Minnesota Timberwolves',abbr:'MIN',emoji:'🐺',color:'#0C2340'},
-    {name:'Oklahoma City Thunder',abbr:'OKC',emoji:'⚡',color:'#007AC1'},
-    {name:'Portland Trail Blazers',abbr:'POR',emoji:'🌲',color:'#E03A3E'},
-    {name:'Utah Jazz',abbr:'UTA',emoji:'🎵',color:'#002B5C'},
-    {name:'Golden State Warriors',abbr:'GSW',emoji:'🌉',color:'#1D428A'},
-    {name:'LA Clippers',abbr:'LAC',emoji:'⛵',color:'#C8102E'},
-    {name:'LA Lakers',abbr:'LAL',emoji:'👑',color:'#552583'},
-    {name:'Phoenix Suns',abbr:'PHX',emoji:'☀️',color:'#1D1160'},
-    {name:'Sacramento Kings',abbr:'SAC',emoji:'👑',color:'#5A2D81'},
-    {name:'Dallas Mavericks',abbr:'DAL',emoji:'🐴',color:'#00538C'},
-    {name:'Houston Rockets',abbr:'HOU',emoji:'🚀',color:'#CE1141'},
-    {name:'Memphis Grizzlies',abbr:'MEM',emoji:'🐻',color:'#5D76A9'},
-    {name:'New Orleans Pelicans',abbr:'NOP',emoji:'🦅',color:'#0C2340'},
-    {name:'San Antonio Spurs',abbr:'SAS',emoji:'⚙️',color:'#C4CED4'}
+    {name:'Denver Nuggets',abbr:'DEN',emoji:'[DEN]',color:'#0E2240'},
+    {name:'Minnesota Timberwolves',abbr:'MIN',emoji:'[MIN]',color:'#0C2340'},
+    {name:'Oklahoma City Thunder',abbr:'OKC',emoji:'[OKC]',color:'#007AC1'},
+    {name:'Portland Trail Blazers',abbr:'POR',emoji:'[POR]',color:'#E03A3E'},
+    {name:'Utah Jazz',abbr:'UTA',emoji:'[UTA]',color:'#002B5C'},
+    {name:'Golden State Warriors',abbr:'GSW',emoji:'[GSW]',color:'#1D428A'},
+    {name:'LA Clippers',abbr:'LAC',emoji:'[LAC]',color:'#C8102E'},
+    {name:'LA Lakers',abbr:'LAL',emoji:'',color:'#552583'},
+    {name:'Phoenix Suns',abbr:'PHX',emoji:'[PHX]',color:'#1D1160'},
+    {name:'Sacramento Kings',abbr:'SAC',emoji:'',color:'#5A2D81'},
+    {name:'Dallas Mavericks',abbr:'DAL',emoji:'[DAL]',color:'#00538C'},
+    {name:'Houston Rockets',abbr:'HOU',emoji:'[HOU]',color:'#CE1141'},
+    {name:'Memphis Grizzlies',abbr:'MEM',emoji:'[MEM]',color:'#5D76A9'},
+    {name:'New Orleans Pelicans',abbr:'NOP',emoji:'[ATL]',color:'#0C2340'},
+    {name:'San Antonio Spurs',abbr:'SAS',emoji:'[SAS]',color:'#C4CED4'}
   ]
 };
 
@@ -2652,10 +2655,10 @@ function updateTopBar() {
 
 function updateTicker() {
   const items = [
-    '🏀 DYNASTY SPORTS NETWORK — LIVE UPDATES',
+    ' DYNASTY SPORTS NETWORK — LIVE UPDATES',
     ...G.news.map(n => (n.type === 'trade' ? '<span class="trade">' : n.type === 'breaking' ? '<span class="breaking">' : '<span>') + n.text + '</span>')
   ];
-  document.getElementById('tickerText').innerHTML = items.join('  ★  ');
+  document.getElementById('tickerText').innerHTML = items.join('  |  ');
 }
 
 // ===== DASHBOARD =====
@@ -2712,7 +2715,7 @@ function refreshRoster() {
   body.innerHTML = team.roster.map(p => `
     <tr onclick="openPlayerModal('${p.id}')">
       <td><span class="player-number">${p.number}</span></td>
-      <td><div class="player-name-cell"><div class="player-avatar">🏀</div>${p.firstName} ${p.lastName}</div></td>
+      <td><div class="player-name-cell"><div class="player-avatar"></div>${p.firstName} ${p.lastName}</div></td>
       <td>${p.pos}</td>
       <td>${p.age}</td>
       <td><span class="ovr-badge ${ovrClass(p.ovr)}">${p.ovr}</span></td>
@@ -2780,9 +2783,9 @@ function openPlayerModal(playerId) {
       <span style="padding:5px 12px;background:rgba(139,92,246,0.15);color:var(--purple);font-size:12px;font-family:'Rajdhani',sans-serif;letter-spacing:1px;">${player.personality}</span>
       <span style="padding:5px 12px;background:rgba(0,180,255,0.15);color:var(--blue);font-size:12px;">Morale: ${player.morale}</span>
       <span style="padding:5px 12px;background:rgba(212,175,55,0.15);color:var(--gold);font-size:12px;">Potential: ${player.potential}</span>
-      ${player.hotStreak ? '<span style="padding:5px 12px;background:rgba(230,57,70,0.15);color:var(--red);font-size:12px;">🔥 HOT</span>' : ''}
-      ${player.coldStreak ? '<span style="padding:5px 12px;background:rgba(0,180,255,0.15);color:var(--blue);font-size:12px;">🥶 COLD</span>' : ''}
-      ${player.injured ? '<span style="padding:5px 12px;background:rgba(230,57,70,0.3);color:var(--red);font-size:12px;">🏥 INJURED</span>' : ''}
+      ${player.hotStreak ? '<span style="padding:5px 12px;background:rgba(230,57,70,0.15);color:var(--red);font-size:12px;">[MIA] HOT</span>' : ''}
+      ${player.coldStreak ? '<span style="padding:5px 12px;background:rgba(0,180,255,0.15);color:var(--blue);font-size:12px;"> COLD</span>' : ''}
+      ${player.injured ? '<span style="padding:5px 12px;background:rgba(230,57,70,0.3);color:var(--red);font-size:12px;"> INJURED</span>' : ''}
     </div>
   `;
 
@@ -3039,7 +3042,7 @@ function selectProspect(idx) {
 
   document.getElementById('scoutReport').innerHTML = `
     <div style="text-align:center;margin-bottom:15px;">
-      <div style="font-size:30px;margin-bottom:8px;">🏀</div>
+      <div style="font-size:30px;margin-bottom:8px;"></div>
       <div style="font-family:'Orbitron',sans-serif;font-size:16px;">${p.firstName} ${p.lastName}</div>
       <div style="color:var(--text-muted);font-size:12px;">${p.pos} | ${p.college} | Age ${p.age}</div>
     </div>
@@ -3075,15 +3078,15 @@ function startDraft() {
 // ===== TRAINING =====
 function refreshTraining() {
   const drills = [
-    { name: 'Shooting Drills', icon: '🎯', desc: 'Improve shooting, midrange, three point', intensity: 3 },
-    { name: 'Ball Handling', icon: '🏀', desc: 'Improve dribbling, passing, court vision', intensity: 2 },
-    { name: 'Defensive Drills', icon: '🛡️', desc: 'Improve defense, steals, blocks', intensity: 3 },
-    { name: 'Conditioning', icon: '🏃', desc: 'Improve speed, stamina, acceleration', intensity: 4 },
-    { name: 'Weight Training', icon: '💪', desc: 'Improve strength, interior defense, rebounding', intensity: 3 },
-    { name: 'Film Study', icon: '📺', desc: 'Improve IQ, court vision, clutch', intensity: 1 },
-    { name: 'Scrimmage', icon: '⚔️', desc: 'Improve all-around skills, team chemistry', intensity: 3 },
-    { name: 'Free Throws', icon: '🎪', desc: 'Improve free throw shooting', intensity: 1 },
-    { name: 'Rest Day', icon: '😴', desc: 'Recover energy, reduce injury risk', intensity: 0 },
+    { name: 'Shooting Drills', icon: '', desc: 'Improve shooting, midrange, three point', intensity: 3 },
+    { name: 'Ball Handling', icon: '', desc: 'Improve dribbling, passing, court vision', intensity: 2 },
+    { name: 'Defensive Drills', icon: '', desc: 'Improve defense, steals, blocks', intensity: 3 },
+    { name: 'Conditioning', icon: '', desc: 'Improve speed, stamina, acceleration', intensity: 4 },
+    { name: 'Weight Training', icon: '', desc: 'Improve strength, interior defense, rebounding', intensity: 3 },
+    { name: 'Film Study', icon: '', desc: 'Improve IQ, court vision, clutch', intensity: 1 },
+    { name: 'Scrimmage', icon: '[CLE]', desc: 'Improve all-around skills, team chemistry', intensity: 3 },
+    { name: 'Free Throws', icon: '', desc: 'Improve free throw shooting', intensity: 1 },
+    { name: 'Rest Day', icon: '', desc: 'Recover energy, reduce injury risk', intensity: 0 },
   ];
 
   document.getElementById('trainingGrid').innerHTML = drills.map((d, i) => `
@@ -3168,12 +3171,12 @@ function refreshFinances() {
 // ===== ARENA =====
 function refreshArena() {
   const upgrades = [
-    { name: 'Jumbotron', icon: '📺', desc: 'HD video board for replays and entertainment', cost: 5000000, level: G.arenaLevel >= 2 },
-    { name: 'Luxury Suites', icon: '🏛️', desc: 'Premium seating for VIPs and sponsors', cost: 15000000, level: G.arenaLevel >= 3 },
-    { name: 'Training Center', icon: '💪', desc: 'State-of-the-art practice facility', cost: 20000000, level: G.arenaLevel >= 3 },
-    { name: 'Fan Zone', icon: '🎪', desc: 'Interactive fan experience area', cost: 8000000, level: false },
-    { name: 'LED Court', icon: '💡', desc: 'Programmable LED court lighting', cost: 12000000, level: false },
-    { name: 'Medical Bay', icon: '🏥', desc: 'Advanced injury prevention and recovery', cost: 10000000, level: false },
+    { name: 'Jumbotron', icon: '', desc: 'HD video board for replays and entertainment', cost: 5000000, level: G.arenaLevel >= 2 },
+    { name: 'Luxury Suites', icon: '', desc: 'Premium seating for VIPs and sponsors', cost: 15000000, level: G.arenaLevel >= 3 },
+    { name: 'Training Center', icon: '', desc: 'State-of-the-art practice facility', cost: 20000000, level: G.arenaLevel >= 3 },
+    { name: 'Fan Zone', icon: '', desc: 'Interactive fan experience area', cost: 8000000, level: false },
+    { name: 'LED Court', icon: '', desc: 'Programmable LED court lighting', cost: 12000000, level: false },
+    { name: 'Medical Bay', icon: '', desc: 'Advanced injury prevention and recovery', cost: 10000000, level: false },
   ];
 
   document.getElementById('arenaUpgrades').innerHTML = upgrades.map(u => `
@@ -3182,7 +3185,7 @@ function refreshArena() {
       <div style="font-family:'Orbitron',sans-serif;font-size:13px;letter-spacing:2px;margin-bottom:8px;">${u.name}</div>
       <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;">${u.desc}</div>
       ${u.level
-        ? '<div style="color:var(--green);font-size:12px;font-family:\'Rajdhani\',sans-serif;letter-spacing:2px;">✓ OWNED</div>'
+        ? '<div style="color:var(--green);font-size:12px;font-family:\'Rajdhani\',sans-serif;letter-spacing:2px;"> OWNED</div>'
         : `<div style="color:var(--gold);font-size:13px;font-family:'Rajdhani',sans-serif;">${fmtMoney(u.cost)}</div>`}
     </div>
   `).join('');
@@ -3204,12 +3207,12 @@ function buyUpgrade(name, cost) {
 // ===== STAFF =====
 function refreshStaff() {
   const staff = [
-    { title: 'Head Coach', name: `${pick(FIRST_NAMES)} ${pick(LAST_NAMES)}`, icon: '📢', specialty: 'Offense', rating: rand(65, 95) },
-    { title: 'Assistant Coach', name: `${pick(FIRST_NAMES)} ${pick(LAST_NAMES)}`, icon: '📋', specialty: 'Defense', rating: rand(60, 85) },
-    { title: 'Assistant Coach', name: `${pick(FIRST_NAMES)} ${pick(LAST_NAMES)}`, icon: '📋', specialty: 'Player Development', rating: rand(60, 85) },
-    { title: 'Athletic Trainer', name: `${pick(FIRST_NAMES)} ${pick(LAST_NAMES)}`, icon: '🏥', specialty: 'Injury Prevention', rating: rand(60, 90) },
-    { title: 'Scout', name: `${pick(FIRST_NAMES)} ${pick(LAST_NAMES)}`, icon: '🔍', specialty: 'College Scouting', rating: rand(60, 90) },
-    { title: 'Analytics Director', name: `${pick(FIRST_NAMES)} ${pick(LAST_NAMES)}`, icon: '📊', specialty: 'Advanced Stats', rating: rand(60, 90) },
+    { title: 'Head Coach', name: `${pick(FIRST_NAMES)} ${pick(LAST_NAMES)}`, icon: '', specialty: 'Offense', rating: rand(65, 95) },
+    { title: 'Assistant Coach', name: `${pick(FIRST_NAMES)} ${pick(LAST_NAMES)}`, icon: '', specialty: 'Defense', rating: rand(60, 85) },
+    { title: 'Assistant Coach', name: `${pick(FIRST_NAMES)} ${pick(LAST_NAMES)}`, icon: '', specialty: 'Player Development', rating: rand(60, 85) },
+    { title: 'Athletic Trainer', name: `${pick(FIRST_NAMES)} ${pick(LAST_NAMES)}`, icon: '', specialty: 'Injury Prevention', rating: rand(60, 90) },
+    { title: 'Scout', name: `${pick(FIRST_NAMES)} ${pick(LAST_NAMES)}`, icon: '', specialty: 'College Scouting', rating: rand(60, 90) },
+    { title: 'Analytics Director', name: `${pick(FIRST_NAMES)} ${pick(LAST_NAMES)}`, icon: '', specialty: 'Advanced Stats', rating: rand(60, 90) },
   ];
 
   document.getElementById('staffGrid').innerHTML = staff.map(s => `
@@ -3297,7 +3300,7 @@ function refreshHistory() {
   document.getElementById('historyContent').innerHTML = G.history.map(h => `
     <div class="stat-row">
       <span class="stat-label">Season ${h.season}</span>
-      <span class="stat-value">${h.record} ${h.champion ? '🏆 CHAMPION' : ''}</span>
+      <span class="stat-value">${h.record} ${h.champion ? ' CHAMPION' : ''}</span>
     </div>
   `).join('');
 }
@@ -3310,18 +3313,18 @@ function refreshAwards() {
   document.getElementById('awardsContent').innerHTML = `
     <div class="panel-grid cols-3" style="gap:15px;">
       <div class="panel" style="text-align:center;">
-        <div style="font-size:36px;margin-bottom:8px;">🏆</div>
+        <div style="font-size:36px;margin-bottom:8px;"></div>
         <div style="font-family:'Rajdhani',sans-serif;font-size:10px;letter-spacing:2px;color:var(--text-muted);">MVP CANDIDATE</div>
         <div style="font-size:16px;margin-top:5px;">${best[0] ? best[0].firstName + ' ' + best[0].lastName : '—'}</div>
         <span class="ovr-badge ${best[0] ? ovrClass(best[0].ovr) : ''}" style="margin-top:5px;">${best[0] ? best[0].ovr : '—'}</span>
       </div>
       <div class="panel" style="text-align:center;">
-        <div style="font-size:36px;margin-bottom:8px;">🛡️</div>
+        <div style="font-size:36px;margin-bottom:8px;"></div>
         <div style="font-family:'Rajdhani',sans-serif;font-size:10px;letter-spacing:2px;color:var(--text-muted);">DPOY CANDIDATE</div>
         <div style="font-size:16px;margin-top:5px;">${best[1] ? best[1].firstName + ' ' + best[1].lastName : '—'}</div>
       </div>
       <div class="panel" style="text-align:center;">
-        <div style="font-size:36px;margin-bottom:8px;">⭐</div>
+        <div style="font-size:36px;margin-bottom:8px;"></div>
         <div style="font-family:'Rajdhani',sans-serif;font-size:10px;letter-spacing:2px;color:var(--text-muted);">ROY CANDIDATE</div>
         <div style="font-size:16px;margin-top:5px;">${team.roster.find(p => p.age <= 22) ? team.roster.find(p => p.age <= 22).firstName + ' ' + team.roster.find(p => p.age <= 22).lastName : '—'}</div>
       </div>
@@ -3541,14 +3544,14 @@ function gameTick() {
       if (gameState.homeScore === gameState.awayScore) {
         gameState.quarter = 5;
         gameState.clock = 300;
-        addPlay('⏰', 'OVERTIME!', 'var(--gold)');
+        addPlay('', 'OVERTIME!', 'var(--gold)');
       } else {
         endGame();
         return;
       }
     } else {
       gameState.clock = 720;
-      addPlay('⏰', `End of Q${gameState.quarter - 1}. Score: ${gameState.homeScore}-${gameState.awayScore}`, 'var(--gold)');
+      addPlay('', `End of Q${gameState.quarter - 1}. Score: ${gameState.homeScore}-${gameState.awayScore}`, 'var(--gold)');
     }
     updateGameUI();
   }
@@ -3575,14 +3578,14 @@ function simulatePossession() {
 
   if (roll < 5) {
     const stealer = defRoster[rand(0, Math.min(4, defRoster.length - 1))];
-    addPlay('🔥', `<span class="highlight">${stealer?.firstName[0] || 'X'}. ${stealer?.lastName || 'Player'}</span> steals the ball!`);
+    addPlay('[MIA]', `<span class="highlight">${stealer?.firstName[0] || 'X'}. ${stealer?.lastName || 'Player'}</span> steals the ball!`);
     if (stealer && gameState.playerGameStats[stealer.id]) gameState.playerGameStats[stealer.id].stl++;
     gameState.possession = isHome ? 'away' : 'home';
     return;
   }
 
   if (roll < 12) {
-    addPlay('❌', `${shooter.firstName[0]}. ${shooter.lastName} turns it over.`);
+    addPlay('', `${shooter.firstName[0]}. ${shooter.lastName} turns it over.`);
     gameState.possession = isHome ? 'away' : 'home';
     return;
   }
@@ -3620,7 +3623,7 @@ function simulatePossession() {
       gameState.playerGameStats[passer.id].ast++;
     }
 
-    const icon = points === 3 ? '🎯' : shotDesc.includes('dunk') ? '🔥' : '🏀';
+    const icon = points === 3 ? '' : shotDesc.includes('dunk') ? '[MIA]' : '';
 
     if (shotDesc.includes('dunk') && Math.random() < 0.3) {
       addPlay(icon, `<span class="highlight">${shooter.firstName[0]}. ${shooter.lastName}</span> with a MONSTER ${shotDesc}!! ${defender ? 'Over ' + defender.firstName[0] + '. ' + defender.lastName + '!' : ''}${assistText}`);
@@ -3634,16 +3637,16 @@ function simulatePossession() {
   } else {
     const blocker = defRoster[rand(0, Math.min(4, defRoster.length - 1))];
     if (Math.random() < 0.15 && blocker) {
-      addPlay('🖐️', `<span class="highlight">${blocker.firstName[0]}. ${blocker.lastName}</span> BLOCKS ${shooter.firstName[0]}. ${shooter.lastName}'s ${shotDesc}!`);
+      addPlay('', `<span class="highlight">${blocker.firstName[0]}. ${blocker.lastName}</span> BLOCKS ${shooter.firstName[0]}. ${shooter.lastName}'s ${shotDesc}!`);
       if (gameState.playerGameStats[blocker.id]) gameState.playerGameStats[blocker.id].blk++;
     } else {
-      addPlay('❌', `${shooter.firstName[0]}. ${shooter.lastName} misses the ${shotDesc}.`);
+      addPlay('', `${shooter.firstName[0]}. ${shooter.lastName} misses the ${shotDesc}.`);
     }
 
     const rebounder = (Math.random() < 0.5 ? roster : defRoster)[rand(0, 4)];
     if (rebounder && gameState.playerGameStats[rebounder.id]) {
       gameState.playerGameStats[rebounder.id].reb++;
-      addPlay('📊', `${rebounder.firstName[0]}. ${rebounder.lastName} grabs the rebound.`);
+      addPlay('', `${rebounder.firstName[0]}. ${rebounder.lastName} grabs the rebound.`);
     }
   }
 
@@ -3767,7 +3770,7 @@ function endGame() {
     : `FINAL. ${myTeam.name} fall ${entry.myScore}-${entry.oppScore}.`;
 
   updateCommentary(finalText);
-  addPlay('🏁', `<span class="highlight">FINAL SCORE: ${entry.myScore}-${entry.oppScore}</span>`, won ? 'var(--green)' : 'var(--red)');
+  addPlay('', `<span class="highlight">FINAL SCORE: ${entry.myScore}-${entry.oppScore}</span>`, won ? 'var(--green)' : 'var(--red)');
 
   G.news.unshift({ text: `${myTeam.abbr} ${entry.result} ${entry.myScore}-${entry.oppScore} vs ${entry.opponent.abbr}`, type: won ? 'info' : 'breaking' });
   updateTicker();
@@ -3775,7 +3778,7 @@ function endGame() {
 
 function toggleGamePause() {
   gamePaused = !gamePaused;
-  document.getElementById('btnPause').textContent = gamePaused ? '▶ PLAY' : '⏸ PAUSE';
+  document.getElementById('btnPause').textContent = gamePaused ? '▶ PLAY' : ' PAUSE';
   document.getElementById('btnPause').classList.toggle('active', gamePaused);
 }
 
@@ -3799,7 +3802,7 @@ function callTimeout() {
   if (!gameState) return;
   gamePaused = true;
   document.getElementById('btnPause').textContent = '▶ PLAY';
-  addPlay('⏰', 'TIMEOUT called.', 'var(--gold)');
+  addPlay('', 'TIMEOUT called.', 'var(--gold)');
   updateCommentary('Timeout on the floor. Teams heading to their benches.');
 }
 
