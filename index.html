@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASTRO - Space Janitor Adventure</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0A1020;overflow:hidden;font-family:'Exo 2',sans-serif;color:#fff;cursor:default}
+canvas{display:block}
+#game-container{position:relative;width:100vw;height:100vh}
+#ui-layer{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10}
+#ui-layer *{pointer-events:auto}
+.hidden{display:none!important}
+.menu-screen{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.menu-title{font-family:'Orbitron',sans-serif;font-size:120px;font-weight:900;background:linear-gradient(180deg,#3DF2FF 0%,#7D5FFF 50%,#FF4F5A 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-shadow:0 0 60px rgba(61,242,255,0.5);margin-bottom:10px;letter-spacing:8px;animation:titlePulse 3s ease-in-out infinite}
+.menu-subtitle{font-size:18px;color:#3DF2FF;opacity:0.7;margin-bottom:50px;letter-spacing:4px}
+@keyframes titlePulse{0%,100%{transform:scale(1);filter:brightness(1)}50%{transform:scale(1.02);filter:brightness(1.2)}}
+.menu-btn{background:linear-gradient(135deg,rgba(61,242,255,0.1),rgba(125,95,255,0.1));border:1px solid rgba(61,242,255,0.3);color:#3DF2FF;font-family:'Orbitron',sans-serif;font-size:16px;padding:15px 50px;margin:6px;border-radius:30px;cursor:pointer;transition:all 0.3s;letter-spacing:2px;min-width:280px;backdrop-filter:blur(10px)}
+.menu-btn:hover{background:linear-gradient(135deg,rgba(61,242,255,0.3),rgba(125,95,255,0.2));border-color:#3DF2FF;transform:scale(1.05);box-shadow:0 0 30px rgba(61,242,255,0.3)}
+.menu-btn:active{transform:scale(0.98)}
+#hud{position:absolute;top:0;left:0;width:100%;padding:15px 20px;display:flex;justify-content:space-between;align-items:flex-start}
+.hud-left,.hud-right{display:flex;gap:15px;align-items:center}
+.hud-bar{width:200px;height:12px;background:rgba(10,16,32,0.8);border-radius:6px;border:1px solid rgba(61,242,255,0.2);overflow:hidden;position:relative}
+.hud-bar-fill{height:100%;border-radius:6px;transition:width 0.3s}
+.hud-bar.health .hud-bar-fill{background:linear-gradient(90deg,#FF4F5A,#ff7882)}
+.hud-bar.stamina .hud-bar-fill{background:linear-gradient(90deg,#3DF2FF,#7aedff)}
+.hud-bar.xp .hud-bar-fill{background:linear-gradient(90deg,#7D5FFF,#a88fff)}
+.hud-label{font-family:'Orbitron',sans-serif;font-size:10px;color:#3DF2FF;margin-bottom:2px;letter-spacing:1px}
+.hud-text{font-family:'Orbitron',sans-serif;font-size:12px;color:#FFD93D}
+.hud-panel{background:rgba(10,16,32,0.7);border:1px solid rgba(61,242,255,0.2);border-radius:12px;padding:8px 14px;backdrop-filter:blur(5px)}
+#dialogue-box{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);width:70%;max-width:800px;background:rgba(10,16,32,0.9);border:1px solid rgba(61,242,255,0.4);border-radius:16px;padding:20px 25px;backdrop-filter:blur(10px)}
+#dialogue-name{font-family:'Orbitron',sans-serif;font-size:14px;color:#FFD93D;margin-bottom:8px}
+#dialogue-text{font-size:16px;line-height:1.5;color:#ddd}
+#dialogue-continue{position:absolute;bottom:8px;right:15px;font-size:11px;color:#3DF2FF;opacity:0.6;animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:0.6}50%{opacity:0.2}}
+#inventory-screen,#journal-screen,#upgrade-screen,#planet-select{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:80%;max-width:900px;max-height:80vh;background:rgba(10,16,32,0.95);border:1px solid rgba(61,242,255,0.3);border-radius:20px;padding:30px;backdrop-filter:blur(15px);overflow-y:auto}
+.screen-title{font-family:'Orbitron',sans-serif;font-size:28px;color:#3DF2FF;margin-bottom:20px;text-align:center}
+.inv-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+.inv-slot{aspect-ratio:1;background:rgba(61,242,255,0.05);border:1px solid rgba(61,242,255,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:30px;cursor:pointer;transition:all 0.2s;position:relative}
+.inv-slot:hover{border-color:#3DF2FF;background:rgba(61,242,255,0.1)}
+.inv-slot .count{position:absolute;bottom:2px;right:6px;font-size:11px;color:#FFD93D;font-family:'Orbitron'}
+.planet-card{background:rgba(61,242,255,0.05);border:1px solid rgba(61,242,255,0.2);border-radius:14px;padding:15px;margin:8px 0;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;gap:15px}
+.planet-card:hover{border-color:#3DF2FF;transform:translateX(5px);background:rgba(61,242,255,0.1)}
+.planet-icon{font-size:40px}
+.planet-info h3{font-family:'Orbitron',sans-serif;font-size:16px;color:#3DF2FF}
+.planet-info p{font-size:13px;color:#aaa;margin-top:4px}
+.close-btn{position:absolute;top:15px;right:20px;background:none;border:1px solid rgba(255,79,90,0.3);color:#FF4F5A;font-size:20px;width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+.close-btn:hover{background:rgba(255,79,90,0.2);border-color:#FF4F5A}
+.upgrade-row{display:flex;align-items:center;gap:15px;padding:12px;margin:6px 0;background:rgba(61,242,255,0.05);border:1px solid rgba(61,242,255,0.1);border-radius:10px}
+.upgrade-row:hover{border-color:rgba(61,242,255,0.3)}
+.upgrade-icon{font-size:28px}
+.upgrade-info{flex:1}
+.upgrade-info h4{font-family:'Orbitron',sans-serif;font-size:13px;color:#3DF2FF}
+.upgrade-info p{font-size:12px;color:#aaa;margin-top:2px}
+.upgrade-btn{background:linear-gradient(135deg,rgba(61,242,255,0.2),rgba(125,95,255,0.2));border:1px solid rgba(61,242,255,0.4);color:#3DF2FF;padding:8px 18px;border-radius:20px;cursor:pointer;font-family:'Orbitron',sans-serif;font-size:11px;transition:all 0.2s}
+.upgrade-btn:hover{background:rgba(61,242,255,0.3);transform:scale(1.05)}
+.upgrade-btn:disabled{opacity:0.3;cursor:not-allowed}
+.toast{position:absolute;top:80px;left:50%;transform:translateX(-50%);background:rgba(10,16,32,0.9);border:1px solid rgba(61,242,255,0.4);border-radius:20px;padding:10px 25px;font-family:'Orbitron',sans-serif;font-size:13px;color:#FFD93D;animation:toastIn 0.3s,toastOut 0.5s 2.5s forwards;pointer-events:none;z-index:100;white-space:nowrap}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes toastOut{to{opacity:0;transform:translateX(-50%) translateY(-20px)}}
+.damage-number{position:absolute;font-family:'Orbitron',sans-serif;font-weight:700;animation:dmgFloat 1s forwards;pointer-events:none;z-index:50;text-shadow:0 0 10px currentColor}
+@keyframes dmgFloat{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-60px) scale(0.5)}}
+#minimap{position:absolute;bottom:20px;right:20px;width:150px;height:150px;background:rgba(10,16,32,0.7);border:1px solid rgba(61,242,255,0.3);border-radius:50%;overflow:hidden}
+#death-screen{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(10,16,32,0.95);display:flex;flex-direction:column;align-items:center;justify-content:center}
+#death-screen h1{font-family:'Orbitron',sans-serif;font-size:60px;color:#FF4F5A;margin-bottom:10px}
+#death-screen p{color:#aaa;margin-bottom:30px;font-size:16px}
+#boss-bar{position:absolute;bottom:120px;left:50%;transform:translateX(-50%);width:60%;max-width:600px;text-align:center}
+#boss-bar .hud-label{font-size:14px;color:#FF4F5A;margin-bottom:6px}
+#boss-bar .hud-bar{width:100%;height:16px}
+#boss-bar .hud-bar-fill{background:linear-gradient(90deg,#FF4F5A,#ff8c3d)}
+.weapon-slot{position:absolute;bottom:25px;left:25px;display:flex;gap:8px}
+.weapon-slot .slot{width:50px;height:50px;background:rgba(10,16,32,0.7);border:1px solid rgba(61,242,255,0.2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:24px}
+.weapon-slot .slot.active{border-color:#FFD93D;box-shadow:0 0 15px rgba(255,217,61,0.3)}
+#controls-help{position:absolute;bottom:15px;left:50%;transform:translateX(-50%);font-size:11px;color:rgba(61,242,255,0.4);font-family:'Orbitron',sans-serif;letter-spacing:1px}
+</style>
+</head>
+<body>
+<div id="game-container">
+<canvas id="gameCanvas"></canvas>
+<div id="ui-layer">
+<!-- MAIN MENU -->
+<div id="main-menu" class="menu-screen">
+<div class="menu-title">ASTRO</div>
+<div class="menu-subtitle">SPACE JANITOR ADVENTURE</div>
+<button class="menu-btn" onclick="Game.startAdventure()">⭐ START ADVENTURE</button>
+<button class="menu-btn" onclick="Game.continueGame()">💾 CONTINUE</button>
+<button class="menu-btn" onclick="Game.showPlanets()">🪐 PLANET DATABASE</button>
+<button class="menu-btn" onclick="Game.showJournal()">👾 MONSTER JOURNAL</button>
+<button class="menu-btn" onclick="Game.showUpgrades()">🔧 UPGRADES</button>
+<button class="menu-btn" onclick="Game.showInventory()">🎒 INVENTORY</button>
+<button class="menu-btn" onclick="Game.showAchievements()">🏆 ACHIEVEMENTS</button>
+</div>
+
+<!-- HUD -->
+<div id="hud" class="hidden">
+<div class="hud-left">
+<div class="hud-panel">
+<div class="hud-label">HEALTH</div>
+<div class="hud-bar health"><div class="hud-bar-fill" id="health-bar" style="width:100%"></div></div>
+</div>
+<div class="hud-panel">
+<div class="hud-label">STAMINA</div>
+<div class="hud-bar stamina"><div class="hud-bar-fill" id="stamina-bar" style="width:100%"></div></div>
+</div>
+<div class="hud-panel">
+<div class="hud-label">XP</div>
+<div class="hud-bar xp"><div class="hud-bar-fill" id="xp-bar" style="width:0%"></div></div>
+</div>
+</div>
+<div class="hud-right">
+<div class="hud-panel hud-text" id="level-display">LVL 1</div>
+<div class="hud-panel hud-text" id="coins-display">💰 0</div>
+<div class="hud-panel hud-text" id="fragments-display">💎 0/7</div>
+<div class="hud-panel hud-text" id="planet-display">🪐 ---</div>
+</div>
+</div>
+
+<!-- WEAPON SLOTS -->
+<div class="weapon-slot hidden" id="weapon-slots">
+<div class="slot active" id="wslot0">🔧</div>
+<div class="slot" id="wslot1">🔫</div>
+<div class="slot" id="wslot2">🔨</div>
+</div>
+
+<!-- DIALOGUE -->
+<div id="dialogue-box" class="hidden">
+<div id="dialogue-name">???</div>
+<div id="dialogue-text"></div>
+<div id="dialogue-continue">▼ SPACE to continue</div>
+</div>
+
+<!-- BOSS BAR -->
+<div id="boss-bar" class="hidden">
+<div class="hud-label" id="boss-name">BOSS</div>
+<div class="hud-bar"><div class="hud-bar-fill" id="boss-hp" style="width:100%"></div></div>
+</div>
+
+<!-- INVENTORY -->
+<div id="inventory-screen" class="hidden">
+<button class="close-btn" onclick="Game.closeAll()">✕</button>
+<div class="screen-title">🎒 INVENTORY</div>
+<div class="inv-grid" id="inv-grid"></div>
+</div>
+
+<!-- JOURNAL -->
+<div id="journal-screen" class="hidden">
+<button class="close-btn" onclick="Game.closeAll()">✕</button>
+<div class="screen-title">👾 MONSTER JOURNAL</div>
+<div id="journal-list"></div>
+</div>
+
+<!-- UPGRADES -->
+<div id="upgrade-screen" class="hidden">
+<button class="close-btn" onclick="Game.closeAll()">✕</button>
+<div class="screen-title">🔧 UPGRADES</div>
+<div id="upgrade-list"></div>
+</div>
+
+<!-- PLANET SELECT -->
+<div id="planet-select" class="hidden">
+<button class="close-btn" onclick="Game.closeAll()">✕</button>
+<div class="screen-title">🪐 PLANET DATABASE</div>
+<div id="planet-list"></div>
+</div>
+
+<!-- DEATH -->
+<div id="death-screen" class="hidden">
+<h1>WASTED</h1>
+<p id="death-quote">"Being a hero is overrated." — Astro</p>
+<button class="menu-btn" onclick="Game.respawn()">🔄 TRY AGAIN</button>
+<button class="menu-btn" onclick="Game.toMenu()">🏠 MAIN MENU</button>
+</div>
+
+<!-- MINIMAP -->
+<canvas id="minimap" class="hidden" width="150" height="150"></canvas>
+
+<!-- CONTROLS -->
+<div id="controls-help" class="hidden">WASD Move · SPACE Jump/Interact · LMB Attack · 1-3 Weapons · E Interact · I Inventory · TAB Map · ESC Menu</div>
+</div>
+</div>
+
+<script>
+// ===================== ASTRO GAME ENGINE =====================
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const minimapCanvas = document.getElementById('minimap');
+const minimapCtx = minimapCanvas.getContext('2d');
+
+function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight}
+window.addEventListener('resize',resize);resize();
+
+// ===================== UTILITIES =====================
+const lerp=(a,b,t)=>a+(b-a)*t;
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+const rand=(min,max)=>Math.random()*(max-min)+min;
+const randInt=(min,max)=>Math.floor(rand(min,max+1));
+const pick=arr=>arr[Math.floor(Math.random()*arr.length)];
+const clamp=(v,mn,mx)=>Math.max(mn,Math.min(mx,v));
+
+// ===================== INPUT =====================
+const keys={};
+const mouse={x:0,y:0,down:false,clicked:false};
+window.addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(Game.state==='playing')e.preventDefault()});
+window.addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false});
+canvas.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY});
+canvas.addEventListener('mousedown',e=>{mouse.down=true;mouse.clicked=true});
+canvas.addEventListener('mouseup',()=>{mouse.down=false});
+canvas.addEventListener('contextmenu',e=>e.preventDefault());
+
+// ===================== COLORS =====================
+const C={
+  deepSpace:'#0A1020',navy:'#16213A',cyan:'#3DF2FF',red:'#FF4F5A',
+  yellow:'#FFD93D',purple:'#7D5FFF',green:'#3DFF7B',
+  cyanDark:'#1a8a99',purpleDark:'#4a2fbb'
+};
+
+// ===================== PLANET DATA =====================
+const PLANETS=[
+  {id:'slimeworld',name:'SLIMEWORLD',icon:'🟢',color:'#3DFF7B',desc:'Everything bounces. Goo monsters everywhere.',biome:'slime',
+   enemies:['Goo Blob','Slime Hopper','Bounce Beast','Jelly Titan'],boss:{name:'KING SLIMERUS',hp:500,color:'#3DFF7B'},
+   npcs:[{name:'GLOOP',icon:'🧪',lines:['Welcome to Slimeworld! Everything here is... moist.','I\'m a slime scientist. Yes, that\'s a real job.','Did you know slime has 47 uses? Number 23 will shock you!']}]},
+  {id:'toastron',name:'TOASTRON',icon:'🍞',color:'#FFD93D',desc:'Planet made of breakfast food. Danger: carbs.',biome:'food',
+   enemies:['Angry Waffle','Laser Bacon','Egg Spider','Cereal Killer'],boss:{name:'KING PANCAKRON',hp:600,color:'#FFD93D'},
+   npcs:[{name:'TOASTER PRIME',icon:'🍞',lines:['I am TOASTER PRIME. King of all toast.','My people have been burned... literally.','The Egg Spiders are out of control. Too many brunch casualties.']}]},
+  {id:'mechano9',name:'MECHANO-9',icon:'⚙️',color:'#8899aa',desc:'Robot factories. Industrial nightmares.',biome:'metal',
+   enemies:['Rust Drone','Gear Golem','Spark Bug','Mecha Worm'],boss:{name:'MEGA PROCESSOR',hp:700,color:'#8899aa'},
+   npcs:[{name:'BORK',icon:'🤖',lines:['BORK SMASH! Wait, wrong franchise.','I am tiny but VIOLENT.','Need weapon upgrade? BORK know a guy. It\'s BORK. BORK is the guy.']}]},
+  {id:'shadowmire',name:'SHADOW MIRE',icon:'🌑',color:'#445566',desc:'Dark comedy swamp. Fake jump scares.',biome:'swamp',
+   enemies:['Ghost Frog','Shadow Leech','Bog Phantom','Screaming Lily'],boss:{name:'THE BOG MOTHER',hp:550,color:'#556677'},
+   npcs:[{name:'SPOOK',icon:'👻',lines:['BOO! ...Did that work? No? Okay.','This swamp isn\'t scary. The property taxes are though.','I\'ve been dead for 300 years and I STILL have student loans.']}]},
+  {id:'skyroot',name:'SKYROOT',icon:'🌳',color:'#2dcc70',desc:'Floating jungle. Grapple between sky-islands.',biome:'jungle',
+   enemies:['Sky Vine','Cloud Monkey','Wind Serpent','Petal Bat'],boss:{name:'THE CANOPY KING',hp:650,color:'#2dcc70'},
+   npcs:[{name:'MAMA NOVA',icon:'👵',lines:['Come here, dear. Have some space cookies.','In my day, we fought cosmic horrors UPHILL. Both ways.','You remind me of my grandson. He also had no idea what he was doing.']}]},
+  {id:'crystaldeep',name:'CRYSTAL DEEP',icon:'💎',color:'#00bcd4',desc:'Underground crystal caves. Reflection puzzles.',biome:'crystal',
+   enemies:['Crystal Bat','Gem Golem','Prism Worm','Shard Spider'],boss:{name:'THE PRISMATIC QUEEN',hp:600,color:'#00bcd4'},
+   npcs:[{name:'GLINT',icon:'💎',lines:['Every crystal here tells a story. This one says "help me".','Don\'t touch the pink crystals. Long story. Involves a wedding.','The reflections show your true self. Yours looks confused.']}]},
+  {id:'bonesphere',name:'BONESPHERE',icon:'💀',color:'#e8d5b7',desc:'Planet of giant skeletons. Living fossils.',biome:'bone',
+   enemies:['Bone Crawler','Fossil Bat','Marrow Worm','Rib Cage Spider'],boss:{name:'THE BONE DRAGON',hp:800,color:'#e8d5b7'},
+   npcs:[{name:'DR. FEMUR',icon:'🦴',lines:['Welcome to Bonesphere! Population: dead.','These bones belonged to a creature so large, it had its own zip code.','Fun fact: the planet IS the skeleton. We live on a corpse!']}]},
+  {id:'partyx',name:'PARTY-X',icon:'🎉',color:'#ff6bff',desc:'Nonstop rave planet. Dance or die.',biome:'party',
+   enemies:['Disco Drone','Bass Beast','Strobe Ghost','DJ Zombie'],boss:{name:'DJ APOCALYPSE',hp:700,color:'#ff6bff'},
+   npcs:[{name:'FIZZ',icon:'🥤',lines:['THIS PARTY HAS BEEN GOING FOR 47 YEARS!','Nobody knows who started it. Nobody can stop it.','The DJ is a war criminal but his drops are FIRE.']}]},
+  {id:'frostbyte',name:'FROSTBYTE',icon:'❄️',color:'#a8d8ea',desc:'Ice planet. Everything is slippery.',biome:'ice',
+   enemies:['Frost Mite','Ice Golem','Snow Serpent','Blizzard Wolf'],boss:{name:'THE FROST QUEEN',hp:650,color:'#a8d8ea'},
+   npcs:[{name:'CHILLY',icon:'⛄',lines:['It\'s cold. Obviously. That\'s our whole thing.','The Frost Queen isn\'t evil. Just... emotionally unavailable.','Last visitor slipped and slid into orbit. Classic.']}]},
+  {id:'volcanix',name:'VOLCANIX',icon:'🌋',color:'#ff6b35',desc:'Lava world. Everything explodes.',biome:'lava',
+   enemies:['Magma Slime','Lava Lizard','Ash Phoenix','Ember Spider'],boss:{name:'THE INFERNO LORD',hp:750,color:'#ff6b35'},
+   npcs:[{name:'EMBER',icon:'🔥',lines:['Welcome to Volcanix! The floor is literally lava.','We measure temperature in "ow" units here.','My house burned down seven times. This month.']}]},
+  {id:'clockstar',name:'CLOCKSTAR',icon:'⏰',color:'#ffd700',desc:'Time distortion planet. Nothing makes temporal sense.',biome:'time',
+   enemies:['Time Beetle','Clock Golem','Paradox Bat','Chrono Worm'],boss:{name:'THE ETERNAL TICK',hp:700,color:'#ffd700'},
+   npcs:[{name:'PENDULUM',icon:'⏰',lines:['Welcome! You arrived yesterday. And also next week.','Time is relative. My relatives are time. It\'s complicated.','If you see yourself, do NOT high-five. Trust me.']}]},
+  {id:'voidthrone',name:'THE VOID THRONE',icon:'🕳️',color:'#330033',desc:'The final world. Home of The Hollow King.',biome:'void',
+   enemies:['Void Walker','Shadow Elite','Hollow Guard','Null Beast'],boss:{name:'THE HOLLOW KING',hp:2000,color:'#330033'},
+   npcs:[{name:'THE ECHO',icon:'👁️',lines:['You\'ve come far, janitor.','The Hollow King was not always hollow.','The truth will break you. Or make you. Probably both.']}]},
+];
+
+// ===================== WEAPON DATA =====================
+const WEAPONS=[
+  {id:'wrench',name:'Plasma Wrench',icon:'🔧',damage:10,range:50,speed:8,desc:'Your trusty cleaning tool. Now with plasma!'},
+  {id:'blaster',name:'Bubble Blaster',icon:'🔫',damage:15,range:200,speed:12,desc:'Shoots deadly bubbles. Don\'t laugh.',projectile:true},
+  {id:'hammer',name:'Gravity Hammer',icon:'🔨',damage:30,range:60,speed:4,desc:'Heavy. Slow. Devastating. Like Mondays.'},
+  {id:'broom',name:'Laser Broom',icon:'🧹',damage:12,range:80,speed:10,desc:'Clean up the competition. Literally.'},
+  {id:'spatula',name:'Rocket Spatula',icon:'🍳',damage:20,range:150,speed:7,desc:'Flips enemies like pancakes.',projectile:true},
+  {id:'cannon',name:'Void Cannon',icon:'💜',damage:40,range:250,speed:3,desc:'Shoots mini black holes. Overkill? Maybe.',projectile:true},
+  {id:'banana',name:'Banana Launcher',icon:'🍌',damage:18,range:180,speed:9,desc:'Potassium-powered destruction.',projectile:true},
+];
+
+// ===================== UPGRADE DATA =====================
+const UPGRADES=[
+  {id:'jetpack',name:'Jetpack',icon:'🚀',desc:'Double jump height',cost:100,stat:'jumpPower',bonus:1.5,bought:false},
+  {id:'wallclimb',name:'Wall Climb',icon:'🧗',desc:'Climb walls',cost:150,stat:'canWallClimb',bonus:true,bought:false},
+  {id:'dash',name:'Time Dash',icon:'⚡',desc:'Dash ability',cost:200,stat:'canDash',bonus:true,bought:false},
+  {id:'heatres',name:'Heat Resistance',icon:'🛡️',desc:'Survive lava planets',cost:120,stat:'heatRes',bonus:true,bought:false},
+  {id:'underwater',name:'Aqua Suit',icon:'🫧',desc:'Breathe underwater',cost:130,stat:'waterBreath',bonus:true,bought:false},
+  {id:'hp1',name:'Health Boost I',icon:'❤️',desc:'+50 Max HP',cost:80,stat:'maxHp',bonus:50,bought:false},
+  {id:'hp2',name:'Health Boost II',icon:'❤️‍🔥',desc:'+100 Max HP',cost:200,stat:'maxHp',bonus:100,bought:false},
+  {id:'dmg1',name:'Power Gloves',icon:'🥊',desc:'+20% Damage',cost:150,stat:'dmgMult',bonus:0.2,bought:false},
+  {id:'speed1',name:'Speed Boots',icon:'👟',desc:'+30% Speed',cost:100,stat:'speedMult',bonus:0.3,bought:false},
+  {id:'luck1',name:'Lucky Charm',icon:'🍀',desc:'+Loot chance',cost:180,stat:'luck',bonus:0.2,bought:false},
+];
+
+// ===================== COLLECTIBLES =====================
+const COLLECTIBLES=['🧦 Space Sock','📼 Ancient Cassette','🎩 Alien Hat','🃏 Monster Card','🍴 Broken Fork','🦆 Rubber Duck','🧸 Cosmic Teddy','📿 Void Necklace'];
+
+// ===================== DEATH QUOTES =====================
+const DEATH_QUOTES=[
+  '"Being a hero is overrated." — Astro',
+  '"I didn\'t sign up for this. I signed up for janitorial duty." — Astro',
+  '"At least I don\'t have to clean toilets anymore." — Astro',
+  '"Tell my mop... I loved it." — Astro',
+  '"This is fine. Everything is fine." — Astro',
+  '"Respawning in 3... 2... who invented this system?" — Astro',
+  '"I blame whoever thought I was the chosen one." — Astro',
+];
+
+// ===================== PARTICLES =====================
+class Particle{
+  constructor(x,y,color,life=1,size=3,vx=0,vy=0){
+    this.x=x;this.y=y;this.color=color;this.life=life;this.maxLife=life;
+    this.size=size;this.vx=vx||rand(-2,2);this.vy=vy||rand(-3,-0.5);this.dead=false;
+  }
+  update(dt){
+    this.x+=this.vx;this.y+=this.vy;this.vy+=0.05;this.life-=dt;
+    if(this.life<=0)this.dead=true;
+  }
+  draw(ctx,cx,cy){
+    const a=this.life/this.maxLife;
+    ctx.globalAlpha=a;ctx.fillStyle=this.color;
+    ctx.beginPath();ctx.arc(this.x-cx,this.y-cy,this.size*a,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=1;
+  }
+}
+
+// ===================== CAMERA =====================
+const camera={x:0,y:0,shake:0,shakeDecay:0.9};
+function updateCamera(target){
+  camera.x=lerp(camera.x,target.x-canvas.width/2,0.08);
+  camera.y=lerp(camera.y,target.y-canvas.height/2,0.08);
+  if(camera.shake>0.5){camera.x+=rand(-camera.shake,camera.shake);camera.y+=rand(-camera.shake,camera.shake);camera.shake*=camera.shakeDecay;}
+}
+
+// ===================== PLAYER =====================
+const player={
+  x:400,y:400,vx:0,vy:0,w:28,h:40,
+  hp:100,maxHp:100,stamina:100,maxStamina:100,
+  xp:0,xpNext:100,level:1,coins:0,fragments:0,
+  speed:4,jumpPower:10,grounded:false,facing:1,
+  weapon:0,attackTimer:0,invincible:0,
+  dmgMult:1,speedMult:1,luck:0,
+  canDash:false,canWallClimb:false,heatRes:false,waterBreath:false,
+  dashCooldown:0,dashing:false,dashTimer:0
+};
+
+// ===================== GAME STATE =====================
+const Game={
+  state:'menu', // menu,intro,playing,dead,paused
+  currentPlanet:null,
+  world:{tiles:[],platforms:[],entities:[],npcs:[],items:[],portals:[],projectiles:[],particles:[]},
+  discoveredMonsters:new Set(),
+  inventory:[],
+  achievements:[],
+  introStep:0,
+  introTimer:0,
+  introTexts:[
+    {name:'NARRATOR',text:'Planet Earth-X9. A peaceful world in the outer rim of the Andromeda cluster.'},
+    {name:'NARRATOR',text:'Home to 8 billion beings, 47 coffee shops per block, and one very mediocre janitor.'},
+    {name:'ASTRO',text:'*scrubbing toilet* Another day, another space toilet...'},
+    {name:'ALARM',text:'⚠️ WARNING: COSMIC ANOMALY DETECTED. CLASS: EXTINCTION LEVEL.'},
+    {name:'ASTRO',text:'That sounds bad. But it\'s probably not MY problem, right?'},
+    {name:'NARRATOR',text:'A massive cosmic entity — THE HOLLOW KING — tears through the sky.'},
+    {name:'ASTRO',text:'OKAY IT\'S MY PROBLEM! IT\'S EVERYONE\'S PROBLEM!'},
+    {name:'NARRATOR',text:'The planet\'s energy core is consumed. In the chaos, Astro falls into a garbage escape pod.'},
+    {name:'ASTRO',text:'WHY DOES THIS POD SMELL LIKE OLD SOCKS AND REGRET?!'},
+    {name:'NARRATOR',text:'The pod launches. Everyone assumes it was an act of heroism.'},
+    {name:'NEWS ANCHOR',text:'BREAKING: Brave janitor heroically launches into space to save humanity!'},
+    {name:'ASTRO',text:'I just tripped into it! I TRIPPED INTO IT!'},
+    {name:'NARRATOR',text:'Now Astro must find the 7 Core Fragments scattered across the galaxy to restore Earth-X9.'},
+    {name:'ASTRO',text:'*sigh* Fine. But I want overtime pay.'},
+  ],
+  dialogueQueue:[],
+  dialogueActive:false,
+  dialogueCallback:null,
+  screenShake(amount){camera.shake=amount},
+  toast(msg){
+    const t=document.createElement('div');t.className='toast';t.textContent=msg;
+    document.getElementById('ui-layer').appendChild(t);setTimeout(()=>t.remove(),3000);
+  },
+  damageNumber(x,y,dmg,color='#FF4F5A'){
+    const d=document.createElement('div');d.className='damage-number';
+    d.style.left=(x-camera.x)+'px';d.style.top=(y-camera.y)+'px';
+    d.style.color=color;d.style.fontSize=(16+dmg/2)+'px';d.textContent=dmg;
+    document.getElementById('ui-layer').appendChild(d);setTimeout(()=>d.remove(),1000);
+  },
+
+  startAdventure(){
+    this.state='intro';this.introStep=0;this.introTimer=0;
+    document.getElementById('main-menu').classList.add('hidden');
+    this.showDialogue(this.introTexts[0].name,this.introTexts[0].text);
+  },
+  continueGame(){
+    const save=localStorage.getItem('astro_save');
+    if(save){
+      const d=JSON.parse(save);
+      Object.assign(player,d.player);
+      this.inventory=d.inventory||[];
+      this.discoveredMonsters=new Set(d.monsters||[]);
+      if(d.planet) this.loadPlanet(d.planet);
+      else this.loadPlanet('slimeworld');
+    } else {
+      this.toast('No save found! Starting new game.');
+      this.startAdventure();
+    }
+  },
+  saveGame(){
+    const d={player:{...player},inventory:this.inventory,monsters:[...this.discoveredMonsters],planet:this.currentPlanet?.id};
+    localStorage.setItem('astro_save',JSON.stringify(d));
+    this.toast('Game Saved!');
+  },
+
+  showDialogue(name,text,cb){
+    this.dialogueActive=true;this.dialogueCallback=cb||null;
+    document.getElementById('dialogue-box').classList.remove('hidden');
+    document.getElementById('dialogue-name').textContent=name;
+    const el=document.getElementById('dialogue-text');el.textContent='';
+    let i=0;const iv=setInterval(()=>{if(i<text.length){el.textContent+=text[i];i++}else clearInterval(iv)},25);
+  },
+  advanceDialogue(){
+    if(!this.dialogueActive)return;
+    if(this.state==='intro'){
+      this.introStep++;
+      if(this.introStep>=this.introTexts.length){
+        this.dialogueActive=false;
+        document.getElementById('dialogue-box').classList.add('hidden');
+        this.loadPlanet('slimeworld');return;
+      }
+      this.showDialogue(this.introTexts[this.introStep].name,this.introTexts[this.introStep].text);
+    } else if(this.dialogueQueue.length>0){
+      const next=this.dialogueQueue.shift();
+      this.showDialogue(next.name,next.text);
+    } else {
+      this.dialogueActive=false;
+      document.getElementById('dialogue-box').classList.remove('hidden');
+      document.getElementById('dialogue-box').classList.add('hidden');
+      if(this.dialogueCallback){this.dialogueCallback();this.dialogueCallback=null;}
+    }
+  },
+
+  loadPlanet(id){
+    const p=PLANETS.find(pp=>pp.id===id);if(!p)return;
+    this.currentPlanet=p;this.state='playing';
+    document.getElementById('main-menu').classList.add('hidden');
+    document.getElementById('hud').classList.remove('hidden');
+    document.getElementById('weapon-slots').classList.remove('hidden');
+    document.getElementById('minimap').classList.remove('hidden');
+    document.getElementById('controls-help').classList.remove('hidden');
+    document.getElementById('planet-display').textContent='🪐 '+p.name;
+    this.generateWorld(p);
+    player.x=200;player.y=300;player.vx=0;player.vy=0;
+    if(player.hp<=0)player.hp=player.maxHp;
+    this.toast('Landed on '+p.name+'!');
+    this.saveGame();
+  },
+
+  generateWorld(planet){
+    const w=this.world;
+    w.tiles=[];w.platforms=[];w.entities=[];w.npcs=[];w.items=[];w.portals=[];w.projectiles=[];w.particles=[];
+    const worldW=6000,worldH=2000;
+    const groundY=worldH-200;
+    // Ground
+    w.platforms.push({x:0,y:groundY,w:worldW,h:200,color:planet.color+'44'});
+    // Generate platforms
+    for(let i=0;i<60;i++){
+      const px=rand(100,worldW-300);const py=rand(groundY-600,groundY-80);
+      const pw=rand(80,250);
+      w.platforms.push({x:px,y:py,w:pw,h:16,color:planet.color+'66'});
+    }
+    // Enemies
+    const enemyTypes=planet.enemies;
+    for(let i=0;i<25;i++){
+      const type=pick(enemyTypes);
+      w.entities.push(this.createEnemy(type,rand(200,worldW-200),groundY-60,planet));
+    }
+    // NPCs
+    if(planet.npcs){
+      planet.npcs.forEach((npc,idx)=>{
+        w.npcs.push({x:300+idx*400,y:groundY-50,w:30,h:40,name:npc.name,icon:npc.icon,lines:npc.lines,lineIdx:0});
+      });
+    }
+    // Items
+    for(let i=0;i<15;i++){
+      const type=Math.random()<0.5?'coin':'health';
+      w.items.push({x:rand(100,worldW-100),y:rand(groundY-500,groundY-30),type,collected:false});
+    }
+    for(let i=0;i<3;i++){
+      w.items.push({x:rand(500,worldW-500),y:rand(groundY-400,groundY-50),type:'collectible',collected:false,name:pick(COLLECTIBLES)});
+    }
+    // Boss portal
+    w.portals.push({x:worldW-300,y:groundY-80,w:60,h:70,type:'boss',label:'⚔️ BOSS'});
+    // Return portal
+    w.portals.push({x:50,y:groundY-80,w:60,h:70,type:'return',label:'🚀 SHIP'});
+    // Planet exit
+    if(planet.id!=='voidthrone'){
+      const nextIdx=PLANETS.findIndex(pp=>pp.id===planet.id)+1;
+      if(nextIdx<PLANETS.length){
+        w.portals.push({x:worldW-100,y:groundY-80,w:60,h:70,type:'planet',target:PLANETS[nextIdx].id,label:'🪐 '+PLANETS[nextIdx].name});
+      }
+    }
+  },
+
+  createEnemy(type,x,y,planet){
+    const base={
+      x,y,w:30+rand(0,15),h:30+rand(0,15),vx:rand(-1,1),vy:0,
+      type,hp:30+randInt(0,40),maxHp:30+randInt(0,40),
+      damage:8+randInt(0,10),speed:1+rand(0,1.5),
+      color:planet.color,attackCd:0,
+      trait:pick(['aggressive','cowardly','explosive','regenerative','sleeping']),
+      grounded:false,dead:false,deathTimer:0,
+      stunned:0,knockback:0
+    };
+    base.maxHp=base.hp;
+    if(base.trait==='sleeping')base.speed=0;
+    return base;
+  },
+
+  createBoss(planet){
+    const b=planet.boss;
+    const boss={
+      x:3000,y:1600,w:80,h:90,vx:0,vy:0,
+      type:b.name,hp:b.hp,maxHp:b.hp,
+      damage:20,speed:2,color:b.color,
+      attackCd:0,trait:'boss',grounded:false,dead:false,deathTimer:0,
+      isBoss:true,phase:1,stunned:0,knockback:0,
+      patterns:['charge','slam','projectile','summon'],patternIdx:0,patternTimer:0
+    };
+    return boss;
+  },
+
+  spawnBoss(){
+    if(!this.currentPlanet)return;
+    const boss=this.createBoss(this.currentPlanet);
+    this.world.entities.push(boss);
+    document.getElementById('boss-bar').classList.remove('hidden');
+    document.getElementById('boss-name').textContent=boss.type;
+    this.screenShake(15);
+    this.toast('⚔️ '+boss.type+' APPEARS!');
+  },
+
+  showPlanets(){
+    const el=document.getElementById('planet-select');el.classList.remove('hidden');
+    const list=document.getElementById('planet-list');list.innerHTML='';
+    PLANETS.forEach(p=>{
+      const card=document.createElement('div');card.className='planet-card';
+      card.innerHTML=`<div class="planet-icon">${p.icon}</div><div class="planet-info"><h3>${p.name}</h3><p>${p.desc}</p></div>`;
+      card.onclick=()=>{this.closeAll();this.loadPlanet(p.id)};
+      list.appendChild(card);
+    });
+  },
+  showJournal(){
+    const el=document.getElementById('journal-screen');el.classList.remove('hidden');
+    const list=document.getElementById('journal-list');list.innerHTML='';
+    if(this.discoveredMonsters.size===0){list.innerHTML='<p style="text-align:center;color:#aaa">No monsters discovered yet. Go explore!</p>';return}
+    this.discoveredMonsters.forEach(m=>{
+      const row=document.createElement('div');row.className='upgrade-row';
+      row.innerHTML=`<div class="upgrade-icon">👾</div><div class="upgrade-info"><h4>${m}</h4><p>Discovered</p></div>`;
+      list.appendChild(row);
+    });
+  },
+  showInventory(){
+    const el=document.getElementById('inventory-screen');el.classList.remove('hidden');
+    const grid=document.getElementById('inv-grid');grid.innerHTML='';
+    for(let i=0;i<24;i++){
+      const slot=document.createElement('div');slot.className='inv-slot';
+      if(this.inventory[i]){
+        slot.textContent=this.inventory[i].icon||'📦';
+        if(this.inventory[i].count>1){
+          const c=document.createElement('span');c.className='count';c.textContent=this.inventory[i].count;slot.appendChild(c);
+        }
+      }
+      grid.appendChild(slot);
+    }
+  },
+  showUpgrades(){
+    const el=document.getElementById('upgrade-screen');el.classList.remove('hidden');
+    const list=document.getElementById('upgrade-list');list.innerHTML='';
+    UPGRADES.forEach(u=>{
+      const row=document.createElement('div');row.className='upgrade-row';
+      const btn=u.bought?'<span style="color:#3DFF7B;font-family:Orbitron;font-size:12px">OWNED</span>'
+        :`<button class="upgrade-btn" onclick="Game.buyUpgrade('${u.id}')">💰 ${u.cost}</button>`;
+      row.innerHTML=`<div class="upgrade-icon">${u.icon}</div><div class="upgrade-info"><h4>${u.name}</h4><p>${u.desc}</p></div>${btn}`;
+      list.appendChild(row);
+    });
+  },
+  showAchievements(){this.toast('Achievements coming soon!')},
+  buyUpgrade(id){
+    const u=UPGRADES.find(uu=>uu.id===id);if(!u||u.bought)return;
+    if(player.coins<u.cost){this.toast('Not enough coins!');return}
+    player.coins-=u.cost;u.bought=true;
+    if(u.stat==='maxHp'){player.maxHp+=u.bonus;player.hp=player.maxHp}
+    else if(u.stat==='dmgMult')player.dmgMult+=u.bonus;
+    else if(u.stat==='speedMult')player.speedMult+=u.bonus;
+    else if(u.stat==='luck')player.luck+=u.bonus;
+    else if(u.stat==='jumpPower')player.jumpPower*=u.bonus;
+    else player[u.stat]=u.bonus;
+    this.toast('Purchased '+u.name+'!');this.showUpgrades();
+  },
+
+  closeAll(){
+    ['inventory-screen','journal-screen','upgrade-screen','planet-select'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+  },
+
+  respawn(){
+    player.hp=player.maxHp;player.stamina=player.maxStamina;
+    document.getElementById('death-screen').classList.add('hidden');
+    if(this.currentPlanet)this.loadPlanet(this.currentPlanet.id);
+    else this.toMenu();
+  },
+  toMenu(){
+    this.state='menu';
+    document.getElementById('death-screen').classList.add('hidden');
+    document.getElementById('hud').classList.add('hidden');
+    document.getElementById('weapon-slots').classList.add('hidden');
+    document.getElementById('minimap').classList.add('hidden');
+    document.getElementById('controls-help').classList.add('hidden');
+    document.getElementById('boss-bar').classList.add('hidden');
+    document.getElementById('main-menu').classList.remove('hidden');
+  },
+  die(){
+    this.state='dead';
+    document.getElementById('death-screen').classList.remove('hidden');
+    document.getElementById('death-quote').textContent=pick(DEATH_QUOTES);
+  },
+
+  addItem(icon,name,count=1){
+    const existing=this.inventory.find(i=>i.name===name);
+    if(existing){existing.count+=count}
+    else this.inventory.push({icon,name,count});
+  },
+  gainXP(amount){
+    player.xp+=amount;
+    while(player.xp>=player.xpNext){
+      player.xp-=player.xpNext;player.level++;player.xpNext=Math.floor(player.xpNext*1.4);
+      player.maxHp+=10;player.hp=player.maxHp;
+      this.toast('⭐ LEVEL UP! Level '+player.level);this.screenShake(5);
+    }
+  }
+};
+
+// ===================== UPDATE =====================
+function updatePlayer(dt){
+  if(Game.dialogueActive||Game.state!=='playing')return;
+  const p=player;const spd=p.speed*p.speedMult;
+
+  // Movement
+  if(keys['a']||keys['arrowleft']){p.vx=-spd;p.facing=-1}
+  else if(keys['d']||keys['arrowright']){p.vx=spd;p.facing=1}
+  else p.vx*=0.7;
+
+  // Jump
+  if((keys['w']||keys[' ']||keys['arrowup'])&&p.grounded){p.vy=-p.jumpPower;p.grounded=false;}
+
+  // Dash
+  if(keys['shift']&&p.canDash&&p.dashCooldown<=0&&p.stamina>=20){
+    p.dashing=true;p.dashTimer=10;p.dashCooldown=60;p.stamina-=20;
+    p.vx=p.facing*15;
+  }
+  if(p.dashing){p.dashTimer--;if(p.dashTimer<=0)p.dashing=false}
+  if(p.dashCooldown>0)p.dashCooldown--;
+
+  // Physics
+  p.vy+=0.5; // gravity
+  p.x+=p.vx;p.y+=p.vy;
+  p.grounded=false;
+
+  // Platform collision
+  const w=Game.world;
+  for(const plat of w.platforms){
+    if(p.x+p.w>plat.x&&p.x<plat.x+plat.w&&p.y+p.h>plat.y&&p.y+p.h<plat.y+plat.h+p.vy+5){
+      if(p.vy>0){p.y=plat.y-p.h;p.vy=0;p.grounded=true;}
+    }
+  }
+
+  // World bounds
+  if(p.y>2000){p.hp-=5;if(p.hp<=0)Game.die();else{p.y=200;p.vy=0}}
+  if(p.x<0)p.x=0;if(p.x>6000)p.x=6000;
+
+  // Stamina regen
+  if(p.stamina<p.maxStamina)p.stamina+=0.15;
+
+  // Invincibility
+  if(p.invincible>0)p.invincible--;
+
+  // Attack
+  if(p.attackTimer>0)p.attackTimer--;
+  if(mouse.clicked&&p.attackTimer<=0){
+    const wp=WEAPONS[p.weapon];
+    p.attackTimer=wp.speed;
+    Game.screenShake(3);
+    if(wp.projectile){
+      const angle=Math.atan2(mouse.y-(p.y-camera.y),mouse.x-(p.x-camera.x));
+      w.projectiles.push({x:p.x+p.w/2,y:p.y+p.h/2,vx:Math.cos(angle)*8,vy:Math.sin(angle)*8,damage:wp.damage*p.dmgMult,life:60,owner:'player',color:C.cyan});
+    } else {
+      const ax=p.x+p.facing*wp.range;
+      for(const e of w.entities){
+        if(!e.dead&&dist({x:ax,y:p.y},{x:e.x+e.w/2,y:e.y+e.h/2})<wp.range){
+          hitEnemy(e,Math.floor(wp.damage*p.dmgMult));
+        }
+      }
+    }
+    // Particles
+    for(let i=0;i<5;i++){
+      w.particles.push(new Particle(p.x+p.w/2+p.facing*30,p.y+p.h/2,C.cyan,0.5,2));
+    }
+  }
+
+  // Item pickup
+  for(const item of w.items){
+    if(item.collected)continue;
+    if(dist({x:p.x+p.w/2,y:p.y+p.h/2},{x:item.x,y:item.y})<40){
+      item.collected=true;
+      if(item.type==='coin'){p.coins+=10;Game.toast('+10 💰')}
+      else if(item.type==='health'){p.hp=Math.min(p.maxHp,p.hp+25);Game.toast('+25 ❤️')}
+      else if(item.type==='collectible'){Game.addItem('🎁',item.name);Game.toast('Found: '+item.name)}
+      for(let i=0;i<8;i++)w.particles.push(new Particle(item.x,item.y,C.yellow,0.6,2));
+    }
+  }
+
+  // NPC interaction
+  if(keys['e']){
+    for(const npc of w.npcs){
+      if(dist({x:p.x,y:p.y},{x:npc.x,y:npc.y})<60&&!Game.dialogueActive){
+        Game.showDialogue(npc.name,npc.lines[npc.lineIdx]);
+        npc.lineIdx=(npc.lineIdx+1)%npc.lines.length;
+        keys['e']=false;
+      }
+    }
+  }
+
+  // Portal interaction
+  if(keys['e']){
+    for(const portal of w.portals){
+      if(p.x+p.w>portal.x&&p.x<portal.x+portal.w&&p.y+p.h>portal.y&&p.y<portal.y+portal.h){
+        if(portal.type==='boss'){Game.spawnBoss();keys['e']=false}
+        else if(portal.type==='return'){Game.showPlanets();keys['e']=false}
+        else if(portal.type==='planet'){Game.loadPlanet(portal.target);keys['e']=false}
+      }
+    }
+  }
+
+  // Weapon switch
+  if(keys['1'])p.weapon=0;
+  if(keys['2'])p.weapon=1;
+  if(keys['3'])p.weapon=2;
+
+  // Update weapon UI
+  for(let i=0;i<3;i++){
+    const sl=document.getElementById('wslot'+i);
+    sl.className=i===p.weapon?'slot active':'slot';
+    sl.textContent=WEAPONS[i].icon;
+  }
+
+  // HUD
+  document.getElementById('health-bar').style.width=(p.hp/p.maxHp*100)+'%';
+  document.getElementById('stamina-bar').style.width=(p.stamina/p.maxStamina*100)+'%';
+  document.getElementById('xp-bar').style.width=(p.xp/p.xpNext*100)+'%';
+  document.getElementById('level-display').textContent='LVL '+p.level;
+  document.getElementById('coins-display').textContent='💰 '+p.coins;
+  document.getElementById('fragments-display').textContent='💎 '+p.fragments+'/7';
+
+  // Pause / Inventory
+  if(keys['i']){Game.showInventory();keys['i']=false}
+  if(keys['escape']){Game.closeAll();keys['escape']=false}
+  if(keys['tab']){keys['tab']=false} // minimap toggle
+}
+
+function hitEnemy(e,dmg){
+  e.hp-=dmg;e.stunned=15;e.knockback=player.facing*8;
+  Game.damageNumber(e.x+e.w/2,e.y,dmg);
+  Game.discoveredMonsters.add(e.type);
+  for(let i=0;i<6;i++)Game.world.particles.push(new Particle(e.x+e.w/2,e.y+e.h/2,e.color||C.red,0.4,3));
+  if(e.hp<=0){
+    e.dead=true;e.deathTimer=30;
+    player.coins+=randInt(5,15);
+    Game.gainXP(randInt(10,25));
+    if(e.isBoss){
+      player.fragments++;
+      Game.toast('💎 CORE FRAGMENT OBTAINED! ('+player.fragments+'/7)');
+      document.getElementById('boss-bar').classList.add('hidden');
+      Game.screenShake(20);
+      if(player.fragments>=7){
+        Game.showDialogue('NARRATOR','All 7 Core Fragments collected! Earth-X9 can be restored!',()=>{
+          Game.showDialogue('ASTRO','Wait... I actually did it? ME? The janitor?!',()=>{
+            Game.showDialogue('NARRATOR','Congratulations! You\'ve completed ASTRO! ...Or have you?',()=>{
+              Game.toast('🎉 YOU WIN! Thanks for playing!');
+            });
+          });
+        });
+      }
+      for(let i=0;i<40;i++)Game.world.particles.push(new Particle(e.x+e.w/2,e.y+e.h/2,C.yellow,1,rand(2,6)));
+    }
+    if(e.trait==='explosive'){
+      Game.screenShake(10);
+      for(let i=0;i<20;i++)Game.world.particles.push(new Particle(e.x+e.w/2,e.y+e.h/2,C.red,0.8,rand(2,5)));
+    }
+    if(Math.random()<0.15+player.luck){
+      Game.world.items.push({x:e.x,y:e.y,type:Math.random()<0.5?'coin':'health',collected:false});
+    }
+  }
+}
+
+function updateEntities(){
+  const w=Game.world;const p=player;
+  for(const e of w.entities){
+    if(e.dead){e.deathTimer--;continue;}
+    if(e.stunned>0){e.stunned--;e.x+=e.knockback;e.knockback*=0.8;continue}
+
+    // AI
+    const dx=p.x-e.x;const dy=p.y-e.y;const d=Math.hypot(dx,dy);
+
+    if(e.isBoss){
+      // Boss AI
+      e.patternTimer--;
+      if(e.patternTimer<=0){
+        e.patternIdx=(e.patternIdx+1)%e.patterns.length;
+        e.patternTimer=90;
+        const pattern=e.patterns[e.patternIdx];
+        if(pattern==='charge'){e.vx=Math.sign(dx)*e.speed*3;Game.screenShake(5)}
+        else if(pattern==='slam'){e.vy=-12;Game.screenShake(8)}
+        else if(pattern==='projectile'){
+          for(let i=0;i<5;i++){
+            const angle=Math.atan2(dy,dx)+rand(-0.5,0.5);
+            w.projectiles.push({x:e.x+e.w/2,y:e.y+e.h/2,vx:Math.cos(angle)*5,vy:Math.sin(angle)*5,damage:e.damage,life:80,owner:'enemy',color:C.red});
+          }
+        }
+      }
+      if(e.hp<e.maxHp*0.5&&e.phase===1){e.phase=2;e.speed*=1.5;e.damage*=1.3;Game.toast('⚠️ BOSS ENRAGED!')}
+    } else {
+      if(e.trait==='cowardly'&&d<150){e.vx=-Math.sign(dx)*e.speed}
+      else if(e.trait==='sleeping'){if(d<100){e.trait='aggressive';e.speed=2}}
+      else if(e.trait==='regenerative'){if(e.hp<e.maxHp)e.hp+=0.05}
+      else if(d<300){e.vx=Math.sign(dx)*e.speed}
+      else e.vx*=0.95;
+    }
+
+    // Physics
+    e.vy+=0.5;e.x+=e.vx;e.y+=e.vy;e.grounded=false;
+    for(const plat of w.platforms){
+      if(e.x+e.w>plat.x&&e.x<plat.x+plat.w&&e.y+e.h>plat.y&&e.y+e.h<plat.y+plat.h+8){
+        if(e.vy>0){e.y=plat.y-e.h;e.vy=0;e.grounded=true}
+      }
+    }
+    if(e.y>2200){e.dead=true;}
+
+    // Boss HP bar
+    if(e.isBoss&&!e.dead){
+      document.getElementById('boss-hp').style.width=(e.hp/e.maxHp*100)+'%';
+    }
+
+    // Damage player
+    if(e.attackCd<=0&&!p.invincible&&p.hp>0){
+      if(p.x+p.w>e.x&&p.x<e.x+e.w&&p.y+p.h>e.y&&p.y<e.y+e.h){
+        p.hp-=e.damage;p.invincible=40;p.vx=-Math.sign(e.x-p.x)*5;p.vy=-3;
+        e.attackCd=30;Game.screenShake(6);
+        Game.damageNumber(p.x+p.w/2,p.y,-e.damage,C.red);
+        if(p.hp<=0)Game.die();
+      }
+    }
+    if(e.attackCd>0)e.attackCd--;
+  }
+  // Cleanup dead
+  w.entities=w.entities.filter(e=>!e.dead||e.deathTimer>0);
+}
+
+function updateProjectiles(){
+  const w=Game.world;
+  for(const pr of w.projectiles){
+    pr.x+=pr.vx;pr.y+=pr.vy;pr.life--;
+    if(pr.owner==='player'){
+      for(const e of w.entities){
+        if(!e.dead&&pr.x>e.x&&pr.x<e.x+e.w&&pr.y>e.y&&pr.y<e.y+e.h){
+          hitEnemy(e,Math.floor(pr.damage));pr.life=0;break;
+        }
+      }
+    } else {
+      if(pr.x>player.x&&pr.x<player.x+player.w&&pr.y>player.y&&pr.y<player.y+player.h&&!player.invincible){
+        player.hp-=pr.damage;player.invincible=30;pr.life=0;
+        Game.screenShake(4);if(player.hp<=0)Game.die();
+      }
+    }
+    w.particles.push(new Particle(pr.x,pr.y,pr.color,0.2,1.5));
+  }
+  w.projectiles=w.projectiles.filter(pr=>pr.life>0);
+}
+
+function updateParticles(dt){
+  for(const p of Game.world.particles)p.update(dt);
+  Game.world.particles=Game.world.particles.filter(p=>!p.dead);
+}
+
+// ===================== RENDER =====================
+let bgStars=[];for(let i=0;i<200;i++)bgStars.push({x:rand(0,6000),y:rand(0,2000),s:rand(0.5,2),b:rand(0.3,1)});
+
+function render(){
+  ctx.fillStyle=C.deepSpace;ctx.fillRect(0,0,canvas.width,canvas.height);
+  const cx=camera.x,cy=camera.y;
+
+  if(Game.state==='menu'||Game.state==='intro'){
+    // Draw animated space background for menu
+    const t=Date.now()/1000;
+    ctx.fillStyle=C.deepSpace;ctx.fillRect(0,0,canvas.width,canvas.height);
+    for(const s of bgStars){
+      const sx=(s.x*0.3-t*20)%canvas.width;const sy=(s.y*0.3)%canvas.height;
+      ctx.globalAlpha=s.b*(0.5+0.5*Math.sin(t+s.x));
+      ctx.fillStyle='#fff';ctx.fillRect(sx<0?sx+canvas.width:sx,sy,s.s,s.s);
+    }
+    ctx.globalAlpha=1;
+    // Floating Astro in menu
+    if(Game.state==='menu'){
+      const ax=canvas.width/2,ay=canvas.height/2+120+Math.sin(t)*20;
+      drawAstro(ax,ay,1,0.7);
+      // Floating junk
+      ctx.font='24px sans-serif';ctx.globalAlpha=0.4;
+      ctx.fillText('🔧',ax+120+Math.sin(t*0.7)*30,ay-40+Math.cos(t*0.9)*15);
+      ctx.fillText('🧹',ax-150+Math.cos(t*0.5)*20,ay+Math.sin(t*0.8)*25);
+      ctx.fillText('🧦',ax+80+Math.sin(t*1.2)*15,ay+50+Math.cos(t)*10);
+      ctx.fillText('🚀',ax-90+Math.cos(t*0.6)*25,ay-60+Math.sin(t*0.7)*20);
+      ctx.globalAlpha=1;
+    }
+    return;
+  }
+
+  if(Game.state!=='playing')return;
+
+  // Stars
+  for(const s of bgStars){
+    const sx=s.x*0.3-cx*0.1;const sy=s.y*0.5-cy*0.1;
+    ctx.globalAlpha=s.b;ctx.fillStyle='#fff';ctx.fillRect(sx,sy,s.s,s.s);
+  }
+  ctx.globalAlpha=1;
+
+  const w=Game.world;const planet=Game.currentPlanet;
+
+  // Background gradient
+  const grad=ctx.createLinearGradient(0,0,0,canvas.height);
+  grad.addColorStop(0,C.deepSpace);
+  grad.addColorStop(1,planet?planet.color+'22':'#111');
+  ctx.fillStyle=grad;ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  // Platforms
+  for(const plat of w.platforms){
+    const px=plat.x-cx,py=plat.y-cy;
+    if(px+plat.w<-50||px>canvas.width+50||py+plat.h<-50||py>canvas.height+50)continue;
+    ctx.fillStyle=plat.color;
+    ctx.shadowColor=planet?.color||C.cyan;ctx.shadowBlur=4;
+    ctx.fillRect(px,py,plat.w,plat.h);
+    ctx.shadowBlur=0;
+    // Top edge glow
+    ctx.fillStyle=(planet?.color||C.cyan)+'66';
+    ctx.fillRect(px,py,plat.w,2);
+  }
+
+  // Items
+  ctx.font='20px sans-serif';
+  for(const item of w.items){
+    if(item.collected)continue;
+    const ix=item.x-cx,iy=item.y-cy+Math.sin(Date.now()/500+item.x)*5;
+    if(item.type==='coin')ctx.fillText('💰',ix-10,iy);
+    else if(item.type==='health')ctx.fillText('❤️',ix-10,iy);
+    else ctx.fillText('🎁',ix-10,iy);
+  }
+
+  // Portals
+  for(const portal of w.portals){
+    const px=portal.x-cx,py=portal.y-cy;
+    ctx.fillStyle=portal.type==='boss'?C.red+'44':C.cyan+'44';
+    ctx.shadowColor=portal.type==='boss'?C.red:C.cyan;ctx.shadowBlur=15;
+    ctx.fillRect(px,py,portal.w,portal.h);
+    ctx.shadowBlur=0;
+    ctx.font='12px Orbitron, sans-serif';ctx.fillStyle=C.yellow;ctx.textAlign='center';
+    ctx.fillText(portal.label,px+portal.w/2,py-8);
+    ctx.fillText('[E]',px+portal.w/2,py+portal.h+15);
+    ctx.textAlign='left';
+  }
+
+  // NPCs
+  ctx.font='28px sans-serif';
+  for(const npc of w.npcs){
+    const nx=npc.x-cx,ny=npc.y-cy;
+    ctx.fillText(npc.icon,nx,ny+npc.h-5);
+    ctx.font='10px Orbitron, sans-serif';ctx.fillStyle=C.yellow;ctx.textAlign='center';
+    ctx.fillText(npc.name,nx+npc.w/2,ny-12);
+    ctx.fillText('[E]',nx+npc.w/2,ny-2);
+    ctx.textAlign='left';ctx.font='28px sans-serif';
+  }
+
+  // Enemies
+  for(const e of w.entities){
+    if(e.dead&&e.deathTimer>0){
+      ctx.globalAlpha=e.deathTimer/30;
+      ctx.fillStyle=e.color||C.red;
+      ctx.fillRect(e.x-cx,e.y-cy,e.w,e.h);
+      ctx.globalAlpha=1;continue;
+    }
+    if(e.dead)continue;
+    const ex=e.x-cx,ey=e.y-cy;
+    // Shadow
+    ctx.fillStyle='rgba(0,0,0,0.3)';ctx.fillRect(ex+3,ey+e.h-3,e.w-6,6);
+    // Body
+    ctx.fillStyle=e.stunned>0?'#fff':e.color||C.red;
+    if(e.isBoss){
+      ctx.shadowColor=e.color;ctx.shadowBlur=20;
+      ctx.fillRect(ex,ey,e.w,e.h);
+      ctx.shadowBlur=0;
+      // Boss eyes
+      ctx.fillStyle=C.red;
+      ctx.fillRect(ex+15,ey+20,12,8);ctx.fillRect(ex+e.w-27,ey+20,12,8);
+    } else {
+      ctx.fillRect(ex,ey,e.w,e.h);
+      // Eyes
+      ctx.fillStyle='#fff';
+      ctx.fillRect(ex+e.w*0.2,ey+e.h*0.2,6,6);ctx.fillRect(ex+e.w*0.6,ey+e.h*0.2,6,6);
+      ctx.fillStyle='#000';
+      ctx.fillRect(ex+e.w*0.25,ey+e.h*0.25,3,3);ctx.fillRect(ex+e.w*0.65,ey+e.h*0.25,3,3);
+    }
+    // HP bar
+    if(e.hp<e.maxHp){
+      ctx.fillStyle='#333';ctx.fillRect(ex,ey-8,e.w,4);
+      ctx.fillStyle=e.isBoss?C.red:C.green;ctx.fillRect(ex,ey-8,e.w*(e.hp/e.maxHp),4);
+    }
+    // Type label
+    ctx.font='8px Orbitron, sans-serif';ctx.fillStyle='#aaa';ctx.textAlign='center';
+    ctx.fillText(e.type,ex+e.w/2,ey-12);ctx.textAlign='left';
+  }
+
+  // Projectiles
+  for(const pr of w.projectiles){
+    ctx.fillStyle=pr.color;ctx.shadowColor=pr.color;ctx.shadowBlur=8;
+    ctx.beginPath();ctx.arc(pr.x-cx,pr.y-cy,4,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
+  }
+
+  // Particles
+  for(const p of w.particles)p.draw(ctx,cx,cy);
+
+  // Player
+  const p=player;
+  if(p.invincible>0&&p.invincible%4<2){}
+  else drawAstro(p.x-cx,p.y-cy,p.facing,1);
+
+  // Attack visual
+  if(p.attackTimer>WEAPONS[p.weapon].speed-3){
+    const wp=WEAPONS[p.weapon];
+    if(!wp.projectile){
+      ctx.strokeStyle=C.cyan;ctx.lineWidth=3;ctx.globalAlpha=0.6;
+      ctx.beginPath();
+      ctx.arc(p.x+p.w/2-cx+p.facing*20,p.y+p.h/2-cy,wp.range,p.facing>0?-0.5:2.6,p.facing>0?0.5:3.6);
+      ctx.stroke();ctx.globalAlpha=1;ctx.lineWidth=1;
+    }
+  }
+
+  // Minimap
+  renderMinimap();
+}
+
+function drawAstro(x,y,facing,alpha){
+  ctx.globalAlpha=alpha;
+  // Body (white suit)
+  ctx.fillStyle='#dde';
+  ctx.fillRect(x+4,y+12,20,20);
+  // Helmet (cyan visor)
+  ctx.fillStyle='#445';
+  ctx.beginPath();ctx.arc(x+14,y+10,12,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle=C.cyan+'cc';
+  ctx.beginPath();ctx.arc(x+14+facing*2,y+9,7,0,Math.PI*2);ctx.fill();
+  // Visor shine
+  ctx.fillStyle='#fff';ctx.globalAlpha=alpha*0.5;
+  ctx.beginPath();ctx.arc(x+16+facing*2,y+7,2,0,Math.PI*2);ctx.fill();
+  ctx.globalAlpha=alpha;
+  // Legs
+  ctx.fillStyle='#556';
+  ctx.fillRect(x+6,y+32,7,10);ctx.fillRect(x+16,y+32,7,10);
+  // Jetpack
+  ctx.fillStyle='#667';
+  ctx.fillRect(x+(facing>0?20:2),y+14,6,14);
+  // Arm
+  ctx.fillStyle='#bbc';
+  ctx.fillRect(x+(facing>0?22:0),y+16,6,12);
+  ctx.globalAlpha=1;
+}
+
+function renderMinimap(){
+  const mc=minimapCtx;const r=75;
+  mc.fillStyle='rgba(10,16,32,0.8)';mc.fillRect(0,0,150,150);
+  mc.save();mc.beginPath();mc.arc(r,r,r-2,0,Math.PI*2);mc.clip();
+  const scale=150/6000;
+  // Platforms
+  mc.fillStyle='rgba(61,242,255,0.2)';
+  for(const p of Game.world.platforms){
+    mc.fillRect(p.x*scale,p.y*scale*0.5+40,Math.max(1,p.w*scale),Math.max(1,p.h*scale*0.5));
+  }
+  // Enemies
+  mc.fillStyle=C.red;
+  for(const e of Game.world.entities){if(!e.dead)mc.fillRect(e.x*scale,e.y*scale*0.5+40,3,3)}
+  // Player
+  mc.fillStyle=C.cyan;mc.fillRect(player.x*scale,player.y*scale*0.5+40,5,5);
+  // Portals
+  mc.fillStyle=C.yellow;
+  for(const p of Game.world.portals)mc.fillRect(p.x*scale,p.y*scale*0.5+40,4,4);
+  mc.restore();
+  // Border
+  mc.strokeStyle='rgba(61,242,255,0.3)';mc.lineWidth=2;
+  mc.beginPath();mc.arc(r,r,r-1,0,Math.PI*2);mc.stroke();
+}
+
+// ===================== GAME LOOP =====================
+let lastTime=0;
+function gameLoop(time){
+  const dt=Math.min((time-lastTime)/16.67,3);lastTime=time;
+  mouse.clicked=false; // reset after one frame
+
+  if(Game.state==='playing'&&!Game.dialogueActive){
+    updatePlayer(dt);
+    updateEntities();
+    updateProjectiles();
+    updateParticles(dt);
+    updateCamera(player);
+  }
+
+  render();
+  requestAnimationFrame(gameLoop);
+}
+
+// ===================== KEY HANDLERS =====================
+window.addEventListener('keydown',e=>{
+  if(e.key===' '&&Game.dialogueActive){Game.advanceDialogue();e.preventDefault()}
+  if(e.key==='Escape'&&Game.state==='playing'){
+    Game.closeAll();
+    if(!Game.dialogueActive){Game.saveGame();Game.toMenu()}
+  }
+});
+canvas.addEventListener('mousedown',()=>{mouse.clicked=true});
+
+// Start
+requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>
