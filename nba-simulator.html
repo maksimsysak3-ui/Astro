@@ -54,20 +54,21 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
 #sidebar .team-header { padding: 22px 20px 18px; border-bottom: 1px solid var(--border); background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 20%, transparent), transparent); }
 #sidebar .team-header h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 3px; }
 #sidebar .team-header .record { color: var(--text-dim); font-size: 0.8rem; }
-.nav-section { padding: 14px 22px 6px; font-size: 0.6rem; font-weight: 800; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; margin-top: 4px; }
-.nav-item { padding: 11px 22px; cursor: pointer; transition: all 0.2s; font-size: 0.85rem; border-left: 3px solid transparent; color: rgba(255,255,255,0.6); position: relative; }
-.nav-item:hover { background: rgba(255,255,255,0.04); color: #fff; border-left-color: rgba(255,255,255,0.2); }
-.nav-item.active { background: linear-gradient(90deg, color-mix(in srgb, var(--primary) 15%, transparent), transparent); border-left-color: var(--primary); color: #fff; font-weight: 600; }
+.nav-section { padding: 16px 22px 6px; font-size: 0.55rem; font-weight: 900; letter-spacing: 2.5px; color: color-mix(in srgb, var(--primary) 60%, var(--text-dim)); text-transform: uppercase; margin-top: 6px; }
+.nav-item { padding: 11px 22px; cursor: pointer; transition: all 0.25s; font-size: 0.84rem; border-left: 3px solid transparent; color: rgba(255,255,255,0.55); position: relative; font-weight: 500; letter-spacing: 0.2px; }
+.nav-item:hover { background: rgba(255,255,255,0.04); color: #fff; border-left-color: rgba(255,255,255,0.2); padding-left: 26px; }
+.nav-item.active { background: linear-gradient(90deg, color-mix(in srgb, var(--primary) 20%, transparent), transparent); border-left-color: var(--primary); color: #fff; font-weight: 700; box-shadow: inset 0 0 20px color-mix(in srgb, var(--primary) 5%, transparent); }
 #main-content { flex: 1; overflow-y: auto; padding: 30px 35px; background: linear-gradient(180deg, var(--bg) 0%, #0d0d18 100%); }
 
-.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
-.page-header h2 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px; }
-.page-header .subtitle { color: var(--text-dim); font-size: 0.8rem; margin-top: 2px; }
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; padding-bottom: 18px; border-bottom: 1px solid var(--border); position: relative; }
+.page-header::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 80px; height: 2px; background: linear-gradient(90deg, var(--primary), var(--accent)); }
+.page-header h2 { font-size: 1.8rem; font-weight: 900; letter-spacing: -0.5px; background: linear-gradient(135deg, #ffffff, #cccccc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.page-header .subtitle { color: var(--text-dim); font-size: 0.8rem; margin-top: 4px; letter-spacing: 0.5px; }
 
-.tabs { display: flex; gap: 2px; margin-bottom: 24px; background: var(--surface); border-radius: 10px; padding: 4px; border: 1px solid var(--border); }
-.tab { padding: 10px 20px; background: transparent; border: none; color: var(--text-dim); cursor: pointer; border-radius: 7px; font-size: 0.82rem; font-weight: 600; transition: all 0.25s; letter-spacing: 0.3px; }
-.tab:hover { color: var(--text); background: rgba(255,255,255,0.04); }
-.tab.active { background: var(--primary); color: #fff; box-shadow: 0 2px 8px color-mix(in srgb, var(--primary) 50%, transparent); }
+.tabs { display: flex; gap: 3px; margin-bottom: 24px; background: linear-gradient(135deg, var(--surface), var(--surface2)); border-radius: 12px; padding: 5px; border: 1px solid var(--border); box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
+.tab { padding: 11px 22px; background: transparent; border: none; color: var(--text-dim); cursor: pointer; border-radius: 8px; font-size: 0.82rem; font-weight: 700; transition: all 0.3s; letter-spacing: 0.5px; text-transform: uppercase; }
+.tab:hover { color: var(--text); background: rgba(255,255,255,0.06); }
+.tab.active { background: linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 70%, var(--secondary))); color: #fff; box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 50%, transparent), inset 0 1px 0 rgba(255,255,255,0.1); text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
 
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; position: relative; overflow: hidden; }
 .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--primary), var(--secondary)); opacity: 0.6; }
@@ -302,6 +303,7 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
     <div class="nav-item" onclick="showPage('trades')">Trade Center</div>
     <div class="nav-item" onclick="showPage('draft')">Draft</div>
     <div class="nav-item" onclick="showPage('freeagency')">Free Agency</div>
+    <div class="nav-item" onclick="showPage('scouting')">Scouting</div>
     <div class="nav-section">OTHER</div>
     <div class="nav-item" onclick="showPage('betting')">Sportsbook</div>
     <div class="nav-item" onclick="showPage('jersey')">Jersey Lab</div>
@@ -415,7 +417,7 @@ const PLAYERS_DATA = {
 let G = {
   team:null,season:1,week:0,gameIndex:0,wins:0,losses:0,schedule:[],allTeams:{},news:[],money:5000,morale:75,chemistry:70,momentum:0,salaryCap:136000000,
   draftPicks:[],freeAgents:[],playoffTeams:[],jersey:{primary:'#1d428a',secondary:'#ffffff',number:'00',pattern:'solid'},seasonHistory:[],currentPage:'dashboard',
-  boxScoreVisible:false,liveBoxScore:{home:[],away:[]}
+  boxScoreVisible:false,liveBoxScore:{home:[],away:[]},scoutTokens:3,scoutedPlayers:[]
 };
 
 function initParticles(){const c=document.getElementById('particles');for(let i=0;i<50;i++){const p=document.createElement('div');p.className='particle';p.style.left=Math.random()*100+'%';p.style.top=Math.random()*100+'%';p.style.animationDelay=Math.random()*4+'s';p.style.animationDuration=(3+Math.random()*3)+'s';c.appendChild(p);}}
@@ -452,9 +454,9 @@ function updateSidebar(){const t=getTeamData(G.team);document.getElementById('my
 
 function showPage(page){
   G.currentPage=page;
-  document.querySelectorAll('.nav-item').forEach((n,i)=>{n.classList.toggle('active',['dashboard','calendar','standings','news','roster','depth','training','contracts','trades','draft','freeagency','betting','jersey'][i]===page);});
+  document.querySelectorAll('.nav-item').forEach((n,i)=>{n.classList.toggle('active',['dashboard','calendar','standings','news','roster','depth','training','contracts','trades','scouting','draft','freeagency','betting','jersey'][i]===page);});
   const content=document.getElementById('page-content');content.className='fade-in';
-  const r={dashboard:renderDashboard,calendar:renderCalendar,roster:renderRoster,depth:renderDepth,training:renderTraining,trades:renderTrades,contracts:renderContracts,standings:renderStandings,news:renderNews,betting:renderBetting,jersey:renderJersey,draft:renderDraft,freeagency:renderFreeAgency};
+  const r={dashboard:renderDashboard,calendar:renderCalendar,roster:renderRoster,depth:renderDepth,training:renderTraining,trades:renderTrades,contracts:renderContracts,standings:renderStandings,news:renderNews,betting:renderBetting,jersey:renderJersey,draft:renderDraft,freeagency:renderFreeAgency,scouting:renderScouting};
   if(r[page])r[page](content);
 }
 
@@ -482,8 +484,8 @@ function showPlayerModal(playerId,teamId){
     </div>
     <div style="margin-top:15px;padding:12px;background:var(--surface2);border-radius:8px">
       <div style="display:flex;justify-content:space-between;font-size:0.8rem"><span>Contract: $${(p.salary/1e6).toFixed(1)}M</span><span>${p.contractYears} years remaining</span></div>
-      <div style="margin-top:6px;font-size:0.8rem;color:var(--text-dim)">Trade Value: ${getTradeValue(p)} pts</div>
-      <div class="trade-value-bar"><div class="trade-value-fill" style="width:${Math.min(100,getTradeValue(p)/2)}%;background:linear-gradient(90deg,var(--primary),var(--accent))"></div></div>
+      <div style="margin-top:10px;font-size:0.7rem;color:var(--text-dim);letter-spacing:1px;font-weight:700">TRADE VALUE</div>
+      <div class="trade-value-bar" style="height:10px;margin-top:4px"><div class="trade-value-fill" style="width:${Math.min(100,getTradeValue(p)/2.5)}%;background:linear-gradient(90deg,var(--primary),var(--accent))"></div></div>
     </div>
     ${p.injured?`<div style="margin-top:10px;padding:8px 12px;background:rgba(244,67,54,0.15);border:1px solid rgba(244,67,54,0.3);border-radius:6px;font-size:0.8rem;color:#f44336">INJURED - ${p.injuryGames} games remaining</div>`:''}
   </div>`;
@@ -562,16 +564,20 @@ function renderRoster(el){
 }
 
 // ===== DEPTH CHART =====
+function getStarters(){return getMyTeam().players.slice(0,5);}
 function renderDepth(el){
   const positions=['PG','SG','SF','PF','C'];const players=getMyTeam().players;const td=getTeamData(G.team);
-  const cp=[{pos:'PG',x:50,y:78},{pos:'SG',x:22,y:58},{pos:'SF',x:78,y:58},{pos:'PF',x:28,y:30},{pos:'C',x:72,y:30}];
-  let ch=cp.map(c=>{const p=players.find(x=>x.pos===c.pos);if(!p)return'';return`<div class="player-dot" style="left:${c.x}%;top:${c.y}%;transform:translate(-50%,-50%);background:${td.primary}" onclick="showPlayerModal('${p.id}')"><div class="num">${p.num}</div><div class="pname">${p.name.split(' ').pop()}</div></div>`;}).join('');
-  let html=`<div class="page-header"><div><h2>Depth Chart</h2><div class="subtitle">Click players to swap. Starting 5 on court.</div></div></div>
-    <div class="court-depth"><div style="position:absolute;left:50%;top:0;bottom:0;width:2px;background:rgba(255,255,255,0.3)"></div><div style="position:absolute;left:50%;top:50%;width:80px;height:80px;border:2px solid rgba(255,255,255,0.3);border-radius:50%;transform:translate(-50%,-50%)"></div>${ch}</div>`;
-  positions.forEach(pos=>{const pp=players.filter(p=>p.pos===pos);html+=`<div class="card" style="margin-bottom:12px"><div class="card-header"><h3>${pos}</h3><div class="badge">${pp.length}</div></div><div style="display:flex;flex-wrap:wrap;gap:8px">${pp.map((p,i)=>`<div class="player-chip ${i===0?'selected':''}" onclick="swapDepth('${pos}',${i})"><span style="width:22px;height:22px;border-radius:50%;background:${i===0?td.primary:'#333'};display:inline-flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:800;color:#fff">${p.num}</span>${p.name} <span class="ovr ${ovrClass(p.ovr)}" style="width:24px;height:24px;font-size:0.65rem">${p.ovr}</span></div>`).join('')}</div></div>`;});
+  const starters=players.slice(0,5);
+  const cp=[{x:50,y:78},{x:22,y:58},{x:78,y:58},{x:28,y:30},{x:72,y:30}];
+  let ch=starters.map((p,i)=>`<div class="player-dot" style="left:${cp[i].x}%;top:${cp[i].y}%;transform:translate(-50%,-50%);background:${td.primary}" onclick="showPlayerModal('${p.id}')"><div class="num">${p.num}</div><div class="pname">${p.name.split(' ').pop()}</div></div>`).join('');
+  let html=`<div class="page-header"><div><h2>Depth Chart</h2><div class="subtitle">Drag to reorder. Top 5 players = starting lineup.</div></div></div>
+    <div class="court-depth"><div style="position:absolute;left:50%;top:0;bottom:0;width:2px;background:rgba(255,255,255,0.3)"></div><div style="position:absolute;left:50%;top:50%;width:80px;height:80px;border:2px solid rgba(255,255,255,0.3);border-radius:50%;transform:translate(-50%,-50%)"></div>${ch}</div>
+    <div class="card" style="margin-bottom:12px"><div class="card-header"><h3>Lineup Order</h3><div class="badge">Top 5 Start</div></div>
+    <p style="font-size:0.75rem;color:var(--text-dim);margin-bottom:10px">Click a bench player to swap them into the starting 5. First 5 players always start.</p>
+    ${players.map((p,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;margin:4px 0;background:${i<5?'color-mix(in srgb, var(--primary) 12%, var(--surface2))':'var(--surface2)'};border:1px solid ${i<5?'color-mix(in srgb, var(--primary) 30%, transparent)':'var(--border)'};border-radius:8px;cursor:pointer;transition:all 0.2s" onclick="swapToStarter(${i})"><span style="width:24px;height:24px;border-radius:50%;background:${i<5?td.primary:'#333'};display:inline-flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:800;color:#fff">${p.num}</span><span style="font-weight:${i<5?'700':'500'};font-size:0.85rem;flex:1">${p.name}</span><span style="font-size:0.7rem;color:var(--text-dim);margin-right:8px">${p.pos}</span><span class="ovr ${ovrClass(p.ovr)}" style="width:26px;height:26px;font-size:0.7rem">${p.ovr}</span>${i<5?'<span style="font-size:0.6rem;font-weight:700;color:var(--accent);letter-spacing:1px">START</span>':'<span style="font-size:0.6rem;color:var(--text-dim)">BENCH</span>'}</div>`).join('')}</div>`;
   el.innerHTML=html;
 }
-function swapDepth(pos,idx){const p=getMyTeam().players;const pp=p.filter(x=>x.pos===pos);if(idx===0||pp.length<=1)return;const i1=p.indexOf(pp[0]),i2=p.indexOf(pp[idx]);[p[i1],p[i2]]=[p[i2],p[i1]];saveGame();showPage('depth');}
+function swapToStarter(idx){const p=getMyTeam().players;if(idx<5){if(idx>0){[p[0],p[idx]]=[p[idx],p[0]];}}else{[p[4],p[idx]]=[p[idx],p[4]];}saveGame();showPage('depth');}
 
 // ===== TRAINING =====
 function renderTraining(el){
@@ -597,31 +603,44 @@ function restPlayer(id){const p=getMyTeam().players.find(x=>x.id===id);if(p){p.e
 function trainPlayer(id){if(G.money<500){alert('Not enough funds!');return;}const p=getMyTeam().players.find(x=>x.id===id);if(p&&p.ovr<p.potential){p.ovr+=1;G.money-=500;saveGame();showPage('training');}else alert('At max potential!');}
 
 // ===== TRADES =====
+function renderTradeValueBar(val){const pct=Math.min(100,val/2.5);const color=pct>70?'#4caf50':pct>40?'#ffc107':'#f44336';return`<div class="trade-value-bar" style="width:100%;margin-top:4px"><div class="trade-value-fill" style="width:${pct}%;background:linear-gradient(90deg,${color},${color}cc)"></div></div>`;}
 function renderTrades(el){
   const ot=TEAMS.filter(t=>t.id!==G.team);
-  el.innerHTML=`<div class="page-header"><div><h2>Trade Center</h2><div class="subtitle">Build packages with players and picks</div></div></div>
+  el.innerHTML=`<div class="page-header"><div><h2 style="background:linear-gradient(135deg,#fff,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent">Trade Center</h2><div class="subtitle">Build fair packages — you must offer equal or greater value</div></div></div>
+    <div id="trade-balance" style="margin-bottom:16px;padding:14px 20px;background:var(--surface);border:1px solid var(--border);border-radius:10px"><div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:0.8rem;font-weight:700"><span>Your Package Value</span><span>Their Package Value</span></div><div style="display:flex;gap:8px;align-items:center"><div style="flex:1;height:10px;background:rgba(255,255,255,0.06);border-radius:5px;overflow:hidden"><div id="trade-bar-mine" style="height:100%;background:linear-gradient(90deg,var(--primary),var(--accent));width:0%;transition:width 0.3s;border-radius:5px"></div></div><span style="font-size:1.2rem;font-weight:900;color:var(--accent)" id="trade-vs">⚖️</span><div style="flex:1;height:10px;background:rgba(255,255,255,0.06);border-radius:5px;overflow:hidden"><div id="trade-bar-other" style="height:100%;background:linear-gradient(90deg,var(--secondary),#f44336);width:0%;transition:width 0.3s;border-radius:5px"></div></div></div><div style="text-align:center;margin-top:6px;font-size:0.75rem;color:var(--text-dim)" id="trade-fairness">Select players to see trade balance</div></div>
     <div class="trade-container">
-      <div class="trade-side" style="border-top:3px solid var(--primary)"><h4 style="margin-bottom:10px">Your Assets</h4>
-        <p style="font-size:0.7rem;color:var(--text-dim);margin-bottom:8px">PLAYERS</p>
-        ${getMyTeam().players.map(p=>`<div class="player-chip" onclick="toggleTrade('mine','${p.id}')" id="trade-${p.id}"><span style="font-size:0.65rem;color:var(--accent)">${getTradeValue(p)}</span>${p.name} (${p.ovr})</div>`).join('')}
-        <p style="font-size:0.7rem;color:var(--text-dim);margin:10px 0 8px">DRAFT PICKS</p>
+      <div class="trade-side" style="border-top:3px solid var(--primary)"><h4 style="margin-bottom:10px;font-size:0.95rem;letter-spacing:0.5px">Your Assets</h4>
+        <p style="font-size:0.65rem;font-weight:700;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:8px">PLAYERS</p>
+        ${getMyTeam().players.map(p=>`<div class="player-chip" onclick="toggleTrade('mine','${p.id}')" id="trade-${p.id}">${p.name} <span class="ovr ${ovrClass(p.ovr)}" style="width:22px;height:22px;font-size:0.6rem;display:inline-flex">${p.ovr}</span>${renderTradeValueBar(getTradeValue(p))}</div>`).join('')}
+        <p style="font-size:0.65rem;font-weight:700;letter-spacing:1.5px;color:var(--text-dim);margin:12px 0 8px">DRAFT PICKS</p>
         ${G.draftPicks.map((pk,i)=>`<div class="player-chip" onclick="toggleTradePick('mine',${i})" id="trade-pick-mine-${i}">Yr${pk.year} Rd${pk.round} (${getTeamData(pk.team).name})</div>`).join('')}
       </div>
-      <div class="trade-arrow">&#8644;</div>
-      <div class="trade-side"><h4 style="margin-bottom:10px">Their Assets</h4>
-        <select id="trade-team" onchange="showTradeTeam()" style="width:100%;padding:10px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;margin-bottom:10px;font-size:0.85rem">${ot.map(t=>`<option value="${t.id}">${t.city} ${t.name}</option>`).join('')}</select>
+      <div class="trade-arrow">⇄</div>
+      <div class="trade-side" style="border-top:3px solid var(--secondary)"><h4 style="margin-bottom:10px;font-size:0.95rem;letter-spacing:0.5px">Their Assets</h4>
+        <select id="trade-team" onchange="showTradeTeam()" style="width:100%;padding:10px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;margin-bottom:12px;font-size:0.85rem;font-weight:600">${ot.map(t=>`<option value="${t.id}">${t.city} ${t.name}</option>`).join('')}</select>
         <div id="trade-other-players"></div>
       </div>
     </div>
-    <div style="text-align:center;margin-top:20px"><button class="btn btn-accent" onclick="proposeTrade()">PROPOSE TRADE</button></div>`;
+    <div style="text-align:center;margin-top:20px"><button class="btn btn-accent" style="padding:14px 40px;font-size:0.95rem;letter-spacing:1px" onclick="proposeTrade()">PROPOSE TRADE</button></div>`;
   showTradeTeam();
 }
 let tradeSelMine=[],tradeSelOther=[],tradePicksMine=[],tradePicksOther=[];
-function toggleTrade(side,id){const arr=side==='mine'?tradeSelMine:tradeSelOther;const idx=arr.indexOf(id);if(idx>=0)arr.splice(idx,1);else arr.push(id);document.getElementById('trade-'+id)?.classList.toggle('selected');}
-function toggleTradePick(side,i){const arr=side==='mine'?tradePicksMine:tradePicksOther;const idx=arr.indexOf(i);if(idx>=0)arr.splice(idx,1);else arr.push(i);document.getElementById(`trade-pick-${side}-${i}`)?.classList.toggle('selected');}
+function toggleTrade(side,id){const arr=side==='mine'?tradeSelMine:tradeSelOther;const idx=arr.indexOf(id);if(idx>=0)arr.splice(idx,1);else arr.push(id);document.getElementById('trade-'+id)?.classList.toggle('selected');updateTradeBalance();}
+function toggleTradePick(side,i){const arr=side==='mine'?tradePicksMine:tradePicksOther;const idx=arr.indexOf(i);if(idx>=0)arr.splice(idx,1);else arr.push(i);document.getElementById(`trade-pick-${side}-${i}`)?.classList.toggle('selected');updateTradeBalance();}
+function updateTradeBalance(){
+  const tid=document.getElementById('trade-team')?.value;if(!tid)return;
+  const myVal=tradeSelMine.reduce((s,id)=>s+getTradeValue(getMyTeam().players.find(p=>p.id===id)||{ovr:0,potential:0,age:25,salary:0}),0)+tradePicksMine.length*30;
+  const otherVal=tradeSelOther.reduce((s,id)=>s+getTradeValue(G.allTeams[tid].players.find(p=>p.id===id)||{ovr:0,potential:0,age:25,salary:0}),0)+tradePicksOther.length*30;
+  const max=Math.max(myVal,otherVal,1);
+  const mineEl=document.getElementById('trade-bar-mine');const otherEl=document.getElementById('trade-bar-other');
+  if(mineEl)mineEl.style.width=(myVal/max*100)+'%';if(otherEl)otherEl.style.width=(otherVal/max*100)+'%';
+  const fairEl=document.getElementById('trade-fairness');
+  if(fairEl){if(myVal===0&&otherVal===0)fairEl.textContent='Select players to see trade balance';else if(myVal>=otherVal*0.9)fairEl.innerHTML='<span style="color:#4caf50">✓ Fair trade — they may accept</span>';else fairEl.innerHTML='<span style="color:#f44336">✗ Unfair — you must offer more value</span>';}
+}
 function showTradeTeam(){
   tradeSelOther=[];tradePicksOther=[];const tid=document.getElementById('trade-team').value;
-  document.getElementById('trade-other-players').innerHTML=`<p style="font-size:0.7rem;color:var(--text-dim);margin-bottom:8px">PLAYERS</p>${G.allTeams[tid].players.map(p=>`<div class="player-chip" onclick="toggleTrade('other','${p.id}')" id="trade-${p.id}"><span style="font-size:0.65rem;color:var(--accent)">${getTradeValue(p)}</span>${p.name} (${p.ovr})</div>`).join('')}`;
+  document.getElementById('trade-other-players').innerHTML=`<p style="font-size:0.65rem;font-weight:700;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:8px">PLAYERS</p>${G.allTeams[tid].players.map(p=>`<div class="player-chip" onclick="toggleTrade('other','${p.id}')" id="trade-${p.id}">${p.name} <span class="ovr ${ovrClass(p.ovr)}" style="width:22px;height:22px;font-size:0.6rem;display:inline-flex">${p.ovr}</span>${renderTradeValueBar(getTradeValue(p))}</div>`).join('')}`;
+  updateTradeBalance();
 }
 function proposeTrade(){
   if(!tradeSelMine.length&&!tradePicksMine.length){alert('Select your assets!');return;}
@@ -629,7 +648,8 @@ function proposeTrade(){
   const myVal=tradeSelMine.reduce((s,id)=>s+getTradeValue(getMyTeam().players.find(p=>p.id===id)||{ovr:0,potential:0,age:25,salary:0}),0)+tradePicksMine.length*30;
   const tid=document.getElementById('trade-team').value;
   const otherVal=tradeSelOther.reduce((s,id)=>s+getTradeValue(G.allTeams[tid].players.find(p=>p.id===id)||{ovr:0,potential:0,age:25,salary:0}),0)+tradePicksOther.length*30;
-  if(myVal/otherVal>0.8||Math.random()<0.25){
+  if(myVal<otherVal*0.9){alert('Trade rejected! Your offer is not valuable enough. You need to offer equal or greater value.');return;}
+  if(myVal>=otherVal*0.9){
     const myP=tradeSelMine.map(id=>getMyTeam().players.find(p=>p.id===id)).filter(Boolean);
     const otherP=tradeSelOther.map(id=>G.allTeams[tid].players.find(p=>p.id===id)).filter(Boolean);
     G.allTeams[G.team].players=G.allTeams[G.team].players.filter(p=>!tradeSelMine.includes(p.id)).concat(otherP);
@@ -637,7 +657,7 @@ function proposeTrade(){
     tradePicksMine.sort((a,b)=>b-a).forEach(i=>G.draftPicks.splice(i,1));
     generateNews('trade',{otherTeam:tid});alert('Trade accepted!');
     tradeSelMine=[];tradeSelOther=[];tradePicksMine=[];tradePicksOther=[];saveGame();showPage('trades');
-  } else alert('Trade rejected! They want more value.');
+  }
 }
 
 // ===== CONTRACTS =====
@@ -704,12 +724,43 @@ function renderFreeAgency(el){
 function generateFreeAgents(){const n=['Marcus Morris','Derrick Rose','Blake Griffin','Dwight Howard','Carmelo Anthony','Kyle Lowry','Montrezl Harrell','DeAndre Jordan','Isaiah Thomas','J.R. Smith','Rajon Rondo','Andre Iguodala','Jamal Crawford','Joe Johnson','Vince Carter'];const pos=['PG','SG','SF','PF','C'];G.freeAgents=n.map(name=>({name,pos:pos[Math.floor(Math.random()*5)],ovr:68+Math.floor(Math.random()*12),age:28+Math.floor(Math.random()*8),asking:3e6+Math.floor(Math.random()*15e6)}));}
 function signFreeAgent(i){const p=G.freeAgents[i];const sal=getMyTeam().players.reduce((s,x)=>s+x.salary,0);if(sal+p.asking>G.salaryCap*1.1){alert('Over cap!');return;}G.allTeams[G.team].players.push({...p,id:G.team+'_fa'+Date.now(),num:Math.floor(Math.random()*55)+1,salary:p.asking,contractYears:2,stamina:80,energy:90,morale:80,potential:p.ovr+3,injured:false,injuryGames:0,stats:{ppg:0,rpg:0,apg:0,spg:0,bpg:0,gp:0}});G.freeAgents.splice(i,1);alert(`Signed ${p.name}!`);saveGame();showPage('freeagency');}
 
+// ===== SCOUTING =====
+function renderScouting(el){
+  const otherTeams=TEAMS.filter(t=>t.id!==G.team);
+  if(!G.scoutedPlayers)G.scoutedPlayers=[];
+  if(!G.scoutTokens&&G.scoutTokens!==0)G.scoutTokens=3;
+  el.innerHTML=`<div class="page-header"><div><h2 style="background:linear-gradient(135deg,#fff,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent">Scouting Department</h2><div class="subtitle">Scout opponents to reveal hidden stats and trade opportunities</div></div><div style="background:var(--surface2);padding:10px 18px;border-radius:8px;border:1px solid var(--border)"><div style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1px">SCOUT REPORTS</div><div style="font-size:1.5rem;font-weight:800;color:var(--accent)">${G.scoutTokens}</div></div></div>
+    <div class="card" style="margin-bottom:20px"><div class="card-header"><h3>How Scouting Works</h3></div><p style="font-size:0.82rem;color:var(--text-dim);line-height:1.6">Send scouts to evaluate opposing teams. Each report reveals player potentials, injury proneness, and trade willingness. You earn 1 scout report after every 5 games played. Reports cost $1,000 each.</p></div>
+    <div style="margin-bottom:16px"><select id="scout-team" style="width:100%;padding:12px 16px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:10px;font-size:0.9rem;font-weight:600">${otherTeams.map(t=>`<option value="${t.id}">${t.city} ${t.name} (${G.allTeams[t.id].wins}-${G.allTeams[t.id].losses})</option>`).join('')}</select></div>
+    <button class="btn btn-primary" style="margin-bottom:20px" onclick="scoutTeam()">SEND SCOUT ($1,000)</button>
+    ${G.scoutedPlayers.length?`<div class="card"><div class="card-header"><h3>Scouted Players</h3><div class="badge">${G.scoutedPlayers.length} Reports</div></div>
+    <table class="data-table"><thead><tr><th>Player</th><th>Team</th><th>OVR</th><th>Potential</th><th>Trade Interest</th><th>Weakness</th></tr></thead><tbody>
+    ${G.scoutedPlayers.map(sp=>`<tr onclick="showPlayerModal('${sp.id}','${sp.teamId}')"><td style="font-weight:600">${sp.name}</td><td>${sp.teamName}</td><td><span class="ovr ${ovrClass(sp.ovr)}" style="width:26px;height:26px;font-size:0.7rem">${sp.ovr}</span></td><td style="color:var(--accent);font-weight:700">${sp.potential}</td><td><span style="padding:2px 8px;border-radius:4px;font-size:0.7rem;background:${sp.tradeInterest==='High'?'rgba(76,175,80,0.2);color:#4caf50':sp.tradeInterest==='Medium'?'rgba(255,193,7,0.2);color:#ffc107':'rgba(244,67,54,0.2);color:#f44336'}">${sp.tradeInterest}</span></td><td style="font-size:0.75rem;color:var(--text-dim)">${sp.weakness}</td></tr>`).join('')}
+    </tbody></table></div>`:'<div style="padding:30px;text-align:center;color:var(--text-dim)">No scouting reports yet. Send a scout to gather intel.</div>'}`;
+}
+function scoutTeam(){
+  if(G.scoutTokens<=0&&G.money<1000){alert('No scout reports available and insufficient funds!');return;}
+  if(G.scoutTokens>0)G.scoutTokens--;else G.money-=1000;
+  const tid=document.getElementById('scout-team').value;
+  const team=G.allTeams[tid];const td=getTeamData(tid);
+  const weaknesses=['Slow lateral movement','Poor free throws','Turnover prone','Low stamina','Inconsistent shooter','Foul prone'];
+  const interests=['High','Medium','Low'];
+  const numPlayers=2+Math.floor(Math.random()*3);
+  for(let i=0;i<numPlayers;i++){
+    const p=team.players[Math.floor(Math.random()*team.players.length)];
+    if(G.scoutedPlayers.find(sp=>sp.id===p.id))continue;
+    G.scoutedPlayers.push({id:p.id,teamId:tid,name:p.name,teamName:td.name,ovr:p.ovr,potential:p.potential,tradeInterest:interests[Math.floor(Math.random()*3)],weakness:weaknesses[Math.floor(Math.random()*weaknesses.length)]});
+  }
+  saveGame();showPage('scouting');
+}
+
 // ===== SIMULATION =====
 let gameState={};
 
 function simNextGame(){
   if(G.gameIndex>=82)return;const game=G.schedule[G.gameIndex];
-  const myOvr=getMyTeam().players.filter(p=>!p.injured).slice(0,5).reduce((s,p)=>s+p.ovr,0)/5;
+  const myStarters=getMyTeam().players.filter(p=>!p.injured).slice(0,5);
+  const myOvr=myStarters.reduce((s,p)=>s+p.ovr*(p.energy/100),0)/5;
   const oppOvr=G.allTeams[game.opponent].players.slice(0,5).reduce((s,p)=>s+p.ovr,0)/5;
   const hca=game.home?3:0;const diff=(myOvr-oppOvr+hca)/100;
   const myScore=Math.floor(95+Math.random()*25+diff*15);const oppScore=Math.floor(95+Math.random()*25-diff*10);
@@ -717,6 +768,7 @@ function simNextGame(){
   if(game.result==='W'){G.wins++;G.allTeams[G.team].wins++;}else{G.losses++;G.allTeams[G.team].losses++;}
   G.allTeams[game.opponent][myScore>oppScore?'losses':'wins']++;
   simulateOtherGames();updatePlayerStats(myScore);postGameEnergy();G.gameIndex++;G.money+=1000;
+  if(G.gameIndex%5===0){if(!G.scoutTokens)G.scoutTokens=0;G.scoutTokens++;}
   if(Math.random()<0.08){const inj=getMyTeam().players[Math.floor(Math.random()*getMyTeam().players.length)];inj.injured=true;inj.injuryGames=2+Math.floor(Math.random()*6);generateNews('injury',{name:inj.name,games:inj.injuryGames});}
   saveGame();updateSidebar();showPage(G.currentPage);
 }
