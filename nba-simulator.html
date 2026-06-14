@@ -564,20 +564,28 @@ function renderRoster(el){
 }
 
 // ===== DEPTH CHART =====
-function getStarters(){return getMyTeam().players.slice(0,5);}
+function getStarterByPos(pos){const players=getMyTeam().players;return players.find(p=>p.pos===pos&&!p.injured)||players.find(p=>p.pos===pos);}
+function getStarters(){const positions=['PG','SG','SF','PF','C'];return positions.map(pos=>getStarterByPos(pos)).filter(Boolean);}
 function renderDepth(el){
   const positions=['PG','SG','SF','PF','C'];const players=getMyTeam().players;const td=getTeamData(G.team);
-  const starters=players.slice(0,5);
-  const cp=[{x:50,y:78},{x:22,y:58},{x:78,y:58},{x:28,y:30},{x:72,y:30}];
-  let ch=starters.map((p,i)=>`<div class="player-dot" style="left:${cp[i].x}%;top:${cp[i].y}%;transform:translate(-50%,-50%);background:${td.primary}" onclick="showPlayerModal('${p.id}')"><div class="num">${p.num}</div><div class="pname">${p.name.split(' ').pop()}</div></div>`).join('');
-  let html=`<div class="page-header"><div><h2>Depth Chart</h2><div class="subtitle">Drag to reorder. Top 5 players = starting lineup.</div></div></div>
-    <div class="court-depth"><div style="position:absolute;left:50%;top:0;bottom:0;width:2px;background:rgba(255,255,255,0.3)"></div><div style="position:absolute;left:50%;top:50%;width:80px;height:80px;border:2px solid rgba(255,255,255,0.3);border-radius:50%;transform:translate(-50%,-50%)"></div>${ch}</div>
-    <div class="card" style="margin-bottom:12px"><div class="card-header"><h3>Lineup Order</h3><div class="badge">Top 5 Start</div></div>
-    <p style="font-size:0.75rem;color:var(--text-dim);margin-bottom:10px">Click a bench player to swap them into the starting 5. First 5 players always start.</p>
-    ${players.map((p,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;margin:4px 0;background:${i<5?'color-mix(in srgb, var(--primary) 12%, var(--surface2))':'var(--surface2)'};border:1px solid ${i<5?'color-mix(in srgb, var(--primary) 30%, transparent)':'var(--border)'};border-radius:8px;cursor:pointer;transition:all 0.2s" onclick="swapToStarter(${i})"><span style="width:24px;height:24px;border-radius:50%;background:${i<5?td.primary:'#333'};display:inline-flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:800;color:#fff">${p.num}</span><span style="font-weight:${i<5?'700':'500'};font-size:0.85rem;flex:1">${p.name}</span><span style="font-size:0.7rem;color:var(--text-dim);margin-right:8px">${p.pos}</span><span class="ovr ${ovrClass(p.ovr)}" style="width:26px;height:26px;font-size:0.7rem">${p.ovr}</span>${i<5?'<span style="font-size:0.6rem;font-weight:700;color:var(--accent);letter-spacing:1px">START</span>':'<span style="font-size:0.6rem;color:var(--text-dim)">BENCH</span>'}</div>`).join('')}</div>`;
+  const posCoords={PG:{x:50,y:80},SG:{x:22,y:58},SF:{x:78,y:58},PF:{x:28,y:28},C:{x:72,y:28}};
+  let ch=positions.map(pos=>{const starter=players.filter(p=>p.pos===pos)[0];if(!starter)return'';const c=posCoords[pos];return`<div class="player-dot" style="left:${c.x}%;top:${c.y}%;transform:translate(-50%,-50%);background:${td.primary}" onclick="showPlayerModal('${starter.id}')"><div class="num">${starter.num}</div><div class="pname">${starter.name.split(' ').pop()}</div></div>`;}).join('');
+  let html=`<div class="page-header"><div><h2>Depth Chart</h2><div class="subtitle">Set starters by position. First player at each position starts.</div></div></div>
+    <div class="court-depth"><div style="position:absolute;left:50%;top:0;bottom:0;width:2px;background:rgba(255,255,255,0.3)"></div><div style="position:absolute;left:50%;top:50%;width:80px;height:80px;border:2px solid rgba(255,255,255,0.3);border-radius:50%;transform:translate(-50%,-50%)"></div>${ch}</div>`;
+  positions.forEach(pos=>{
+    const pp=players.filter(p=>p.pos===pos);
+    html+=`<div class="card" style="margin-bottom:12px"><div class="card-header"><h3 style="display:flex;align-items:center;gap:8px"><span style="width:30px;height:30px;border-radius:6px;background:var(--primary);display:inline-flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:900">${pos}</span>${{PG:'Point Guard',SG:'Shooting Guard',SF:'Small Forward',PF:'Power Forward',C:'Center'}[pos]}</h3><div class="badge">${pp.length} players</div></div>
+    <div style="display:flex;flex-direction:column;gap:6px">${pp.map((p,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:${i===0?'color-mix(in srgb, var(--primary) 12%, var(--surface2))':'var(--surface2)'};border:1px solid ${i===0?'color-mix(in srgb, var(--primary) 30%, transparent)':'var(--border)'};border-radius:8px;cursor:pointer;transition:all 0.2s" onclick="swapDepthPos('${pos}',${i})"><span style="width:24px;height:24px;border-radius:50%;background:${i===0?td.primary:'#333'};display:inline-flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:800;color:#fff">${p.num}</span><span style="font-weight:${i===0?'700':'500'};font-size:0.85rem;flex:1">${p.name}</span><span class="ovr ${ovrClass(p.ovr)}" style="width:26px;height:26px;font-size:0.7rem">${p.ovr}</span><span style="font-size:0.65rem;color:${p.energy>60?'#4caf50':p.energy>30?'#ff9800':'#f44336'};font-weight:600">${p.energy}%</span>${i===0?'<span style="font-size:0.6rem;font-weight:700;color:var(--accent);letter-spacing:1px">STARTER</span>':'<span style="font-size:0.6rem;color:var(--text-dim)">BACKUP</span>'}</div>`).join('')}</div></div>`;
+  });
   el.innerHTML=html;
 }
-function swapToStarter(idx){const p=getMyTeam().players;if(idx<5){if(idx>0){[p[0],p[idx]]=[p[idx],p[0]];}}else{[p[4],p[idx]]=[p[idx],p[4]];}saveGame();showPage('depth');}
+function swapDepthPos(pos,idx){
+  if(idx===0)return;
+  const players=getMyTeam().players;const pp=players.filter(p=>p.pos===pos);
+  const i1=players.indexOf(pp[0]),i2=players.indexOf(pp[idx]);
+  [players[i1],players[i2]]=[players[i2],players[i1]];
+  saveGame();showPage('depth');
+}
 
 // ===== TRAINING =====
 function renderTraining(el){
@@ -759,7 +767,7 @@ let gameState={};
 
 function simNextGame(){
   if(G.gameIndex>=82)return;const game=G.schedule[G.gameIndex];
-  const myStarters=getMyTeam().players.filter(p=>!p.injured).slice(0,5);
+  const myStarters=getStarters();
   const myOvr=myStarters.reduce((s,p)=>s+p.ovr*(p.energy/100),0)/5;
   const oppOvr=G.allTeams[game.opponent].players.slice(0,5).reduce((s,p)=>s+p.ovr,0)/5;
   const hca=game.home?3:0;const diff=(myOvr-oppOvr+hca)/100;
@@ -799,7 +807,7 @@ function startLiveGame(){
   const game=G.schedule[G.gameIndex];
   gameState={quarter:1,time:720,homeScore:0,awayScore:0,plays:[],momentum:0,timeouts:{home:7,away:7},halftimeDone:false,opponent:game.opponent,isHome:game.home,paused:false,speed:1};
   G.liveBoxScore={home:{},away:{}};
-  const myPlayers=getMyTeam().players.filter(p=>!p.injured).slice(0,5);
+  const myPlayers=getStarters();
   const oppPlayers=G.allTeams[game.opponent].players.slice(0,5);
   myPlayers.forEach(p=>{const k=gameState.isHome?'home':'away';G.liveBoxScore[k][p.id]={name:p.name,pts:0,reb:0,ast:0,num:p.num};});
   oppPlayers.forEach(p=>{const k=gameState.isHome?'away':'home';G.liveBoxScore[k][p.id]={name:p.name,pts:0,reb:0,ast:0,num:p.num};});
@@ -817,7 +825,7 @@ function startLiveGame(){
 function renderCourtPlayers(){
   const court=document.getElementById('court');court.querySelectorAll('.game-player').forEach(e=>e.remove());
   const myTd=getTeamData(G.team);const oppTd=getTeamData(gameState.opponent);
-  const myPlayers=getMyTeam().players.filter(p=>!p.injured).slice(0,5);
+  const myPlayers=getStarters();
   const oppPlayers=G.allTeams[gameState.opponent].players.slice(0,5);
   const homePositions=[[75,20],[75,40],[75,60],[75,80],[68,50]];
   const awayPositions=[[25,20],[25,40],[25,60],[25,80],[32,50]];
