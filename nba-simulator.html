@@ -47,13 +47,21 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
 .team-card .team-city { font-size: 0.8rem; opacity: 0.7; }
 /* GAME SCREEN */
 #game-screen { position: fixed; inset: 0; display: flex; background: var(--bg); }
-#sidebar { width: 240px; background: var(--surface); border-right: 1px solid rgba(255,255,255,0.05); padding: 20px 0; overflow-y: auto; flex-shrink: 0; }
-#sidebar .team-header { padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; }
-#sidebar .team-header h3 { font-size: 1.2rem; }
-#sidebar .team-header .record { color: var(--text-dim); font-size: 0.85rem; }
-.nav-item { padding: 12px 20px; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; border-left: 3px solid transparent; }
-.nav-item:hover { background: rgba(255,255,255,0.05); }
-.nav-item.active { background: rgba(255,255,255,0.08); border-left-color: var(--primary); color: var(--primary); }
+#sidebar { width: 220px; background: linear-gradient(180deg, var(--surface) 0%, #12121f 100%); border-right: 1px solid rgba(255,255,255,0.04); padding: 0; overflow-y: auto; flex-shrink: 0; }
+#sidebar .team-header { padding: 20px 18px 15px; border-bottom: 1px solid rgba(255,255,255,0.06); background: rgba(0,0,0,0.2); }
+#sidebar .team-header h3 { font-size: 1rem; font-weight: 700; margin-bottom: 2px; }
+#sidebar .team-header .record { color: var(--text-dim); font-size: 0.8rem; }
+.stat-card { background: var(--surface); padding: 14px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.04); }
+.stat-card .stat-label { font-size: 0.6rem; font-weight: 700; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 4px; }
+.stat-card .stat-value { font-size: 1.3rem; font-weight: 800; }
+.action-btn { padding: 10px 18px; background: var(--surface); border: 1px solid rgba(255,255,255,0.1); color: var(--text); border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.5px; transition: all 0.2s; }
+.action-btn:hover { background: rgba(255,255,255,0.1); border-color: var(--primary); }
+.action-btn.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+.action-btn.primary:hover { filter: brightness(1.2); }
+.nav-section { padding: 10px 20px 4px; font-size: 0.65rem; font-weight: 700; letter-spacing: 1.5px; color: var(--text-dim); text-transform: uppercase; margin-top: 8px; }
+.nav-item { padding: 10px 20px; cursor: pointer; transition: all 0.2s; font-size: 0.85rem; border-left: 3px solid transparent; color: rgba(255,255,255,0.7); }
+.nav-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+.nav-item.active { background: linear-gradient(90deg, rgba(255,255,255,0.08), transparent); border-left-color: var(--primary); color: #fff; font-weight: 600; }
 #main-content { flex: 1; overflow-y: auto; padding: 30px; }
 .page-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 20px; }
 /* CALENDAR */
@@ -202,19 +210,23 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
       <div class="record" id="my-record">0-0</div>
       <div class="record" id="my-season">Season 1 | $0M Cap</div>
     </div>
-    <div class="nav-item active" onclick="showPage('dashboard')">📊 Dashboard</div>
-    <div class="nav-item" onclick="showPage('calendar')">📅 Calendar</div>
-    <div class="nav-item" onclick="showPage('roster')">👥 Roster</div>
-    <div class="nav-item" onclick="showPage('depth')">📋 Depth Chart</div>
-    <div class="nav-item" onclick="showPage('training')">💪 Training</div>
-    <div class="nav-item" onclick="showPage('trades')">🔄 Trades</div>
-    <div class="nav-item" onclick="showPage('contracts')">💰 Contracts</div>
-    <div class="nav-item" onclick="showPage('standings')">🏆 Standings</div>
-    <div class="nav-item" onclick="showPage('news')">📰 News</div>
-    <div class="nav-item" onclick="showPage('betting')">🎰 Betting</div>
-    <div class="nav-item" onclick="showPage('jersey')">👕 Jersey</div>
-    <div class="nav-item" onclick="showPage('draft')">🎓 Draft</div>
-    <div class="nav-item" onclick="showPage('freeagency')">✍️ Free Agency</div>
+    <div class="nav-section">FRANCHISE</div>
+    <div class="nav-item active" onclick="showPage('dashboard')">Dashboard</div>
+    <div class="nav-item" onclick="showPage('calendar')">Schedule</div>
+    <div class="nav-item" onclick="showPage('standings')">Standings</div>
+    <div class="nav-item" onclick="showPage('news')">League News</div>
+    <div class="nav-section">TEAM</div>
+    <div class="nav-item" onclick="showPage('roster')">Roster</div>
+    <div class="nav-item" onclick="showPage('depth')">Depth Chart</div>
+    <div class="nav-item" onclick="showPage('training')">Training</div>
+    <div class="nav-item" onclick="showPage('contracts')">Contracts</div>
+    <div class="nav-section">TRANSACTIONS</div>
+    <div class="nav-item" onclick="showPage('trades')">Trade Center</div>
+    <div class="nav-item" onclick="showPage('draft')">Draft</div>
+    <div class="nav-item" onclick="showPage('freeagency')">Free Agency</div>
+    <div class="nav-section">OTHER</div>
+    <div class="nav-item" onclick="showPage('betting')">Sportsbook</div>
+    <div class="nav-item" onclick="showPage('jersey')">Jersey Lab</div>
   </div>
   <div id="main-content">
     <div id="page-content"></div>
@@ -474,7 +486,7 @@ function updateSidebar() {
 function showPage(page) {
   G.currentPage = page;
   document.querySelectorAll('.nav-item').forEach((n, i) => {
-    n.classList.toggle('active', ['dashboard','calendar','roster','depth','training','trades','contracts','standings','news','betting','jersey','draft','freeagency'][i] === page);
+    n.classList.toggle('active', ['dashboard','calendar','standings','news','roster','depth','training','contracts','trades','draft','freeagency','betting','jersey'][i] === page);
   });
   const content = document.getElementById('page-content');
   content.className = 'fade-in';
@@ -498,25 +510,100 @@ function showPage(page) {
 // ===== DASHBOARD =====
 function renderDashboard(el) {
   const next = G.schedule.find(g => !g.played);
-  const nextGame = next ? `Next: ${next.home ? 'vs' : '@'} ${getTeamData(next.opponent).city} ${getTeamData(next.opponent).name}` : 'Season Complete';
+  const teamData = getTeamData(G.team);
+  const pct = G.wins+G.losses > 0 ? (G.wins/(G.wins+G.losses)).toFixed(3) : '.000';
+  const totalSalary = getMyTeam().players.reduce((s,p)=>s+p.salary,0);
+  const capPct = Math.min(100,(totalSalary/G.salaryCap)*100).toFixed(0);
+  const streak = getStreak();
+  const last5 = getLast5();
+
   el.innerHTML = `
-    <h2 class="page-title">Dashboard</h2>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:15px;margin-bottom:20px">
-      <div style="background:var(--surface);padding:20px;border-radius:12px"><div style="color:var(--text-dim);font-size:0.8rem">RECORD</div><div style="font-size:2rem;font-weight:700">${G.wins}-${G.losses}</div></div>
-      <div style="background:var(--surface);padding:20px;border-radius:12px"><div style="color:var(--text-dim);font-size:0.8rem">MORALE</div><div style="font-size:2rem;font-weight:700">${G.morale}%</div></div>
-      <div style="background:var(--surface);padding:20px;border-radius:12px"><div style="color:var(--text-dim);font-size:0.8rem">FUNDS</div><div style="font-size:2rem;font-weight:700">$${G.money.toLocaleString()}</div></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:25px">
+      <div><h2 class="page-title" style="margin-bottom:4px">${teamData.city} ${teamData.name}</h2><span style="color:var(--text-dim);font-size:0.85rem">Season ${G.season} | Game ${G.gameIndex + 1} of 82</span></div>
+      <div style="text-align:right"><div style="font-size:2.5rem;font-weight:900;letter-spacing:-1px">${G.wins}-${G.losses}</div><div style="color:var(--text-dim);font-size:0.8rem">${pct} PCT</div></div>
     </div>
-    <div style="background:var(--surface);padding:20px;border-radius:12px;margin-bottom:15px">
-      <h3>${nextGame}</h3>
-      ${next ? `<button class="menu-btn" style="width:auto;margin-top:10px" onclick="playNextGame()">▶ PLAY GAME</button>
-      <button class="menu-btn" style="width:auto;margin-top:10px" onclick="simNextGame()">⏩ SIM GAME</button>
-      <button class="menu-btn" style="width:auto;margin-top:10px" onclick="simWeek()">⏩ SIM WEEK</button>` :
-      `<button class="menu-btn" style="width:auto;margin-top:10px" onclick="endSeason()">END SEASON</button>`}
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:12px;margin-bottom:20px">
+      <div class="stat-card"><div class="stat-label">MORALE</div><div class="stat-value">${G.morale}</div></div>
+      <div class="stat-card"><div class="stat-label">CHEMISTRY</div><div class="stat-value">${G.chemistry}</div></div>
+      <div class="stat-card"><div class="stat-label">FUNDS</div><div class="stat-value">$${(G.money/1000).toFixed(0)}K</div></div>
+      <div class="stat-card"><div class="stat-label">CAP USED</div><div class="stat-value">${capPct}%</div></div>
+      <div class="stat-card"><div class="stat-label">STREAK</div><div class="stat-value">${streak}</div></div>
     </div>
-    <div style="background:var(--surface);padding:20px;border-radius:12px">
-      <h3>Top Players</h3>
-      ${getMyTeam().players.slice(0,5).map(p => `<div style="display:flex;justify-content:space-between;padding:5px 0"><span>${p.name} (${p.pos})</span><span class="ovr ${ovrClass(p.ovr)}">${p.ovr}</span></div>`).join('')}
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:15px;margin-bottom:15px">
+      <div style="background:var(--surface);padding:20px;border-radius:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <h3 style="font-size:1rem">Next Game</h3>
+          <span style="color:var(--text-dim);font-size:0.75rem">LAST 5: ${last5}</span>
+        </div>
+        ${next ? `<div style="font-size:1.1rem;margin-bottom:15px">${next.home ? 'HOME vs' : 'AWAY @'} <strong>${getTeamData(next.opponent).city} ${getTeamData(next.opponent).name}</strong></div>
+        <div style="display:flex;gap:8px">
+          <button class="action-btn primary" onclick="playNextGame()">PLAY LIVE</button>
+          <button class="action-btn" onclick="simNextGame()">SIM GAME</button>
+          <button class="action-btn" onclick="simWeek()">SIM WEEK</button>
+        </div>` : `<div style="font-size:1.1rem;margin-bottom:15px">Season Complete</div><button class="action-btn primary" onclick="endSeason()">ADVANCE TO OFFSEASON</button>`}
+      </div>
+      <div style="background:var(--surface);padding:20px;border-radius:12px">
+        <h3 style="font-size:1rem;margin-bottom:12px">Team Leaders</h3>
+        ${getMyTeam().players.slice(0,4).map(p => `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><span style="font-size:0.8rem">${p.name}</span><span class="ovr ${ovrClass(p.ovr)}" style="width:28px;height:28px;line-height:28px;font-size:0.7rem">${p.ovr}</span></div>`).join('')}
+      </div>
+    </div>
+    <div class="tabs" id="dash-tabs">
+      <button class="tab active" onclick="switchDashTab('overview')">Overview</button>
+      <button class="tab" onclick="switchDashTab('stats')">Team Stats</button>
+      <button class="tab" onclick="switchDashTab('recent')">Recent Games</button>
+    </div>
+    <div id="dash-tab-content">${getDashTabContent('overview')}</div>`;
+}
+
+function getStreak() {
+  let streak = 0, type = '';
+  for (let i = G.gameIndex - 1; i >= 0; i--) {
+    const g = G.schedule[i];
+    if (!g.played) continue;
+    if (!type) type = g.result;
+    if (g.result === type) streak++;
+    else break;
+  }
+  return streak > 0 ? `${type}${streak}` : '--';
+}
+
+function getLast5() {
+  const recent = G.schedule.filter(g=>g.played).slice(-5);
+  return recent.map(g => `<span style="display:inline-block;width:18px;height:18px;line-height:18px;text-align:center;border-radius:3px;font-size:0.6rem;font-weight:700;margin:0 1px;background:${g.result==='W'?'#4caf50':'#f44336'}">${g.result}</span>`).join('') || '--';
+}
+
+function switchDashTab(tab) {
+  document.querySelectorAll('#dash-tabs .tab').forEach(t=>t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('dash-tab-content').innerHTML = getDashTabContent(tab);
+}
+
+function getDashTabContent(tab) {
+  if (tab === 'stats') {
+    const players = getMyTeam().players;
+    const avgOvr = (players.reduce((s,p)=>s+p.ovr,0)/players.length).toFixed(1);
+    const topScorer = players.reduce((best,p) => (p.stats.gp && p.stats.ppg/p.stats.gp > (best.stats.gp?best.stats.ppg/best.stats.gp:0)) ? p : best, players[0]);
+    return `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+      <div style="background:var(--surface);padding:15px;border-radius:10px"><div style="color:var(--text-dim);font-size:0.7rem;margin-bottom:4px">AVG OVERALL</div><div style="font-size:1.4rem;font-weight:700">${avgOvr}</div></div>
+      <div style="background:var(--surface);padding:15px;border-radius:10px"><div style="color:var(--text-dim);font-size:0.7rem;margin-bottom:4px">ROSTER SIZE</div><div style="font-size:1.4rem;font-weight:700">${players.length}</div></div>
+      <div style="background:var(--surface);padding:15px;border-radius:10px"><div style="color:var(--text-dim);font-size:0.7rem;margin-bottom:4px">TOP SCORER</div><div style="font-size:1rem;font-weight:700">${topScorer.name}</div><div style="color:var(--text-dim);font-size:0.75rem">${topScorer.stats.gp ? (topScorer.stats.ppg/topScorer.stats.gp).toFixed(1) : '0.0'} PPG</div></div>
     </div>`;
+  }
+  if (tab === 'recent') {
+    const recent = G.schedule.filter(g=>g.played).slice(-8).reverse();
+    if (!recent.length) return '<div style="padding:20px;color:var(--text-dim)">No games played yet.</div>';
+    return `<table class="roster-table"><thead><tr><th>Game</th><th>Opponent</th><th>Result</th><th>Score</th></tr></thead><tbody>
+      ${recent.map((g,i) => {const opp=getTeamData(g.opponent); return `<tr><td style="color:var(--text-dim)">#${G.gameIndex-i}</td><td>${g.home?'vs':'@'} ${opp.name}</td><td style="color:${g.result==='W'?'#4caf50':'#f44336'};font-weight:700">${g.result}</td><td>${g.myScore}-${g.oppScore}</td></tr>`}).join('')}
+    </tbody></table>`;
+  }
+  // overview
+  const conf = getTeamData(G.team).conf;
+  const confTeams = TEAMS.filter(t=>t.conf===conf).map(t=>({...t,...G.allTeams[t.id]})).sort((a,b)=>(b.wins-b.losses)-(a.wins-a.losses));
+  const myRank = confTeams.findIndex(t=>t.id===G.team)+1;
+  return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <div style="background:var(--surface);padding:15px;border-radius:10px"><div style="color:var(--text-dim);font-size:0.7rem;margin-bottom:4px">${conf.toUpperCase()} CONF RANK</div><div style="font-size:1.8rem;font-weight:700">#${myRank}</div></div>
+    <div style="background:var(--surface);padding:15px;border-radius:10px"><div style="color:var(--text-dim);font-size:0.7rem;margin-bottom:4px">GAMES REMAINING</div><div style="font-size:1.8rem;font-weight:700">${82-G.gameIndex}</div></div>
+  </div>`;
 }
 
 function ovrClass(ovr) { if(ovr>=90) return 'ovr-elite'; if(ovr>=83) return 'ovr-star'; if(ovr>=76) return 'ovr-starter'; if(ovr>=70) return 'ovr-bench'; return 'ovr-low'; }
@@ -526,7 +613,7 @@ function renderCalendar(el) {
   let html = '<h2 class="page-title">Schedule</h2><div style="overflow-y:auto;max-height:70vh">';
   G.schedule.forEach((g, i) => {
     const opp = getTeamData(g.opponent);
-    const status = g.played ? (g.result === 'W' ? '✅ W' : '❌ L') : (i === G.gameIndex ? '▶ NEXT' : '');
+    const status = g.played ? (g.result === 'W' ? 'W' : 'L') : (i === G.gameIndex ? 'NEXT' : '');
     const score = g.played ? `${g.myScore}-${g.oppScore}` : '';
     html += `<div style="display:flex;justify-content:space-between;padding:10px;margin:4px 0;background:var(--surface);border-radius:8px;border-left:3px solid ${g.played ? (g.result==='W'?'#4caf50':'#f44336') : 'transparent'}">
       <span>Game ${i+1}: ${g.home?'vs':'@'} ${opp.city} ${opp.name}</span><span>${score} ${status}</span></div>`;
@@ -914,7 +1001,7 @@ function updateGameDisplay() {
   const mins = Math.floor(gameState.time / 60);
   const secs = gameState.time % 60;
   document.getElementById('game-time').textContent = `${mins}:${secs.toString().padStart(2,'0')}`;
-  const momText = gameState.momentum > 3 ? 'YOUR TEAM 🔥' : gameState.momentum < -3 ? 'OPPONENT 🔥' : 'Neutral';
+  const momText = gameState.momentum > 3 ? 'YOUR TEAM [HOT]' : gameState.momentum < -3 ? 'OPPONENT [HOT]' : 'Neutral';
   document.getElementById('game-momentum').textContent = 'Momentum: ' + momText;
 }
 
@@ -1033,7 +1120,7 @@ function callPlay(play) {
   const pbp = document.getElementById('play-by-play');
   const div = document.createElement('div');
   div.className = 'play';
-  div.innerHTML = `<span class="time-stamp">📋</span> Coach calls: ${play.toUpperCase()}`;
+  div.innerHTML = `<span class="time-stamp">PLAY</span> Coach calls: ${play.toUpperCase()}`;
   pbp.insertBefore(div, pbp.firstChild);
 }
 
@@ -1053,9 +1140,9 @@ function showHalftime() {
   gameState.paused = true;
   gameState.halftimeDone = true;
   showModal('Halftime Speech', 'Motivate your team for the second half. A great speech can swing momentum!', (text) => {
-    if (text.length > 100) { gameState.momentum += 4; alert('🔥 FIRED UP! Team is energized!'); }
-    else if (text.length > 40) { gameState.momentum += 2; alert('👍 Good speech. Team is focused.'); }
-    else { gameState.momentum -= 1; alert('😐 Team seems unimpressed.'); }
+    if (text.length > 100) { gameState.momentum += 4; alert('FIRED UP! Team is energized!'); }
+    else if (text.length > 40) { gameState.momentum += 2; alert('Good speech. Team is focused.'); }
+    else { gameState.momentum -= 1; alert('Team seems unimpressed.'); }
     gameState.quarter = 3;
     gameState.time = 720;
     gameState.paused = false;
@@ -1082,7 +1169,7 @@ function simToEnd() {
   const pbp = document.getElementById('play-by-play');
   const div = document.createElement('div');
   div.className = 'play';
-  div.innerHTML = `<span class="time-stamp">⏩</span> Simulating to end...`;
+  div.innerHTML = `<span class="time-stamp">SIM</span> Simulating to end...`;
   pbp.insertBefore(div, pbp.firstChild);
 }
 
@@ -1116,9 +1203,9 @@ function showInterview(myScore, oppScore, result) {
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';
   overlay.innerHTML = `<div class="modal">
-    <h3>📺 Post-Game Interview</h3>
+    <h3>POST-GAME INTERVIEW</h3>
     <div style="background:rgba(0,0,0,0.3);padding:15px;border-radius:8px;margin:10px 0">
-      <div style="font-size:1.5rem;font-weight:700;margin-bottom:5px">FINAL: ${myScore} - ${oppScore} ${result === 'W' ? '✅' : '❌'}</div>
+      <div style="font-size:1.5rem;font-weight:700;margin-bottom:5px">FINAL: ${myScore} - ${oppScore} [${result}]</div>
     </div>
     <p style="font-style:italic;color:var(--text-dim)">"${q}"</p>
     <button onclick="answerInterview('humble', this.closest('.modal-overlay'))">Stay Humble</button>
