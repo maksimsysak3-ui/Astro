@@ -840,7 +840,7 @@ body {
 .score-team.away { justify-content: flex-end; text-align: right; }
 .score-team.home { justify-content: flex-start; }
 
-.score-team-logo { font-size: 40px; }
+.score-team-logo { font-size: 28px; font-family: 'Orbitron', sans-serif; font-weight: 900; letter-spacing: 2px; }
 .score-team-name {
   font-family: 'Orbitron', sans-serif;
   font-size: 16px;
@@ -2169,6 +2169,7 @@ body {
       <div class="court-key-right"></div>
     </div>
     <div class="court-ball" id="gameBall"></div>
+    <svg id="shotArcSvg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:20;"></svg>
   </div>
 
   <div class="game-controls">
@@ -2178,6 +2179,7 @@ body {
     <button class="game-btn" onclick="setGameSpeed(5)">5X</button>
     <button class="game-btn" onclick="setGameSpeed(0)">SIM TO END</button>
     <button class="game-btn" onclick="callTimeout()">TIMEOUT</button>
+    <button class="game-btn" onclick="openSubMenu()">SUBS</button>
     <button class="game-btn" onclick="toggleBoxScore()">BOX SCORE</button>
   </div>
 
@@ -2189,6 +2191,27 @@ body {
         <div>PLAYER</div><div>PTS</div><div>REB</div><div>AST</div><div>MIN</div>
       </div>
       <div id="boxScoreContent"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SUBS OVERLAY ===== -->
+<div class="modal-overlay" id="subsModal">
+  <div class="modal" style="max-width:600px;">
+    <button class="modal-close" onclick="closeSubMenu()">X</button>
+    <div style="padding:25px;">
+      <div class="panel-title" style="font-size:16px;margin-bottom:15px;">SUBSTITUTIONS</div>
+      <div style="display:grid;grid-template-columns:1fr 40px 1fr;gap:15px;">
+        <div>
+          <div style="font-size:11px;color:var(--text-muted);letter-spacing:2px;margin-bottom:10px;font-family:'Rajdhani',sans-serif;">ON COURT</div>
+          <div id="subsOnCourt"></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:20px;">&#8644;</div>
+        <div>
+          <div style="font-size:11px;color:var(--text-muted);letter-spacing:2px;margin-bottom:10px;font-family:'Rajdhani',sans-serif;">BENCH</div>
+          <div id="subsBench"></div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -2359,8 +2382,8 @@ function generatePlayer(opts = {}) {
   const young = age < 25;
   const old = age > 31;
 
-  let baseOvr = opts.ovr || (young ? rand(58, 82) : prime ? rand(68, 95) : rand(55, 80));
-  if (potential >= 90 && young) baseOvr = Math.max(baseOvr, rand(70, 85));
+  let baseOvr = opts.ovr || (young ? rand(65, 85) : prime ? rand(72, 96) : rand(62, 82));
+  if (potential >= 90 && young) baseOvr = Math.max(baseOvr, rand(75, 88));
 
   const ovr = clamp(baseOvr, 45, 99);
 
@@ -2417,19 +2440,53 @@ function generateTeamRoster(teamData, quality) {
   for (let pos of POSITIONS) {
     for (let i = 0; i < counts[pos]; i++) {
       const isStarter = i === 0;
-      const ovrRange = quality === 'elite' ? [78, 96] : quality === 'good' ? [70, 88] : quality === 'avg' ? [62, 80] : [55, 73];
-      const ovr = isStarter ? rand(ovrRange[0] + 5, ovrRange[1]) : rand(ovrRange[0] - 5, ovrRange[1] - 8);
+      const ovrRange = quality === 'elite' ? [82, 97] : quality === 'good' ? [76, 91] : quality === 'avg' ? [70, 84] : [64, 78];
+      const ovr = isStarter ? rand(ovrRange[0] + 3, ovrRange[1]) : rand(ovrRange[0] - 3, ovrRange[1] - 5);
       roster.push(generatePlayer({ pos, ovr }));
     }
   }
 
   for (let i = 0; i < bench; i++) {
-    const baseOvr = quality === 'elite' ? rand(65, 75) : quality === 'good' ? rand(60, 72) : rand(55, 68);
+    const baseOvr = quality === 'elite' ? rand(72, 80) : quality === 'good' ? rand(68, 77) : rand(64, 73);
     roster.push(generatePlayer({ ovr: baseOvr }));
   }
 
   return roster;
 }
+
+// Star players per team (slightly altered names)
+const TEAM_STARS = {
+  'BOS': [{fn:'Jayson',ln:'Tatum',pos:'SF',ovr:96,age:28,num:0},{fn:'Jaylen',ln:'Browne',pos:'SG',ovr:90,age:29,num:7},{fn:'Derrick',ln:'Whyte',pos:'PG',ovr:82,age:31,num:9},{fn:'Kristaps',ln:'Porzingus',pos:'C',ovr:88,age:31,num:8}],
+  'BKN': [{fn:'Mikal',ln:'Bridges',pos:'SF',ovr:82,age:29,num:1},{fn:'Cam',ln:'Thomson',pos:'SG',ovr:78,age:25,num:2}],
+  'NYK': [{fn:'Jalen',ln:'Brunsun',pos:'PG',ovr:90,age:29,num:11},{fn:'Julius',ln:'Randale',pos:'PF',ovr:85,age:31,num:30},{fn:'Karl-Anthony',ln:'Towns',pos:'C',ovr:87,age:30,num:32},{fn:'OG',ln:'Anunobi',pos:'SF',ovr:84,age:28,num:8}],
+  'PHI': [{fn:'Joel',ln:'Embiid',pos:'C',ovr:95,age:32,num:21},{fn:'Tyrese',ln:'Maxey',pos:'PG',ovr:89,age:25,num:0},{fn:'Paul',ln:'Georges',pos:'SF',ovr:84,age:36,num:13}],
+  'TOR': [{fn:'Scottie',ln:'Barns',pos:'SF',ovr:87,age:24,num:4},{fn:'RJ',ln:'Barret',pos:'SG',ovr:81,age:25,num:9},{fn:'Immanuel',ln:'Quicklee',pos:'PG',ovr:82,age:25,num:5}],
+  'CHI': [{fn:'Zach',ln:'LaVeen',pos:'SG',ovr:86,age:31,num:8},{fn:'Coby',ln:'Whyte',pos:'PG',ovr:79,age:25,num:0}],
+  'CLE': [{fn:'Donovan',ln:'Mitchel',pos:'SG',ovr:92,age:29,num:45},{fn:'Darius',ln:'Garlan',pos:'PG',ovr:88,age:26,num:10},{fn:'Evan',ln:'Moblei',pos:'PF',ovr:87,age:25,num:4},{fn:'Jarrett',ln:'Allen',pos:'C',ovr:84,age:28,num:31}],
+  'DET': [{fn:'Cade',ln:'Cunningham',pos:'PG',ovr:85,age:24,num:2},{fn:'Jaden',ln:'Ivey',pos:'SG',ovr:81,age:24,num:23}],
+  'IND': [{fn:'Tyrese',ln:'Halliburton',pos:'PG',ovr:90,age:26,num:0},{fn:'Pascal',ln:'Siakam',pos:'PF',ovr:85,age:32,num:43},{fn:'Myles',ln:'Turnur',pos:'C',ovr:83,age:30,num:33}],
+  'MIL': [{fn:'Giannis',ln:'Antetokounpo',pos:'PF',ovr:97,age:31,num:34},{fn:'Damian',ln:'Lillard',pos:'PG',ovr:89,age:35,num:0},{fn:'Khris',ln:'Middelton',pos:'SF',ovr:82,age:34,num:22}],
+  'ATL': [{fn:'Trae',ln:'Yung',pos:'PG',ovr:90,age:27,num:11},{fn:'DeJounte',ln:'Murrai',pos:'SG',ovr:84,age:29,num:5}],
+  'CHA': [{fn:'LaMelo',ln:'Balle',pos:'PG',ovr:86,age:24,num:1},{fn:'Brandon',ln:'Miler',pos:'SG',ovr:82,age:26,num:2}],
+  'MIA': [{fn:'Jimmy',ln:'Buttler',pos:'SF',ovr:88,age:36,num:22},{fn:'Bam',ln:'Adebaiyo',pos:'C',ovr:87,age:28,num:13},{fn:'Tyler',ln:'Herro',pos:'SG',ovr:83,age:26,num:14}],
+  'ORL': [{fn:'Paolo',ln:'Banchero',pos:'PF',ovr:88,age:23,num:5},{fn:'Franz',ln:'Wagnar',pos:'SF',ovr:85,age:24,num:22},{fn:'Jalen',ln:'Suggs',pos:'PG',ovr:80,age:24,num:4}],
+  'WAS': [{fn:'Kyle',ln:'Kuzma',pos:'PF',ovr:80,age:31,num:33},{fn:'Jordan',ln:'Poole',pos:'SG',ovr:79,age:27,num:13}],
+  'DEN': [{fn:'Nikola',ln:'Jokic',pos:'C',ovr:97,age:31,num:15},{fn:'Jamal',ln:'Murrey',pos:'PG',ovr:89,age:29,num:27},{fn:'Michael',ln:'Porter',pos:'SF',ovr:84,age:28,num:1},{fn:'Aaron',ln:'Gordan',pos:'PF',ovr:82,age:31,num:50}],
+  'MIN': [{fn:'Anthony',ln:'Edwards',pos:'SG',ovr:94,age:24,num:5},{fn:'Karl-Anthony',ln:'Townes',pos:'C',ovr:86,age:30,num:32},{fn:'Rudy',ln:'Gobart',pos:'C',ovr:83,age:33,num:27}],
+  'OKC': [{fn:'Shai',ln:'Gilgeous-Alexander',pos:'PG',ovr:96,age:27,num:2},{fn:'Jalen',ln:'Williums',pos:'PF',ovr:85,age:23,num:8},{fn:'Chet',ln:'Holmgrin',pos:'C',ovr:87,age:23,num:7},{fn:'Lu',ln:'Dort',pos:'SG',ovr:80,age:26,num:5}],
+  'POR': [{fn:'Anfernee',ln:'Simmons',pos:'PG',ovr:84,age:25,num:1},{fn:'Scoot',ln:'Henderson',pos:'SG',ovr:80,age:22,num:0}],
+  'UTA': [{fn:'Lauri',ln:'Markanen',pos:'PF',ovr:86,age:29,num:23},{fn:'Collin',ln:'Sextun',pos:'PG',ovr:81,age:27,num:2}],
+  'GSW': [{fn:'Stephen',ln:'Currry',pos:'PG',ovr:93,age:38,num:30},{fn:'Draymond',ln:'Grene',pos:'PF',ovr:80,age:36,num:23},{fn:'Andrew',ln:'Wiggens',pos:'SF',ovr:82,age:31,num:22}],
+  'LAC': [{fn:'Kawhi',ln:'Leonard',pos:'SF',ovr:90,age:34,num:2},{fn:'James',ln:'Haren',pos:'SG',ovr:87,age:36,num:1}],
+  'LAL': [{fn:'LeBron',ln:'Jammes',pos:'SF',ovr:93,age:41,num:23},{fn:'Anthony',ln:'Daivis',pos:'PF',ovr:93,age:33,num:3},{fn:'Austin',ln:'Reives',pos:'SG',ovr:82,age:27,num:15}],
+  'PHX': [{fn:'Kevin',ln:'Durrant',pos:'SF',ovr:94,age:37,num:35},{fn:'Devin',ln:'Bookar',pos:'SG',ovr:91,age:29,num:1},{fn:'Bradley',ln:'Beale',pos:'PG',ovr:82,age:33,num:3}],
+  'SAC': [{fn:'DeAaron',ln:'Foxx',pos:'PG',ovr:89,age:28,num:5},{fn:'Domantas',ln:'Sabonis',pos:'C',ovr:87,age:30,num:10},{fn:'Keegan',ln:'Murrey',pos:'SF',ovr:83,age:25,num:13}],
+  'DAL': [{fn:'Luka',ln:'Doncic',pos:'PG',ovr:96,age:27,num:77},{fn:'Kyrie',ln:'Erving',pos:'SG',ovr:89,age:34,num:11},{fn:'PJ',ln:'Washington',pos:'PF',ovr:79,age:27,num:25}],
+  'HOU': [{fn:'Jalen',ln:'Greene',pos:'SG',ovr:86,age:22,num:4},{fn:'Alperen',ln:'Sengun',pos:'C',ovr:84,age:24,num:28},{fn:'Jabari',ln:'Smithh',pos:'PF',ovr:80,age:23,num:1}],
+  'MEM': [{fn:'Ja',ln:'Morant',pos:'PG',ovr:91,age:26,num:12},{fn:'Desmond',ln:'Baine',pos:'SG',ovr:82,age:27,num:22},{fn:'Jaren',ln:'Jacksonm',pos:'PF',ovr:83,age:26,num:13}],
+  'NOP': [{fn:'Zion',ln:'Williamson',pos:'PF',ovr:91,age:25,num:1},{fn:'Brandon',ln:'Ingrahm',pos:'SF',ovr:85,age:28,num:14},{fn:'CJ',ln:'McCollom',pos:'PG',ovr:82,age:34,num:3}],
+  'SAS': [{fn:'Victor',ln:'Wembanyama',pos:'C',ovr:92,age:22,num:1},{fn:'Devin',ln:'Vassell',pos:'SG',ovr:81,age:26,num:24}],
+};
 
 // ===== WORLD GENERATION =====
 function generateWorld() {
@@ -2442,6 +2499,17 @@ function generateWorld() {
 
   allTeams.forEach((t, i) => {
     const roster = generateTeamRoster(t, shuffled[i]);
+    const stars = TEAM_STARS[t.abbr] || [];
+    stars.forEach(s => {
+      const starPlayer = generatePlayer({ firstName: s.fn, lastName: s.ln, pos: s.pos, ovr: s.ovr, age: s.age });
+      starPlayer.number = s.num;
+      starPlayer.potential = Math.min(99, s.ovr + rand(0, 5));
+      starPlayer.salary = Math.round(s.ovr * s.ovr * 250 + rand(2000000, 8000000));
+      starPlayer.contractYears = rand(2, 5);
+      const posIdx = roster.findIndex(p => p.pos === s.pos);
+      if (posIdx >= 0) roster[posIdx] = starPlayer;
+      else roster.push(starPlayer);
+    });
     G.teams.push({
       ...t,
       conference: i < 15 ? 'east' : 'west',
@@ -2465,7 +2533,7 @@ function generateWorld() {
 function generateFreeAgents() {
   G.freeAgents = [];
   for (let i = 0; i < 40; i++) {
-    G.freeAgents.push(generatePlayer({ ovr: rand(55, 82), age: rand(22, 35) }));
+    G.freeAgents.push(generatePlayer({ ovr: rand(65, 82), age: rand(22, 35) }));
   }
 }
 
@@ -2608,10 +2676,11 @@ function renderTeams(conf) {
   const teams = NBA_TEAMS[conf];
   container.innerHTML = teams.map((t, i) => `
     <div class="team-card ${G.conference === conf && G.teamIdx === i ? 'selected' : ''}"
-         onclick="selectTeam('${conf}', ${i})">
-      <div class="team-logo">${t.emoji}</div>
+         onclick="selectTeam('${conf}', ${i})"
+         style="border-top:3px solid ${t.color};">
+      <div class="team-logo" style="color:${t.color};font-family:'Orbitron',sans-serif;font-size:24px;font-weight:900;">${t.abbr}</div>
       <div class="team-name">${t.name}</div>
-      <div class="team-record">${t.abbr}</div>
+      <div class="team-record" style="color:${t.color};">${t.abbr}</div>
     </div>
   `).join('');
 }
@@ -2639,6 +2708,8 @@ function getMyTeam() {
 function initHub() {
   const team = getMyTeam();
   document.getElementById('sidebarTeamName').textContent = team.name;
+  document.getElementById('sidebarTeamName').style.color = team.color;
+  document.querySelector('.sidebar').style.borderRightColor = team.color;
   document.getElementById('newsTicker').style.display = 'flex';
   updateTicker();
   updateTopBar();
@@ -2852,7 +2923,7 @@ function refreshStandings() {
     document.getElementById(bodyId).innerHTML = sorted.map((t, i) => `
       <tr class="${t.abbr === myTeam.abbr ? 'my-team' : ''}">
         <td>${i + 1}</td>
-        <td><span style="margin-right:8px;">${t.emoji}</span>${t.name}</td>
+        <td><span style="margin-right:8px;color:${t.color};font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;">${t.abbr}</span>${t.name}</td>
         <td>${t.wins}</td>
         <td>${t.losses}</td>
         <td>${t.wins + t.losses > 0 ? (t.wins / (t.wins + t.losses)).toFixed(3) : '.000'}</td>
@@ -3058,6 +3129,10 @@ function selectProspect(idx) {
 }
 
 function draftPlayer(idx) {
+  if (G.week < 82) {
+    showToast('DRAFT LOCKED', 'The draft opens after the regular season.');
+    return;
+  }
   const p = G.draftClass.splice(idx, 1)[0];
   const team = getMyTeam();
   p.salary = rand(1500000, 8000000);
@@ -3072,6 +3147,10 @@ function draftPlayer(idx) {
 }
 
 function startDraft() {
+  if (G.week < 82) {
+    showToast('DRAFT LOCKED', `The draft is available after the season ends (Week 82). Current: Week ${G.week}.`);
+    return;
+  }
   showToast('DRAFT', 'Use the draft board to select prospects. Click a prospect then "Draft This Player".');
 }
 
@@ -3478,8 +3557,12 @@ function playNextGame() {
 
   document.getElementById('homeTeamName').textContent = nextGame.home ? myTeam.abbr : oppTeam.abbr;
   document.getElementById('awayTeamName').textContent = nextGame.home ? oppTeam.abbr : myTeam.abbr;
-  document.getElementById('homeTeamLogo').textContent = nextGame.home ? myTeam.emoji : oppTeam.emoji;
-  document.getElementById('awayTeamLogo').textContent = nextGame.home ? oppTeam.emoji : myTeam.emoji;
+  document.getElementById('homeTeamLogo').textContent = nextGame.home ? myTeam.abbr : oppTeam.abbr;
+  document.getElementById('awayTeamLogo').textContent = nextGame.home ? oppTeam.abbr : myTeam.abbr;
+  document.getElementById('homeTeamLogo').style.color = nextGame.home ? myTeam.color : oppTeam.color;
+  document.getElementById('awayTeamLogo').style.color = nextGame.home ? oppTeam.color : myTeam.color;
+  document.getElementById('homeTeamName').style.color = nextGame.home ? myTeam.color : oppTeam.color;
+  document.getElementById('awayTeamName').style.color = nextGame.home ? oppTeam.color : myTeam.color;
   document.getElementById('homeTeamRecord').textContent = `${myTeam.wins}-${myTeam.losses}`;
   document.getElementById('awayTeamRecord').textContent = '';
   document.getElementById('homeScore').textContent = '0';
@@ -3504,9 +3587,12 @@ function setupCourtPlayers() {
     [65, 50], [80, 25], [80, 75], [88, 35], [88, 65]
   ];
 
+  const homeColor = gameState.myTeam.color || 'var(--blue)';
+  const awayColor = gameState.oppTeam.color || 'var(--red)';
   for (let i = 0; i < 5; i++) {
     const hp = document.createElement('div');
     hp.className = 'court-player home-team';
+    hp.style.background = homeColor;
     hp.textContent = gameState.myRoster[i] ? gameState.myRoster[i].number : i;
     hp.style.left = homePositions[i][0] + '%';
     hp.style.top = homePositions[i][1] + '%';
@@ -3515,6 +3601,7 @@ function setupCourtPlayers() {
 
     const ap = document.createElement('div');
     ap.className = 'court-player away-team';
+    ap.style.background = awayColor;
     ap.textContent = gameState.oppRoster[i] ? gameState.oppRoster[i].number : i;
     ap.style.left = awayPositions[i][0] + '%';
     ap.style.top = awayPositions[i][1] + '%';
@@ -3536,7 +3623,7 @@ function startGameLoop() {
 function gameTick() {
   if (!gameState || gamePaused) return;
 
-  gameState.clock -= rand(8, 24);
+  gameState.clock -= rand(3, 10);
 
   if (gameState.clock <= 0) {
     gameState.quarter++;
@@ -3557,6 +3644,7 @@ function gameTick() {
   }
 
   simulatePossession();
+  if (Math.random() < 0.4) simulatePossession();
   moveCourtPlayers();
   updateGameUI();
 }
@@ -3574,9 +3662,9 @@ function simulatePossession() {
   const defenderOvr = defender ? defender.ovr : 60;
 
   const roll = Math.random() * 100;
-  const shotChance = shooterOvr * 0.55 + (shooter.attrs?.Shooting || 70) * 0.15 - defenderOvr * 0.15 + rand(-10, 10);
+  const shotChance = 30 + shooterOvr * 0.35 + (shooter.attrs?.Shooting || 70) * 0.15 - defenderOvr * 0.08 + rand(-8, 8);
 
-  if (roll < 5) {
+  if (roll < 4) {
     const stealer = defRoster[rand(0, Math.min(4, defRoster.length - 1))];
     addPlay('[MIA]', `<span class="highlight">${stealer?.firstName[0] || 'X'}. ${stealer?.lastName || 'Player'}</span> steals the ball!`);
     if (stealer && gameState.playerGameStats[stealer.id]) gameState.playerGameStats[stealer.id].stl++;
@@ -3584,7 +3672,7 @@ function simulatePossession() {
     return;
   }
 
-  if (roll < 12) {
+  if (roll < 8) {
     addPlay('', `${shooter.firstName[0]}. ${shooter.lastName} turns it over.`);
     gameState.possession = isHome ? 'away' : 'home';
     return;
@@ -3607,9 +3695,16 @@ function simulatePossession() {
 
   if (gameState.playerGameStats[shooter.id]) gameState.playerGameStats[shooter.id].fga++;
 
-  if (shotChance > 40 + Math.random() * 25) {
+  if (shotChance > 42 + Math.random() * 15) {
+    showShotArc(true);
     if (isHome) gameState.homeScore += points;
     else gameState.awayScore += points;
+    if (Math.random() < 0.18) {
+      const ftPts = Math.random() < 0.78 ? 1 : 0;
+      if (isHome) gameState.homeScore += ftPts;
+      else gameState.awayScore += ftPts;
+      if (ftPts && gameState.playerGameStats[shooter.id]) gameState.playerGameStats[shooter.id].pts += ftPts;
+    }
 
     if (gameState.playerGameStats[shooter.id]) {
       gameState.playerGameStats[shooter.id].pts += points;
@@ -3635,6 +3730,14 @@ function simulatePossession() {
       addPlay(icon, `<span class="highlight">${shooter.firstName[0]}. ${shooter.lastName}</span> hits the ${shotDesc}. +${points}${assistText}`);
     }
   } else {
+    showShotArc(false);
+    if (Math.random() < 0.2) {
+      const ftMade = Math.random() < 0.75 ? 2 : 1;
+      if (isHome) gameState.homeScore += ftMade;
+      else gameState.awayScore += ftMade;
+      if (gameState.playerGameStats[shooter.id]) gameState.playerGameStats[shooter.id].pts += ftMade;
+      addPlay('FT', `<span class="highlight">${shooter.firstName[0]}. ${shooter.lastName}</span> goes to the line. ${ftMade} free throws made.`);
+    }
     const blocker = defRoster[rand(0, Math.min(4, defRoster.length - 1))];
     if (Math.random() < 0.15 && blocker) {
       addPlay('', `<span class="highlight">${blocker.firstName[0]}. ${blocker.lastName}</span> BLOCKS ${shooter.firstName[0]}. ${shooter.lastName}'s ${shotDesc}!`);
@@ -3675,6 +3778,30 @@ function moveCourtPlayers() {
     ball.style.left = ballCarrier.style.left;
     ball.style.top = ballCarrier.style.top;
   }
+}
+
+function showShotArc(made) {
+  const svg = document.getElementById('shotArcSvg');
+  if (!svg) return;
+  const ballCarrier = gameState.possession === 'home' ? document.getElementById('hp0') : document.getElementById('ap0');
+  if (!ballCarrier) return;
+  const sx = parseFloat(ballCarrier.style.left);
+  const sy = parseFloat(ballCarrier.style.top);
+  const isHome = gameState.possession === 'home';
+  const rimX = isHome ? 8 : 92;
+  const rimY = 50;
+  const midX = (sx + rimX) / 2;
+  const midY = Math.min(sy, rimY) - 15 - Math.random() * 10;
+  const color = made ? 'var(--green)' : 'var(--red)';
+  const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+  path.setAttribute('d', `M ${sx} ${sy} Q ${midX} ${midY} ${rimX} ${rimY}`);
+  path.setAttribute('stroke', color);
+  path.setAttribute('stroke-width', '2');
+  path.setAttribute('fill', 'none');
+  path.setAttribute('stroke-dasharray', '6 3');
+  path.setAttribute('opacity', '0.8');
+  svg.appendChild(path);
+  setTimeout(() => { if (path.parentNode) path.parentNode.removeChild(path); }, 1200);
 }
 
 function addPlay(icon, text, color) {
@@ -3731,6 +3858,8 @@ function updateBoxScore() {
 }
 
 function endGame() {
+  if (gameState.ended) return;
+  gameState.ended = true;
   clearInterval(gameInterval);
   gameInterval = null;
 
@@ -3786,10 +3915,28 @@ function setGameSpeed(speed) {
   document.querySelectorAll('.game-controls .game-btn').forEach(b => b.classList.remove('active'));
   if (speed === 0) {
     clearInterval(gameInterval);
-    while (gameState && gameState.quarter <= 4) {
-      gameTick();
+    gameInterval = null;
+    gamePaused = false;
+    while (gameState && gameState.quarter <= 4 && !gameState.ended) {
+      gameState.clock -= rand(3, 10);
+      if (gameState.clock <= 0) {
+        gameState.quarter++;
+        if (gameState.quarter > 4) {
+          if (gameState.homeScore === gameState.awayScore) {
+            gameState.quarter = 5;
+            gameState.clock = 300;
+          } else {
+            endGame();
+            return;
+          }
+        } else {
+          gameState.clock = 720;
+        }
+      }
+      simulatePossession();
+      if (Math.random() < 0.35) simulatePossession();
     }
-    if (gameState && gameState.quarter <= 5) endGame();
+    if (gameState && !gameState.ended) endGame();
     return;
   }
   gameSpeed = Math.max(100, 1000 / speed);
@@ -3809,6 +3956,60 @@ function callTimeout() {
 function toggleBoxScore() {
   const panel = document.getElementById('boxScorePanel');
   panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+
+function openSubMenu() {
+  if (!gameState) return;
+  gamePaused = true;
+  document.getElementById('btnPause').textContent = '> PLAY';
+  const onCourt = gameState.myRoster.slice(0, 5);
+  const bench = gameState.myRoster.slice(5);
+  document.getElementById('subsOnCourt').innerHTML = onCourt.map((p, i) => `
+    <div class="trade-player-item" onclick="subOut(${i})" style="margin-bottom:6px;">
+      <span class="ovr-badge ${ovrClass(p.ovr)}" style="font-size:11px;">${p.ovr}</span>
+      <span>${p.firstName[0]}. ${p.lastName}</span>
+      <span style="color:var(--text-muted);font-size:11px;margin-left:auto;">${p.pos}</span>
+    </div>
+  `).join('');
+  document.getElementById('subsBench').innerHTML = bench.map((p, i) => `
+    <div class="trade-player-item" onclick="subIn(${i + 5})" style="margin-bottom:6px;">
+      <span class="ovr-badge ${ovrClass(p.ovr)}" style="font-size:11px;">${p.ovr}</span>
+      <span>${p.firstName[0]}. ${p.lastName}</span>
+      <span style="color:var(--text-muted);font-size:11px;margin-left:auto;">${p.pos}</span>
+    </div>
+  `).join('');
+  document.getElementById('subsModal').classList.add('active');
+}
+
+let _subOutIdx = -1;
+function subOut(idx) {
+  _subOutIdx = idx;
+  document.querySelectorAll('#subsOnCourt .trade-player-item').forEach((el, i) => {
+    el.style.borderColor = i === idx ? 'var(--gold)' : '';
+  });
+  showToast('SUB', 'Now select a bench player to sub in.');
+}
+
+function subIn(benchIdx) {
+  if (_subOutIdx < 0) {
+    showToast('SUB', 'First click a player on court to sub out.');
+    return;
+  }
+  const temp = gameState.myRoster[_subOutIdx];
+  gameState.myRoster[_subOutIdx] = gameState.myRoster[benchIdx];
+  gameState.myRoster[benchIdx] = temp;
+  if (!gameState.playerGameStats[gameState.myRoster[_subOutIdx].id]) {
+    gameState.playerGameStats[gameState.myRoster[_subOutIdx].id] = { pts:0, reb:0, ast:0, stl:0, blk:0, min:0, fgm:0, fga:0 };
+  }
+  addPlay('', `SUB: <span class="highlight">${gameState.myRoster[_subOutIdx].firstName[0]}. ${gameState.myRoster[_subOutIdx].lastName}</span> checks in for ${gameState.myRoster[benchIdx].firstName[0]}. ${gameState.myRoster[benchIdx].lastName}`);
+  _subOutIdx = -1;
+  setupCourtPlayers();
+  closeSubMenu();
+}
+
+function closeSubMenu() {
+  document.getElementById('subsModal').classList.remove('active');
+  _subOutIdx = -1;
 }
 
 function backToHub() {
