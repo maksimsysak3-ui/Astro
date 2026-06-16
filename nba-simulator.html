@@ -547,6 +547,7 @@ function showPlayerModal(playerId,teamId){
       <div class="stat-card"><div class="stat-label">PPG</div><div class="stat-value">${p.stats.gp?(p.stats.ppg/p.stats.gp).toFixed(1):'0.0'}</div></div>
       <div class="stat-card"><div class="stat-label">RPG</div><div class="stat-value">${p.stats.gp?(p.stats.rpg/p.stats.gp).toFixed(1):'0.0'}</div></div>
       <div class="stat-card"><div class="stat-label">APG</div><div class="stat-value">${p.stats.gp?(p.stats.apg/p.stats.gp).toFixed(1):'0.0'}</div></div>
+      <div class="stat-card"><div class="stat-label">FG%</div><div class="stat-value">${p.stats.fga?(p.stats.fgm/p.stats.fga*100).toFixed(1):'0.0'}%</div></div>
     </div>
     <div style="margin-top:15px;padding:12px;background:var(--surface2);border-radius:8px">
       <div style="display:flex;justify-content:space-between;font-size:0.8rem"><span>Contract: $${(p.salary/1e6).toFixed(1)}M</span><span>${p.contractYears} years remaining</span></div>
@@ -642,8 +643,8 @@ function generateNews(type,data){
 function renderRoster(el){
   const p=getMyTeam().players;
   el.innerHTML=`<div class="page-header"><div><h2>Team Roster</h2><div class="subtitle">${p.length} Players | Click any player for details</div></div></div>
-    <table class="data-table"><thead><tr><th>#</th><th>Name</th><th>Pos</th><th>OVR</th><th>Age</th><th>Energy</th><th>PPG</th><th>RPG</th><th>APG</th></tr></thead><tbody>
-    ${p.map(x=>`<tr onclick="showPlayerModal('${x.id}')"><td style="font-weight:700;color:var(--text-dim)">${x.num}</td><td style="font-weight:600">${x.name}${x.injured?' <span style="color:#f44336;font-size:0.7rem">INJ</span>':''}</td><td><span style="padding:2px 8px;background:var(--surface2);border-radius:4px;font-size:0.75rem">${x.pos}</span></td><td><span class="ovr ${ovrClass(x.ovr)}">${x.ovr}</span></td><td>${x.age}</td><td><div style="width:50px;height:6px;background:rgba(255,255,255,0.1);border-radius:3px;display:inline-block;vertical-align:middle"><div style="width:${x.energy}%;height:100%;background:${x.energy>60?'#4caf50':x.energy>30?'#ff9800':'#f44336'};border-radius:3px"></div></div></td><td>${x.stats.gp?(x.stats.ppg/x.stats.gp).toFixed(1):'0.0'}</td><td>${x.stats.gp?(x.stats.rpg/x.stats.gp).toFixed(1):'0.0'}</td><td>${x.stats.gp?(x.stats.apg/x.stats.gp).toFixed(1):'0.0'}</td></tr>`).join('')}</tbody></table>`;
+    <table class="data-table"><thead><tr><th>#</th><th>Name</th><th>Pos</th><th>OVR</th><th>Age</th><th>Energy</th><th>PPG</th><th>RPG</th><th>APG</th><th>FG%</th></tr></thead><tbody>
+    ${p.map(x=>`<tr onclick="showPlayerModal('${x.id}')"><td style="font-weight:700;color:var(--text-dim)">${x.num}</td><td style="font-weight:600">${x.name}${x.injured?' <span style="color:#f44336;font-size:0.7rem">INJ</span>':''}</td><td><span style="padding:2px 8px;background:var(--surface2);border-radius:4px;font-size:0.75rem">${x.pos}</span></td><td><span class="ovr ${ovrClass(x.ovr)}">${x.ovr}</span></td><td>${x.age}</td><td><div style="width:50px;height:6px;background:rgba(255,255,255,0.1);border-radius:3px;display:inline-block;vertical-align:middle"><div style="width:${x.energy}%;height:100%;background:${x.energy>60?'#4caf50':x.energy>30?'#ff9800':'#f44336'};border-radius:3px"></div></div></td><td>${x.stats.gp?(x.stats.ppg/x.stats.gp).toFixed(1):'0.0'}</td><td>${x.stats.gp?(x.stats.rpg/x.stats.gp).toFixed(1):'0.0'}</td><td>${x.stats.gp?(x.stats.apg/x.stats.gp).toFixed(1):'0.0'}</td><td>${x.stats.fga?(x.stats.fgm/x.stats.fga*100).toFixed(1):'—'}</td></tr>`).join('')}</tbody></table>`;
 }
 
 // ===== DEPTH CHART =====
@@ -870,7 +871,7 @@ function simNextGame(){
 }
 function simWeek(){for(let i=0;i<7&&G.gameIndex<82;i++)simNextGame();}
 function simulateOtherGames(){TEAMS.forEach(t=>{if(t.id===G.team)return;if(Math.random()<0.5)G.allTeams[t.id].wins++;else G.allTeams[t.id].losses++;});}
-function updatePlayerStats(myScore){const p=getMyTeam().players.filter(x=>!x.injured);let rem=myScore;p.forEach((x,i)=>{x.stats.gp++;const share=i<5?(0.15+Math.random()*0.1):(0.03+Math.random()*0.05);const pts=Math.min(rem,Math.floor(myScore*share));x.stats.ppg+=pts;x.stats.rpg+=Math.floor(Math.random()*10);x.stats.apg+=Math.floor(Math.random()*7);rem-=pts;});}
+function updatePlayerStats(myScore){const p=getMyTeam().players.filter(x=>!x.injured);const starters=p.slice(0,5);const bench=p.slice(5);const allActive=[...starters,...bench.slice(0,Math.min(4,bench.length))];let totalPts=myScore;const shares=allActive.map((_,i)=>{const base=i<5?(14+Math.random()*10):(4+Math.random()*8);return base;});const totalShares=shares.reduce((s,v)=>s+v,0);allActive.forEach((x,i)=>{x.stats.gp++;const pts=Math.round(totalPts*shares[i]/totalShares);const fga=Math.round(pts/1.1+Math.random()*4);const fgm=Math.round(fga*(0.38+Math.random()*0.2));x.stats.ppg+=pts;x.stats.fga=(x.stats.fga||0)+fga;x.stats.fgm=(x.stats.fgm||0)+fgm;const isCenter=x.pos==='C'||x.pos==='PF';const isGuard=x.pos==='PG'||x.pos==='SG';x.stats.rpg+=isCenter?Math.floor(5+Math.random()*8):Math.floor(1+Math.random()*5);x.stats.apg+=isGuard?Math.floor(3+Math.random()*7):Math.floor(0+Math.random()*4);});p.filter(x=>!allActive.includes(x)).forEach(x=>{x.stats.gp++;});}
 function postGameEnergy(){getMyTeam().players.forEach(p=>{if(p.injured){p.injuryGames--;if(p.injuryGames<=0){p.injured=false;p.injuryGames=0;}}p.energy=Math.min(100,p.energy+Math.floor(3+Math.random()*5));});}
 
 // ===== LIVE GAME =====
@@ -931,8 +932,8 @@ function startLiveGame(){
   G.liveBoxScore={home:{},away:{}};
   const myPlayers=getStarters();
   const oppPlayers=G.allTeams[game.opponent].players.slice(0,5);
-  myPlayers.forEach(p=>{const k=gameState.isHome?'home':'away';G.liveBoxScore[k][p.id]={name:p.name,pts:0,reb:0,ast:0,num:p.num};});
-  oppPlayers.forEach(p=>{const k=gameState.isHome?'away':'home';G.liveBoxScore[k][p.id]={name:p.name,pts:0,reb:0,ast:0,num:p.num};});
+  myPlayers.forEach(p=>{const k=gameState.isHome?'home':'away';G.liveBoxScore[k][p.id]={name:p.name,pts:0,reb:0,ast:0,fgm:0,fga:0,num:p.num,pos:p.pos};});
+  oppPlayers.forEach(p=>{const k=gameState.isHome?'away':'home';G.liveBoxScore[k][p.id]={name:p.name,pts:0,reb:0,ast:0,fgm:0,fga:0,num:p.num,pos:p.pos};});
 
   document.getElementById('live-game').classList.remove('hidden');document.getElementById('game-screen').classList.add('hidden');
   const opp=getTeamData(game.opponent);const my=getTeamData(G.team);
@@ -983,7 +984,7 @@ function updateGameDisplay(){
 function updateBoxScorePanel(){
   if(!G.boxScoreVisible){document.getElementById('box-score-panel').style.display='none';return;}
   document.getElementById('box-score-panel').style.display='block';
-  const renderTeamBox=(data,label)=>{const rows=Object.values(data).map(p=>`<tr><td style="text-align:left">${p.num} ${p.name.split(' ')[1]||p.name}</td><td>${p.pts}</td><td>${p.reb}</td><td>${p.ast}</td></tr>`).join('');return`<div style="margin-bottom:8px;font-weight:700;font-size:0.7rem;color:var(--text-dim)">${label}</div><table><thead><tr><th style="text-align:left">Player</th><th>PTS</th><th>REB</th><th>AST</th></tr></thead><tbody>${rows}</tbody></table>`;};
+  const renderTeamBox=(data,label)=>{const rows=Object.values(data).map(p=>{const fgPct=p.fga>0?Math.round(p.fgm/p.fga*100):0;return`<tr><td style="text-align:left">${p.num} ${p.name.split(' ')[1]||p.name}</td><td>${p.pts}</td><td>${p.reb}</td><td>${p.ast}</td><td>${fgPct}%</td></tr>`;}).join('');return`<div style="margin-bottom:8px;font-weight:700;font-size:0.7rem;color:var(--text-dim)">${label}</div><table><thead><tr><th style="text-align:left">Player</th><th>PTS</th><th>REB</th><th>AST</th><th>FG%</th></tr></thead><tbody>${rows}</tbody></table>`;};
   document.getElementById('box-score-panel').innerHTML=renderTeamBox(G.liveBoxScore.home,'HOME')+renderTeamBox(G.liveBoxScore.away,'AWAY');
 }
 function toggleBoxScore(){G.boxScoreVisible=!G.boxScoreVisible;updateBoxScorePanel();}
@@ -997,16 +998,17 @@ function gameLoop(){
   const myOvr=myP.reduce((s,p)=>s+p.ovr,0)/5;const oppOvr=oppP.reduce((s,p)=>s+p.ovr,0)/5;
   const hca=gameState.isHome?2:0;
   const hc=0.44+(myOvr-oppOvr+hca)/200+gameState.momentum*0.008;
-  if(Math.random()<hc){const pts=Math.random()<0.28?3:Math.random()<0.55?2:0;if(pts>0){if(gameState.isHome)gameState.homeScore+=pts;else gameState.awayScore+=pts;addPlayEvent(true,pts,myP);}}
+  if(Math.random()<hc){const pts=Math.random()<0.28?3:Math.random()<0.55?2:0;if(pts>0){if(gameState.isHome)gameState.homeScore+=pts;else gameState.awayScore+=pts;addPlayEvent(true,pts,myP);}else{const miss=myP[Math.floor(Math.random()*myP.length)];const mk=gameState.isHome?'home':'away';if(G.liveBoxScore[mk]&&G.liveBoxScore[mk][miss.id])G.liveBoxScore[mk][miss.id].fga++;}}
   gameState.time-=Math.floor(5+Math.random()*12);if(gameState.time<0)gameState.time=0;
   const ac=0.44+(oppOvr-myOvr-hca)/200-gameState.momentum*0.008;
-  if(Math.random()<ac){const pts=Math.random()<0.28?3:Math.random()<0.55?2:0;if(pts>0){if(gameState.isHome)gameState.awayScore+=pts;else gameState.homeScore+=pts;addPlayEvent(false,pts,oppP);}}
+  if(Math.random()<ac){const pts=Math.random()<0.28?3:Math.random()<0.55?2:0;if(pts>0){if(gameState.isHome)gameState.awayScore+=pts;else gameState.homeScore+=pts;addPlayEvent(false,pts,oppP);}else{const miss=oppP[Math.floor(Math.random()*oppP.length)];const ok=gameState.isHome?'away':'home';if(G.liveBoxScore[ok]&&G.liveBoxScore[ok][miss.id])G.liveBoxScore[ok][miss.id].fga++;}}
   movePlayersRandomly();animateBall();updateGameDisplay();updateBoxScorePanel();
   setTimeout(gameLoop,1200/gameState.speed);
 }
 
 function addPlayEvent(isMyTeam,pts,players){
-  const shooter=players[Math.floor(Math.random()*Math.min(5,players.length))];
+  const weights=players.slice(0,5).map(p=>p.ovr);const total=weights.reduce((s,w)=>s+w,0);let r=Math.random()*total,idx=0;for(let i=0;i<weights.length;i++){r-=weights[i];if(r<=0){idx=i;break;}}
+  const shooter=players[idx];
   const plays=['drives to the basket','pulls up','hits from deep','finishes at the rim','fades away','steps back'];
   const play=plays[Math.floor(Math.random()*plays.length)];
   const m=Math.floor(gameState.time/60),s=gameState.time%60;
@@ -1017,7 +1019,12 @@ function addPlayEvent(isMyTeam,pts,players){
   pbp.insertBefore(div,pbp.firstChild);if(pbp.children.length>25)pbp.removeChild(pbp.lastChild);
   // Update box score
   const k=isMyTeam?(gameState.isHome?'home':'away'):(gameState.isHome?'away':'home');
-  if(G.liveBoxScore[k][shooter.id])G.liveBoxScore[k][shooter.id].pts+=pts;
+  if(G.liveBoxScore[k][shooter.id]){const bs=G.liveBoxScore[k][shooter.id];bs.pts+=pts;bs.fga++;bs.fgm++;}
+  // Rebounds and assists for random teammates
+  const rebounder=players[Math.floor(Math.random()*players.length)];
+  if(G.liveBoxScore[k][rebounder.id])G.liveBoxScore[k][rebounder.id].reb+=Math.random()<0.4?1:0;
+  const passer=players[Math.floor(Math.random()*players.length)];
+  if(G.liveBoxScore[k][passer.id]&&passer.id!==shooter.id)G.liveBoxScore[k][passer.id].ast+=Math.random()<0.6?1:0;
   if(isMyTeam)gameState.momentum+=0.3;else gameState.momentum-=0.3;
   gameState.momentum=Math.max(-8,Math.min(8,gameState.momentum));
   showShotArrow(isMyTeam,pts);
