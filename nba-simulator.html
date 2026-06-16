@@ -431,7 +431,8 @@ let G = {
   team:null,season:1,week:0,gameIndex:0,wins:0,losses:0,schedule:[],allTeams:{},news:[],money:5000,morale:75,chemistry:70,momentum:0,salaryCap:136000000,
   draftPicks:[],freeAgents:[],playoffTeams:[],jersey:{primary:'#1d428a',secondary:'#ffffff',number:'00',pattern:'solid'},seasonHistory:[],currentPage:'dashboard',
   boxScoreVisible:false,liveBoxScore:{home:[],away:[]},scoutTokens:3,scoutedPlayers:[],
-  staff:{headCoach:1,assistant:1,trainer:1,scout:1},achievements:[],capBreakers:0,tradeCount:0,winStreak:0
+  staff:{headCoach:1,assistant:1,trainer:1,scout:1},achievements:[],capBreakers:0,tradeCount:0,winStreak:0,trainingPoints:0,
+  draftClass:null,trophies:[],playoffs:null
 };
 
 function initParticles(){const c=document.getElementById('particles');for(let i=0;i<50;i++){const p=document.createElement('div');p.className='particle';p.style.left=Math.random()*100+'%';p.style.top=Math.random()*100+'%';p.style.animationDelay=Math.random()*4+'s';p.style.animationDuration=(3+Math.random()*3)+'s';c.appendChild(p);}}
@@ -673,16 +674,17 @@ function swapDepthPos(pos,idx){
 
 // ===== TRAINING =====
 function renderTraining(el){
+  if(!G.trainingPoints&&G.trainingPoints!==0)G.trainingPoints=0;
   const p=getMyTeam().players;
   const drills=[{name:'Shooting',desc:'Improve offensive rating',cost:500,attr:'shooting'},{name:'Defense',desc:'Improve defensive awareness',cost:600,attr:'defense'},{name:'Conditioning',desc:'Boost stamina and energy recovery',cost:400,attr:'conditioning'},{name:'Team Practice',desc:'Improve chemistry (+3)',cost:800,attr:'chemistry'}];
-  el.innerHTML=`<div class="page-header"><div><h2>Training Facility</h2><div class="subtitle">Balance: $${G.money.toLocaleString()} | Choose drills strategically</div></div></div>
+  el.innerHTML=`<div class="page-header"><div><h2>Training Facility</h2><div class="subtitle">Balance: $${G.money.toLocaleString()} | Choose drills strategically</div></div><div style="background:var(--surface2);padding:10px 18px;border-radius:8px;border:1px solid var(--border)"><div style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1px">TRAINING POINTS</div><div style="font-size:1.5rem;font-weight:800;color:var(--accent)">${G.trainingPoints}</div></div></div>
     <div class="card" style="margin-bottom:20px"><div class="card-header"><h3>Team Drills</h3><div class="badge">Strategic</div></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${drills.map(d=>`<div style="padding:14px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:all 0.2s" onclick="runDrill('${d.attr}',${d.cost})" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'"><div style="font-weight:700;font-size:0.9rem">${d.name}</div><div style="color:var(--text-dim);font-size:0.75rem;margin:4px 0">${d.desc}</div><div style="color:var(--accent);font-size:0.8rem;font-weight:600">$${d.cost}</div></div>`).join('')}</div></div>
     <div class="card" style="margin-bottom:20px"><div class="card-header"><h3>Rest Players</h3><div class="badge">Recovery</div></div>
     <p style="color:var(--text-dim);font-size:0.8rem;margin-bottom:12px">Rest tired players to restore energy. Rested players perform better in games.</p>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">${p.filter(x=>x.energy<80).map(x=>`<div style="padding:10px;background:var(--surface2);border-radius:8px;display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:0.8rem;font-weight:600">${x.name.split(' ')[1]}</div><div style="font-size:0.7rem;color:${x.energy<40?'#f44336':'#ff9800'}">${x.energy}% energy</div></div><button class="btn btn-sm btn-secondary" onclick="restPlayer('${x.id}')">Rest</button></div>`).join('')||'<div style="color:var(--text-dim);font-size:0.8rem">All players well rested!</div>'}</div></div>
-    <h3 style="margin-bottom:12px">Individual Training ($500 each)</h3>
-    <div class="training-grid">${p.slice(0,8).map(x=>`<div class="training-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-weight:700;font-size:0.85rem">${x.name}</span><span class="ovr ${ovrClass(x.ovr)}" style="width:28px;height:28px;font-size:0.7rem">${x.ovr}</span></div><div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--text-dim)"><span>POT: ${x.potential}</span><button class="btn btn-primary btn-sm" onclick="trainPlayer('${x.id}')">Train</button></div><div class="progress-bar"><div class="fill" style="width:${((x.ovr-60)/Math.max(1,x.potential-60))*100}%"></div></div></div>`).join('')}</div>`;
+    <h3 style="margin-bottom:12px">Individual Training (1 Training Point each)</h3>
+    <div class="training-grid">${p.map(x=>`<div class="training-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-weight:700;font-size:0.85rem">${x.name}</span><span class="ovr ${ovrClass(x.ovr)}" style="width:28px;height:28px;font-size:0.7rem">${x.ovr}</span></div><div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--text-dim)"><span>POT: ${x.potential}</span><button class="btn btn-primary btn-sm" onclick="trainPlayer('${x.id}')">Train</button></div><div class="progress-bar"><div class="fill" style="width:${((x.ovr-60)/Math.max(1,x.potential-60))*100}%"></div></div></div>`).join('')}</div>`;
 }
 function runDrill(attr,cost){
   if(G.money<cost){alert('Not enough funds!');return;}G.money-=cost;
@@ -692,7 +694,7 @@ function runDrill(attr,cost){
   saveGame();showPage('training');
 }
 function restPlayer(id){const p=getMyTeam().players.find(x=>x.id===id);if(p){p.energy=Math.min(100,p.energy+25);saveGame();showPage('training');}}
-function trainPlayer(id){if(G.money<500){alert('Not enough funds!');return;}const p=getMyTeam().players.find(x=>x.id===id);if(!p)return;if(p.ovr>=p.potential){alert('At max potential!');return;}G.money-=500;const assistBoost=G.staff?G.staff.assistant*0.1:0;if(Math.random()<(0.5+assistBoost)){p.ovr+=1;alert(`${p.name} improved to ${p.ovr} OVR!`);}else{alert(`${p.name} trained hard but no improvement this time.`);}saveGame();showPage('training');}
+function trainPlayer(id){if(!G.trainingPoints){alert('Not enough training points! Win games to earn more.');return;}const p=getMyTeam().players.find(x=>x.id===id);if(!p)return;if(p.ovr>=p.potential){alert('At max potential!');return;}G.trainingPoints--;const assistBoost=G.staff?G.staff.assistant*0.1:0;if(Math.random()<(0.5+assistBoost)){p.ovr+=1;alert(`${p.name} improved to ${p.ovr} OVR!`);}else{alert(`${p.name} trained hard but no improvement this time.`);}saveGame();showPage('training');}
 
 // ===== TRADES =====
 function renderTradeValueBar(val){const pct=Math.min(100,val/2.5);const color=pct>70?'#4caf50':pct>40?'#ffc107':'#f44336';return`<div class="trade-value-bar" style="width:100%;margin-top:4px"><div class="trade-value-fill" style="width:${pct}%;background:linear-gradient(90deg,${color},${color}cc)"></div></div>`;}
@@ -860,7 +862,7 @@ function simNextGame(){
   const myScore=myWin?baseScore+Math.floor(margin/2):baseScore-Math.ceil(margin/2);
   const oppScore=myWin?baseScore-Math.ceil(margin/2):baseScore+Math.floor(margin/2);
   game.played=true;game.myScore=myScore;game.oppScore=oppScore;game.result=myScore>oppScore?'W':'L';
-  if(game.result==='W'){G.wins++;G.allTeams[G.team].wins++;}else{G.losses++;G.allTeams[G.team].losses++;}
+  if(game.result==='W'){G.wins++;G.allTeams[G.team].wins++;G.trainingPoints=(G.trainingPoints||0)+1;}else{G.losses++;G.allTeams[G.team].losses++;}
   G.allTeams[game.opponent][myScore>oppScore?'losses':'wins']++;
   if(game.result==='W'){G.winStreak=(G.winStreak||0)+1;}else{G.winStreak=0;}
   checkAchievements();
@@ -871,7 +873,25 @@ function simNextGame(){
 }
 function simWeek(){for(let i=0;i<7&&G.gameIndex<82;i++)simNextGame();}
 function simulateOtherGames(){TEAMS.forEach(t=>{if(t.id===G.team)return;if(Math.random()<0.5)G.allTeams[t.id].wins++;else G.allTeams[t.id].losses++;});}
-function updatePlayerStats(myScore){const p=getMyTeam().players.filter(x=>!x.injured);const starters=p.slice(0,5);const bench=p.slice(5);const allActive=[...starters,...bench.slice(0,Math.min(4,bench.length))];let totalPts=myScore;const shares=allActive.map((_,i)=>{const base=i<5?(14+Math.random()*10):(4+Math.random()*8);return base;});const totalShares=shares.reduce((s,v)=>s+v,0);allActive.forEach((x,i)=>{x.stats.gp++;const pts=Math.round(totalPts*shares[i]/totalShares);const fga=Math.round(pts/1.1+Math.random()*4);const fgm=Math.round(fga*(0.38+Math.random()*0.2));x.stats.ppg+=pts;x.stats.fga=(x.stats.fga||0)+fga;x.stats.fgm=(x.stats.fgm||0)+fgm;const isCenter=x.pos==='C'||x.pos==='PF';const isGuard=x.pos==='PG'||x.pos==='SG';x.stats.rpg+=isCenter?Math.floor(5+Math.random()*8):Math.floor(1+Math.random()*5);x.stats.apg+=isGuard?Math.floor(3+Math.random()*7):Math.floor(0+Math.random()*4);});p.filter(x=>!allActive.includes(x)).forEach(x=>{x.stats.gp++;});}
+function updatePlayerStats(myScore){
+  const starters=getStarters();
+  const bench=getMyTeam().players.filter(x=>!x.injured&&!starters.includes(x));
+  const allActive=[...starters,...bench.slice(0,Math.min(4,bench.length))];
+  let totalPts=myScore;
+  const shares=allActive.map((_,i)=>{return i<5?(14+Math.random()*10):(4+Math.random()*8);});
+  const totalShares=shares.reduce((s,v)=>s+v,0);
+  allActive.forEach((x,i)=>{
+    x.stats.gp++;
+    const pts=Math.round(totalPts*shares[i]/totalShares);
+    const fga=Math.round(pts/1.1+Math.random()*4);
+    const fgm=Math.round(fga*(0.38+Math.random()*0.2));
+    x.stats.ppg+=pts;x.stats.fga=(x.stats.fga||0)+fga;x.stats.fgm=(x.stats.fgm||0)+fgm;
+    const isCenter=x.pos==='C'||x.pos==='PF';const isGuard=x.pos==='PG'||x.pos==='SG';
+    x.stats.rpg+=isCenter?Math.floor(5+Math.random()*8):Math.floor(1+Math.random()*5);
+    x.stats.apg+=isGuard?Math.floor(3+Math.random()*7):Math.floor(0+Math.random()*4);
+  });
+  getMyTeam().players.filter(x=>!x.injured&&!allActive.includes(x)).forEach(x=>{x.stats.gp++;});
+}
 function postGameEnergy(){getMyTeam().players.forEach(p=>{if(p.injured){p.injuryGames--;if(p.injuryGames<=0){p.injured=false;p.injuryGames=0;}}p.energy=Math.min(100,p.energy+Math.floor(3+Math.random()*5));});}
 
 // ===== LIVE GAME =====
@@ -994,7 +1014,7 @@ function gameLoop(){
   if(gameState.quarter>4){endLiveGame();return;}
   if(gameState.time<=0){if(gameState.quarter===2&&!gameState.halftimeDone){showHalftime();return;}gameState.quarter++;gameState.time=720;if(gameState.quarter>4){endLiveGame();return;}updateGameDisplay();}
   gameState.time-=Math.floor(8+Math.random()*16);if(gameState.time<0)gameState.time=0;
-  const myP=getMyTeam().players.filter(p=>!p.injured).slice(0,5);const oppP=G.allTeams[gameState.opponent].players.slice(0,5);
+  const myP=getStarters();const oppP=G.allTeams[gameState.opponent].players.slice(0,5);
   const myOvr=myP.reduce((s,p)=>s+p.ovr,0)/5;const oppOvr=oppP.reduce((s,p)=>s+p.ovr,0)/5;
   const hca=gameState.isHome?2:0;
   const hc=0.44+(myOvr-oppOvr+hca)/200+gameState.momentum*0.008;
@@ -1053,7 +1073,7 @@ function simToEnd(){gameState.speed=100;}
 function endLiveGame(){
   const myScore=gameState.isHome?gameState.homeScore:gameState.awayScore;const oppScore=gameState.isHome?gameState.awayScore:gameState.homeScore;
   const game=G.schedule[G.gameIndex];game.played=true;game.myScore=myScore;game.oppScore=oppScore;game.result=myScore>oppScore?'W':'L';
-  if(game.result==='W'){G.wins++;G.allTeams[G.team].wins++;}else{G.losses++;G.allTeams[G.team].losses++;}
+  if(game.result==='W'){G.wins++;G.allTeams[G.team].wins++;G.trainingPoints=(G.trainingPoints||0)+1;}else{G.losses++;G.allTeams[G.team].losses++;}
   G.allTeams[game.opponent][myScore>oppScore?'losses':'wins']++;
   if(game.result==='W'){G.winStreak=(G.winStreak||0)+1;}else{G.winStreak=0;}
   checkAchievements();
