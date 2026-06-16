@@ -320,6 +320,7 @@ body { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; background: var(
     <div class="nav-item" onclick="showPage('jersey')">Jersey Lab</div>
     <div class="nav-item" onclick="showPage('staff')">Staff</div>
     <div class="nav-item" onclick="showPage('achievements')">Achievements</div>
+    <div class="nav-item" onclick="showPage('trophies')">Trophies</div>
   </div>
   <div id="main-content"><div id="page-content"></div></div>
   <div class="save-indicator"><button class="save-btn" onclick="manualSave()">SAVE GAME</button></div>
@@ -432,7 +433,7 @@ let G = {
   draftPicks:[],freeAgents:[],playoffTeams:[],jersey:{primary:'#1d428a',secondary:'#ffffff',number:'00',pattern:'solid'},seasonHistory:[],currentPage:'dashboard',
   boxScoreVisible:false,liveBoxScore:{home:[],away:[]},scoutTokens:3,scoutedPlayers:[],
   staff:{headCoach:1,assistant:1,trainer:1,scout:1},achievements:[],capBreakers:0,tradeCount:0,winStreak:0,trainingPoints:0,
-  draftClass:null,trophies:[],playoffs:null
+  draftClass:null,trophies:[],playoffs:null,awaitingOffseason:false
 };
 
 function initParticles(){const c=document.getElementById('particles');for(let i=0;i<50;i++){const p=document.createElement('div');p.className='particle';p.style.left=Math.random()*100+'%';p.style.top=Math.random()*100+'%';p.style.animationDelay=Math.random()*4+'s';p.style.animationDuration=(3+Math.random()*3)+'s';c.appendChild(p);}}
@@ -451,21 +452,21 @@ function randomRating(ovr){return Math.max(40,Math.min(99,ovr+Math.floor(Math.ra
 
 function generateBadges(ovr,pos){
   const allBadges=[
-    {name:'Deadeye',icon:'🎯',desc:'Improved shooting accuracy',forPos:['SG','SF','PG']},
-    {name:'Ankle Breaker',icon:'💀',desc:'Devastating crossovers',forPos:['PG','SG']},
-    {name:'Rim Protector',icon:'🛡️',desc:'Elite shot blocking',forPos:['C','PF']},
-    {name:'Floor General',icon:'🧠',desc:'Superior court vision',forPos:['PG']},
-    {name:'Chase Down Artist',icon:'🏃',desc:'Relentless pursuit blocks',forPos:['SF','PF']},
-    {name:'Catch & Shoot',icon:'🔥',desc:'Deadly off screens',forPos:['SG','SF']},
-    {name:'Post Spin',icon:'🌀',desc:'Unstoppable post moves',forPos:['C','PF']},
-    {name:'Clamps',icon:'🔒',desc:'Lockdown perimeter D',forPos:['PG','SG','SF']},
-    {name:'Rebound Chaser',icon:'📦',desc:'Relentless on the boards',forPos:['C','PF']},
-    {name:'Lob City Finisher',icon:'✈️',desc:'Alley-oop specialist',forPos:['C','PF','SF']},
-    {name:'Dimer',icon:'🅰️',desc:'Boosts teammates shots',forPos:['PG','SG']},
-    {name:'Intimidator',icon:'😤',desc:'Opponents miss more',forPos:['C','PF']},
-    {name:'Limitless Range',icon:'🏹',desc:'Deep three specialist',forPos:['PG','SG']},
-    {name:'Contact Finisher',icon:'💪',desc:'Finishes through contact',forPos:['SF','PF','C']},
-    {name:'Quick First Step',icon:'⚡',desc:'Explosive first step',forPos:['PG','SG','SF']}
+    {name:'Deadeye',icon:'DEY',desc:'Improved shooting accuracy',forPos:['SG','SF','PG']},
+    {name:'Ankle Breaker',icon:'ANK',desc:'Devastating crossovers',forPos:['PG','SG']},
+    {name:'Rim Protector',icon:'RIM',desc:'Elite shot blocking',forPos:['C','PF']},
+    {name:'Floor General',icon:'FLR',desc:'Superior court vision',forPos:['PG']},
+    {name:'Chase Down Artist',icon:'CDA',desc:'Relentless pursuit blocks',forPos:['SF','PF']},
+    {name:'Catch & Shoot',icon:'C&S',desc:'Deadly off screens',forPos:['SG','SF']},
+    {name:'Post Spin',icon:'PST',desc:'Unstoppable post moves',forPos:['C','PF']},
+    {name:'Clamps',icon:'CMP',desc:'Lockdown perimeter D',forPos:['PG','SG','SF']},
+    {name:'Rebound Chaser',icon:'REB',desc:'Relentless on the boards',forPos:['C','PF']},
+    {name:'Lob City Finisher',icon:'LOB',desc:'Alley-oop specialist',forPos:['C','PF','SF']},
+    {name:'Dimer',icon:'DIM',desc:'Boosts teammates shots',forPos:['PG','SG']},
+    {name:'Intimidator',icon:'INT',desc:'Opponents miss more',forPos:['C','PF']},
+    {name:'Limitless Range',icon:'LIM',desc:'Deep three specialist',forPos:['PG','SG']},
+    {name:'Contact Finisher',icon:'CTF',desc:'Finishes through contact',forPos:['SF','PF','C']},
+    {name:'Quick First Step',icon:'QFS',desc:'Explosive first step',forPos:['PG','SG','SF']}
   ];
   const count=Math.min(6,Math.max(3,Math.floor(ovr/15)));
   const eligible=allBadges.filter(b=>b.forPos.includes(pos));
@@ -480,17 +481,50 @@ function generateBadges(ovr,pos){
 }
 
 function generateFace(){
-  const skins=['#8d5524','#c68642','#e0ac69','#f1c27d','#ffdbac','#3b2219','#6b4226'];
-  const hairs=['#000','#1a1a1a','#4a3728','#8b6914','#d4a574','#c0392b','#2c3e50'];
+  const skins=['#8d5524','#c68642','#e0ac69','#f1c27d','#ffdbac','#3b2219','#6b4226','#a9744f'];
+  const hairs=['#000','#1a1a1a','#4a3728','#8b6914','#d4a574','#c0392b','#2c3e50','#5c4033'];
   const skin=skins[Math.floor(Math.random()*skins.length)];
   const hair=hairs[Math.floor(Math.random()*hairs.length)];
-  const hairStyle=Math.floor(Math.random()*4);
+  const headShape=Math.floor(Math.random()*3); // 0 oval, 1 round, 2 square-ish
+  const headRx=headShape===2?37:40,headRy=headShape===1?42:38;
+  const earY=50;
+  // hair styles: 0 fade,1 afro,2 braids,3 short crop,4 mohawk,5 bald,6 dreads,7 buzz
+  const hairStyle=Math.floor(Math.random()*8);
   let hairSvg='';
-  if(hairStyle===0)hairSvg=`<ellipse cx="50" cy="22" rx="30" ry="16" fill="${hair}"/>`;
-  else if(hairStyle===1)hairSvg=`<rect x="20" y="10" width="60" height="25" rx="8" fill="${hair}"/>`;
-  else if(hairStyle===2)hairSvg=`<ellipse cx="50" cy="20" rx="35" ry="20" fill="${hair}"/>`;
-  else hairSvg=`<rect x="22" y="12" width="56" height="18" rx="4" fill="${hair}"/><rect x="18" y="22" width="64" height="8" rx="2" fill="${hair}"/>`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="70" height="70"><circle cx="50" cy="50" r="40" fill="${skin}"/>${hairSvg}<circle cx="38" cy="48" r="3" fill="#1a1a1a"/><circle cx="62" cy="48" r="3" fill="#1a1a1a"/><ellipse cx="50" cy="62" rx="8" ry="4" fill="#c0392b" opacity="0.7"/><path d="M38 55 Q50 65 62 55" stroke="#1a1a1a" stroke-width="1.5" fill="none"/></svg>`;
+  if(hairStyle===0)hairSvg=`<path d="M16 38 Q20 10 50 8 Q80 10 84 38 Q80 22 50 20 Q20 22 16 38 Z" fill="${hair}"/>`;
+  else if(hairStyle===1)hairSvg=`<circle cx="50" cy="26" r="30" fill="${hair}"/><circle cx="22" cy="38" r="10" fill="${hair}"/><circle cx="78" cy="38" r="10" fill="${hair}"/>`;
+  else if(hairStyle===2){let braids='';for(let i=0;i<6;i++){const bx=22+i*10;braids+=`<rect x="${bx}" y="20" width="5" height="${30+Math.random()*10}" rx="2" fill="${hair}"/>`;}hairSvg=`<ellipse cx="50" cy="20" rx="32" ry="14" fill="${hair}"/>${braids}`;}
+  else if(hairStyle===3)hairSvg=`<path d="M18 35 Q20 14 50 12 Q80 14 82 35 Q78 18 50 16 Q22 18 18 35 Z" fill="${hair}"/>`;
+  else if(hairStyle===4)hairSvg=`<rect x="44" y="6" width="12" height="32" rx="5" fill="${hair}"/>`;
+  else if(hairStyle===5)hairSvg='';
+  else if(hairStyle===6){let dreads='';for(let i=0;i<8;i++){const dx=18+i*8;dreads+=`<rect x="${dx}" y="14" width="6" height="${26+Math.random()*14}" rx="3" fill="${hair}"/>`;}hairSvg=dreads;}
+  else hairSvg=`<path d="M20 30 Q24 14 50 13 Q76 14 80 30 Q76 20 50 19 Q24 20 20 30 Z" fill="${hair}" opacity="0.85"/>`;
+  const hasFacialHair=Math.random()<0.4;
+  const facialHairSvg=hasFacialHair?`<path d="M32 62 Q50 80 68 62 Q66 72 50 75 Q34 72 32 62 Z" fill="${hair}" opacity="0.9"/><rect x="40" y="56" width="20" height="4" rx="2" fill="${hair}" opacity="0.8"/>`:'';
+  const hasHeadband=Math.random()<0.15;
+  const bandColor=['#c8102e','#1d428a','#fdb927','#000000','#ffffff'][Math.floor(Math.random()*5)];
+  const headbandSvg=hasHeadband?`<rect x="14" y="30" width="72" height="9" rx="3" fill="${bandColor}"/>`:'';
+  const noseShape=Math.floor(Math.random()*3);
+  const noseSvg=noseShape===0?`<path d="M48 50 Q46 58 48 60 L52 60 Q54 58 52 50 Z" fill="${skin}" stroke="#00000022" stroke-width="0.8"/>`:
+    noseShape===1?`<ellipse cx="50" cy="58" rx="4" ry="3" fill="#00000015"/>`:
+    `<path d="M47 48 Q44 58 49 61 L51 61 Q56 58 53 48 Z" fill="${skin}" stroke="#00000022" stroke-width="0.8"/>`;
+  const mouthStyle=Math.floor(Math.random()*3);
+  const mouthSvg=mouthStyle===0?`<path d="M38 68 Q50 76 62 68" stroke="#1a1a1a" stroke-width="1.8" fill="none" stroke-linecap="round"/>`:
+    mouthStyle===1?`<path d="M38 68 Q50 72 62 68" stroke="#1a1a1a" stroke-width="1.8" fill="none" stroke-linecap="round"/>`:
+    `<ellipse cx="50" cy="69" rx="9" ry="3" fill="#7a2e2e" opacity="0.8"/>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="70" height="70">
+    <ellipse cx="14" cy="${earY}" rx="5" ry="8" fill="${skin}"/><ellipse cx="86" cy="${earY}" rx="5" ry="8" fill="${skin}"/>
+    <ellipse cx="50" cy="50" rx="${headRx}" ry="${headRy}" fill="${skin}"/>
+    <path d="M35 42 Q38 38 44 40" stroke="#1a1a1a" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <path d="M56 40 Q62 38 65 42" stroke="#1a1a1a" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <ellipse cx="40" cy="47" rx="4.5" ry="3.2" fill="#fff"/><circle cx="40" cy="47" r="2" fill="#1a1a1a"/>
+    <ellipse cx="60" cy="47" rx="4.5" ry="3.2" fill="#fff"/><circle cx="60" cy="47" r="2" fill="#1a1a1a"/>
+    ${noseSvg}
+    ${mouthSvg}
+    ${facialHairSvg}
+    ${hairSvg}
+    ${headbandSvg}
+  </svg>`;
 }
 
 function selectTeam(teamId){
@@ -515,9 +549,9 @@ function updateSidebar(){const t=getTeamData(G.team);document.getElementById('my
 
 function showPage(page){
   G.currentPage=page;
-  document.querySelectorAll('.nav-item').forEach((n,i)=>{n.classList.toggle('active',['dashboard','calendar','standings','news','roster','depth','training','contracts','trades','scouting','draft','freeagency','betting','jersey','staff','achievements'][i]===page);});
+  document.querySelectorAll('.nav-item').forEach((n,i)=>{n.classList.toggle('active',['dashboard','calendar','standings','news','roster','depth','training','contracts','trades','draft','freeagency','scouting','betting','jersey','staff','achievements','trophies'][i]===page);});
   const content=document.getElementById('page-content');content.className='fade-in';
-  const r={dashboard:renderDashboard,calendar:renderCalendar,roster:renderRoster,depth:renderDepth,training:renderTraining,trades:renderTrades,contracts:renderContracts,standings:renderStandings,news:renderNews,betting:renderBetting,jersey:renderJersey,draft:renderDraft,freeagency:renderFreeAgency,scouting:renderScouting,staff:renderStaff,achievements:renderAchievements};
+  const r={dashboard:renderDashboard,calendar:renderCalendar,roster:renderRoster,depth:renderDepth,training:renderTraining,trades:renderTrades,contracts:renderContracts,standings:renderStandings,news:renderNews,betting:renderBetting,jersey:renderJersey,draft:renderDraft,freeagency:renderFreeAgency,scouting:renderScouting,staff:renderStaff,achievements:renderAchievements,trophies:renderTrophies,playoffs:renderPlayoffs};
   if(r[page])r[page](content);
 }
 
@@ -529,7 +563,7 @@ function showPlayerModal(playerId,teamId){
   const team=G.allTeams[teamId||G.team];const p=team.players.find(x=>x.id===playerId);if(!p)return;
   const ratingNames={closeShot:'Close Shot',midRange:'Mid-Range',three:'3PT',freeThrow:'Free Throw',layup:'Layup',dunk:'Dunk',speed:'Speed',acceleration:'Accel',strength:'Strength',vertical:'Vertical',stamina:'Stamina',hustle:'Hustle',passIQ:'Pass IQ',ballHandle:'Ball Handle',intDef:'Int. Defense',perDef:'Per. Defense',steal:'Steal',block:'Block',rebounding:'Rebound',offRebound:'Off. Reb.'};
   const ratingsHtml=p.ratings?Object.entries(p.ratings).map(([k,v])=>{const color=v>=85?'#4caf50':v>=75?'#8bc34a':v>=65?'#ffc107':v>=55?'#ff9800':'#f44336';return`<div style="display:flex;align-items:center;gap:6px;padding:3px 0"><span style="font-size:0.65rem;color:var(--text-dim);width:70px;text-align:right">${ratingNames[k]||k}</span><div style="flex:1;height:5px;background:rgba(255,255,255,0.08);border-radius:3px"><div style="width:${v}%;height:100%;background:${color};border-radius:3px"></div></div><span style="font-size:0.65rem;font-weight:700;width:24px">${v}</span></div>`;}).join(''):'<div style="color:var(--text-dim);font-size:0.8rem">No ratings data</div>';
-  const badgesHtml=p.badges?p.badges.map(b=>{const tc=b.tier==='gold'?'#ffd700':b.tier==='silver'?'#c0c0c0':'#cd7f32';return`<div style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:${tc}22;border:1px solid ${tc}44;border-radius:16px;margin:3px;font-size:0.72rem"><span>${b.icon}</span><span style="font-weight:700;color:${tc}">${b.name}</span><span style="font-size:0.55rem;color:var(--text-dim);text-transform:uppercase">${b.tier}</span></div>`;}).join(''):'';
+  const badgesHtml=p.badges?p.badges.map(b=>{const tc=b.tier==='gold'?'#ffd700':b.tier==='silver'?'#c0c0c0':'#cd7f32';return`<div style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px 4px 4px;background:${tc}22;border:1px solid ${tc}44;border-radius:16px;margin:3px;font-size:0.72rem"><span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:${tc};color:#000;font-weight:900;font-size:0.55rem;letter-spacing:0.3px">${b.icon}</span><span style="font-weight:700;color:${tc}">${b.name}</span><span style="font-size:0.55rem;color:var(--text-dim);text-transform:uppercase">${b.tier}</span></div>`;}).join(''):'';
   const faceHtml=p.face||'';
   const div=document.createElement('div');div.className='player-modal';
   div.innerHTML=`<div class="player-modal-content" style="width:600px;max-height:85vh;overflow-y:auto"><button class="close-btn" onclick="this.closest('.player-modal').remove()">X</button>
@@ -577,7 +611,7 @@ function renderDashboard(el){
     <div class="stat-grid"><div class="stat-card"><div class="stat-label">MORALE</div><div class="stat-value">${G.morale}</div></div><div class="stat-card"><div class="stat-label">CHEMISTRY</div><div class="stat-value">${G.chemistry}</div></div><div class="stat-card"><div class="stat-label">FUNDS</div><div class="stat-value">$${(G.money/1000).toFixed(0)}K</div></div><div class="stat-card"><div class="stat-label">PICKS</div><div class="stat-value">${G.draftPicks.length}</div></div><div class="stat-card"><div class="stat-label">LAST 5</div><div class="stat-value" style="font-size:1rem;display:flex;gap:3px;justify-content:center">${last5||'--'}</div></div></div>
     <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:20px">
       <div class="card"><div class="card-header"><h3>Next Game</h3>${next?`<div class="badge">Game ${G.gameIndex+1}</div>`:''}</div>
-        ${next?`${nextMatchup}<div style="display:flex;gap:10px;padding:0 20px 16px"><button class="btn btn-primary" onclick="playNextGame()">PLAY LIVE</button><button class="btn btn-secondary" onclick="simNextGame()">SIM</button><button class="btn btn-secondary" onclick="simWeek()">SIM WEEK</button></div>`:`<div style="padding:20px">Season Complete</div><div style="padding:0 20px 16px"><button class="btn btn-accent" onclick="endSeason()">ADVANCE TO OFFSEASON</button></div>`}
+        ${next?`${nextMatchup}<div style="display:flex;gap:10px;padding:0 20px 16px"><button class="btn btn-primary" onclick="playNextGame()">PLAY LIVE</button><button class="btn btn-secondary" onclick="simNextGame()">SIM</button><button class="btn btn-secondary" onclick="simWeek()">SIM WEEK</button></div>`:`<div style="padding:20px">Season Complete</div><div style="padding:0 20px 16px"><button class="btn btn-accent" onclick="startPlayoffs()">ADVANCE TO OFFSEASON</button></div>`}
       </div>
       <div>
         <div class="card" style="margin-bottom:12px"><div class="card-header"><h3>Team Leaders</h3></div>
@@ -801,19 +835,72 @@ function updateJersey(){saveGame();showPage('jersey');}
 
 function renderDraft(el){
   if(G.schedule.some(g=>!g.played)){el.innerHTML=`<div class="page-header"><div><h2>NBA Draft</h2><div class="subtitle">Available after season</div></div></div><div class="card"><div class="card-header"><h3>Your Picks (${G.draftPicks.length})</h3></div>${G.draftPicks.map(p=>`<div style="padding:10px;background:var(--surface2);border-radius:8px;margin:6px 0;display:flex;justify-content:space-between"><span>Year ${p.year} - Round ${p.round}</span><span style="color:var(--text-dim)">via ${getTeamData(p.team).name}</span></div>`).join('')}</div>`;return;}
-  const pr=generateDraftClass();
-  el.innerHTML=`<div class="page-header"><div><h2>NBA Draft</h2></div><div class="badge">${G.draftPicks.length} Picks</div></div><div class="draft-board">${pr.map((p,i)=>`<div class="draft-prospect" onclick="draftPlayer(${i})"><div style="position:absolute;top:8px;right:12px;font-size:1.6rem;font-weight:900;color:rgba(255,255,255,0.05)">${i+1}</div><div style="font-weight:700;margin-bottom:4px">${p.name}</div><div style="color:var(--text-dim);font-size:0.8rem;margin-bottom:8px">${p.college} | ${p.pos} | ${p.age}</div><div style="display:flex;gap:10px;align-items:center"><span class="ovr ${ovrClass(p.ovr)}">${p.ovr}</span><div><div style="font-size:0.6rem;color:var(--text-dim)">POT</div><div style="font-weight:700;color:var(--accent)">${p.potential}</div></div></div></div>`).join('')}</div>`;
+  if(!G.draftClass||!G.draftClass.length)G.draftClass=generateDraftClass();
+  const pr=G.draftClass;
+  const picksByRound={};G.draftPicks.forEach(pk=>{picksByRound[pk.round]=(picksByRound[pk.round]||0)+1;});
+  el.innerHTML=`<div class="page-header"><div><h2>NBA Draft</h2><div class="subtitle">Round 1: Picks 1-15 | Round 2: Picks 16-30</div></div><div class="badge">${G.draftPicks.length} Picks Available</div></div>
+    <div class="draft-board">${pr.map((p,i)=>{const round=i<15?1:2;const pickNum=i+1;return`<div class="draft-prospect" onclick="draftPlayer(${i})"><div style="position:absolute;top:8px;right:12px;font-size:1.6rem;font-weight:900;color:rgba(255,255,255,0.05)">${pickNum}</div><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><div style="width:44px;height:44px;border-radius:50%;overflow:hidden;background:var(--surface2)">${p.face||''}</div><div><div style="font-weight:700">${p.name}</div><div style="color:var(--text-dim);font-size:0.72rem">Round ${round} Pick ${round===1?pickNum:pickNum-15}</div></div></div><div style="color:var(--text-dim);font-size:0.8rem;margin-bottom:8px">${p.college} | ${p.pos} | Age ${p.age}</div><div style="display:flex;gap:10px;align-items:center"><span class="ovr ${ovrClass(p.ovr)}">${p.ovr}</span><div><div style="font-size:0.6rem;color:var(--text-dim)">POT</div><div style="font-weight:700;color:var(--accent)">${p.potential}</div></div></div></div>`;}).join('')}</div>`;
 }
-function generateDraftClass(){const fn=['James','Marcus','DeShawn','Tyler','Brandon','Jaylen','Malik','Tre','Zion','Cade','Jabari','Scoot','Amen','Ausar','Dereck','Reed'];const ln=['Williams','Johnson','Smith','Brown','Davis','Anderson','Thomas','Jackson','Harris','Martin'];const col=['Duke','Kentucky','UNC','Kansas','Gonzaga','UCLA','Auburn','Baylor'];const pos=['PG','SG','SF','PF','C'];const p=[];for(let i=0;i<30;i++)p.push({name:fn[Math.floor(Math.random()*fn.length)]+' '+ln[Math.floor(Math.random()*ln.length)],college:col[Math.floor(Math.random()*col.length)],pos:pos[Math.floor(Math.random()*pos.length)],age:19+Math.floor(Math.random()*3),ovr:Math.max(65,Math.min(85,78-i+Math.floor(Math.random()*10))),potential:Math.max(70,Math.min(95,88-i/2+Math.floor(Math.random()*10)))});return p.sort((a,b)=>b.potential-a.potential);}
-function draftPlayer(idx){if(!G.draftPicks.length){alert('No picks!');return;}const p=generateDraftClass()[idx];G.allTeams[G.team].players.push({...p,id:G.team+'_d'+Date.now(),num:Math.floor(Math.random()*55)+1,salary:3e6+Math.floor(Math.random()*5e6),contractYears:4,stamina:90,energy:100,morale:85,potential:p.potential,injured:false,injuryGames:0,stats:{ppg:0,rpg:0,apg:0,spg:0,bpg:0,gp:0}});G.draftPicks.shift();alert(`Drafted ${p.name}!`);if(!G.achievements)G.achievements=[];if(!G.achievements.includes('draft_pick'))G.achievements.push('draft_pick');G.capBreakers=(G.capBreakers||0)+1;saveGame();showPage('draft');}
+function generateDraftClass(){
+  const fn=['James','Marcus','DeShawn','Tyler','Brandon','Jaylen','Malik','Tre','Zion','Cade','Jabari','Scoot','Amen','Ausar','Dereck','Reed','Jaden','Keon','Anthony','Isaiah','Trayvon','Marquis','Cole','Devon','Elijah'];
+  const ln=['Williams','Johnson','Smith','Brown','Davis','Anderson','Thomas','Jackson','Harris','Martin','Walker','Robinson','Carter','Mitchell','Bryant','Howard','Coleman','Reed'];
+  const col=['Duke','Kentucky','UNC','Kansas','Gonzaga','UCLA','Auburn','Baylor','Arizona','Houston','Purdue','Tennessee'];
+  const pos=['PG','SG','SF','PF','C'];
+  const p=[];
+  for(let i=0;i<30;i++){
+    const ovr=Math.max(62,Math.min(88,80-i*0.7+Math.floor(Math.random()*8)-4));
+    const potential=Math.max(68,Math.min(96,90-i*0.5+Math.floor(Math.random()*10)-5));
+    const ppos=pos[Math.floor(Math.random()*pos.length)];
+    p.push({
+      name:fn[Math.floor(Math.random()*fn.length)]+' '+ln[Math.floor(Math.random()*ln.length)],
+      college:col[Math.floor(Math.random()*col.length)],
+      pos:ppos,age:19+Math.floor(Math.random()*3),
+      ovr:Math.round(ovr),potential:Math.round(Math.max(ovr,potential)),
+      ratings:{closeShot:randomRating(ovr),midRange:randomRating(ovr),three:randomRating(ovr),freeThrow:randomRating(ovr),layup:randomRating(ovr),dunk:randomRating(ovr),speed:randomRating(ovr),acceleration:randomRating(ovr),strength:randomRating(ovr),vertical:randomRating(ovr),stamina:randomRating(ovr),hustle:randomRating(ovr),passIQ:randomRating(ovr),ballHandle:randomRating(ovr),intDef:randomRating(ovr),perDef:randomRating(ovr),steal:randomRating(ovr),block:randomRating(ovr),rebounding:randomRating(ovr),offRebound:randomRating(ovr)},
+      badges:generateBadges(Math.round(ovr),ppos),
+      face:generateFace()
+    });
+  }
+  return p.sort((a,b)=>b.potential-a.potential);
+}
+function draftPlayer(idx){
+  if(!G.draftPicks.length){alert('No picks!');return;}
+  if(!G.draftClass||!G.draftClass.length)G.draftClass=generateDraftClass();
+  const p=G.draftClass[idx];if(!p)return;
+  G.allTeams[G.team].players.push({...p,id:G.team+'_d'+Date.now(),num:Math.floor(Math.random()*55)+1,salary:3e6+Math.floor(Math.random()*5e6),contractYears:4,stamina:90,energy:100,morale:85,potential:p.potential,injured:false,injuryGames:0,stats:{ppg:0,rpg:0,apg:0,spg:0,bpg:0,gp:0}});
+  G.draftPicks.shift();
+  G.draftClass.splice(idx,1);
+  alert(`Drafted ${p.name}!`);
+  if(!G.achievements)G.achievements=[];if(!G.achievements.includes('draft_pick'))G.achievements.push('draft_pick');
+  G.capBreakers=(G.capBreakers||0)+1;saveGame();showPage('draft');
+}
 
 function renderFreeAgency(el){
   if(G.schedule.some(g=>!g.played)){el.innerHTML=`<div class="page-header"><div><h2>Free Agency</h2><div class="subtitle">Opens after season</div></div></div>`;return;}
   if(!G.freeAgents.length)generateFreeAgents();
-  el.innerHTML=`<div class="page-header"><div><h2>Free Agency</h2></div></div>${G.freeAgents.map((p,i)=>`<div class="fa-player"><div><span style="font-weight:700">${p.name}</span><span style="margin-left:10px;padding:2px 8px;background:var(--surface2);border-radius:4px;font-size:0.75rem">${p.pos}</span><span style="margin-left:10px"><span class="ovr ${ovrClass(p.ovr)}" style="width:26px;height:26px;font-size:0.7rem;display:inline-flex">${p.ovr}</span></span><span style="margin-left:10px;color:var(--text-dim);font-size:0.8rem">Age ${p.age}</span></div><div style="display:flex;align-items:center;gap:12px"><span style="color:var(--accent);font-weight:700">$${(p.asking/1e6).toFixed(1)}M</span><button class="btn btn-primary btn-sm" onclick="signFreeAgent(${i})">Sign</button></div></div>`).join('')}`;
+  el.innerHTML=`<div class="page-header"><div><h2>Free Agency</h2><div class="subtitle">${G.freeAgents.length} players available</div></div><button class="btn btn-secondary" onclick="simFAWeek()">SIM WEEK</button></div>
+  ${G.freeAgents.map((p,i)=>`<div class="fa-player"><div style="display:flex;align-items:center;gap:12px"><div style="width:40px;height:40px;border-radius:50%;overflow:hidden;background:var(--surface2);flex-shrink:0">${p.face||''}</div><div><span style="font-weight:700">${p.name}</span><span style="margin-left:10px;padding:2px 8px;background:var(--surface2);border-radius:4px;font-size:0.75rem">${p.pos}</span><span style="margin-left:10px"><span class="ovr ${ovrClass(p.ovr)}" style="width:26px;height:26px;font-size:0.7rem;display:inline-flex">${p.ovr}</span></span><span style="margin-left:10px;color:var(--text-dim);font-size:0.8rem">Age ${p.age}</span></div></div><div style="display:flex;align-items:center;gap:12px"><span style="color:var(--accent);font-weight:700">$${(p.asking/1e6).toFixed(1)}M</span><button class="btn btn-primary btn-sm" onclick="signFreeAgent(${i})">Sign</button></div></div>`).join('')}`;
 }
-function generateFreeAgents(){const n=['Marcus Morris','Derrick Rose','Blake Griffin','Dwight Howard','Carmelo Anthony','Kyle Lowry','Montrezl Harrell','DeAndre Jordan','Isaiah Thomas','J.R. Smith','Rajon Rondo','Andre Iguodala','Jamal Crawford','Joe Johnson','Vince Carter'];const pos=['PG','SG','SF','PF','C'];G.freeAgents=n.map(name=>({name,pos:pos[Math.floor(Math.random()*5)],ovr:68+Math.floor(Math.random()*12),age:28+Math.floor(Math.random()*8),asking:3e6+Math.floor(Math.random()*15e6)}));}
-function signFreeAgent(i){const p=G.freeAgents[i];const sal=getMyTeam().players.reduce((s,x)=>s+x.salary,0);const newSal=sal+p.asking;if(newSal>G.salaryCap*1.1){alert('Cannot sign! Would exceed 110% of salary cap ($'+((G.salaryCap*1.1)/1e6).toFixed(1)+'M). You must clear cap space first.');return;}if(newSal>G.salaryCap){alert('Warning: Signing '+p.name+' puts you over the cap. Luxury tax will apply!');}G.allTeams[G.team].players.push({...p,id:G.team+'_fa'+Date.now(),num:Math.floor(Math.random()*55)+1,salary:p.asking,contractYears:2,stamina:80,energy:90,morale:80,potential:p.ovr+3,injured:false,injuryGames:0,stats:{ppg:0,rpg:0,apg:0,spg:0,bpg:0,gp:0},ratings:{closeShot:randomRating(p.ovr),midRange:randomRating(p.ovr),three:randomRating(p.ovr),freeThrow:randomRating(p.ovr),layup:randomRating(p.ovr),dunk:randomRating(p.ovr),speed:randomRating(p.ovr),acceleration:randomRating(p.ovr),strength:randomRating(p.ovr),vertical:randomRating(p.ovr),stamina:randomRating(p.ovr),hustle:randomRating(p.ovr),passIQ:randomRating(p.ovr),ballHandle:randomRating(p.ovr),intDef:randomRating(p.ovr),perDef:randomRating(p.ovr),steal:randomRating(p.ovr),block:randomRating(p.ovr),rebounding:randomRating(p.ovr),offRebound:randomRating(p.ovr)},badges:generateBadges(p.ovr,p.pos),face:generateFace()});G.freeAgents.splice(i,1);alert('Signed '+p.name+'!');saveGame();showPage('freeagency');}
+function generateFreeAgents(){
+  const fn=['Marcus','Derrick','Blake','Dwight','Carmelo','Kyle','Montrezl','DeAndre','Isaiah','Jordan','Rajon','Andre','Jamal','Joe','Vince','Trevor','Cory','Wesley','Garrett','Malachi','Dario','Thaddeus','Patty','Lou','Shane'];
+  const ln=['Morris','Rose','Griffin','Howard','Anthony','Lowry','Harrell','Jordan','Thomas','Smith','Rondo','Iguodala','Crawford','Johnson','Carter','Ariza','Joseph','Matthews','Temple','Flynn','Saric','Young','Mills','Williams','Battier'];
+  const pos=['PG','SG','SF','PF','C'];
+  const n=15;
+  G.freeAgents=Array.from({length:n},()=>{
+    const ovr=60+Math.floor(Math.random()*30);
+    const ppos=pos[Math.floor(Math.random()*pos.length)];
+    return{name:fn[Math.floor(Math.random()*fn.length)]+' '+ln[Math.floor(Math.random()*ln.length)],pos:ppos,ovr,age:24+Math.floor(Math.random()*14),asking:2e6+Math.floor((ovr/99)*20e6*Math.random()),
+      ratings:{closeShot:randomRating(ovr),midRange:randomRating(ovr),three:randomRating(ovr),freeThrow:randomRating(ovr),layup:randomRating(ovr),dunk:randomRating(ovr),speed:randomRating(ovr),acceleration:randomRating(ovr),strength:randomRating(ovr),vertical:randomRating(ovr),stamina:randomRating(ovr),hustle:randomRating(ovr),passIQ:randomRating(ovr),ballHandle:randomRating(ovr),intDef:randomRating(ovr),perDef:randomRating(ovr),steal:randomRating(ovr),block:randomRating(ovr),rebounding:randomRating(ovr),offRebound:randomRating(ovr)},
+      badges:generateBadges(ovr,ppos),face:generateFace()};
+  });
+}
+function simFAWeek(){
+  // some free agents sign elsewhere, new ones appear
+  G.freeAgents=G.freeAgents.filter(()=>Math.random()>0.3);
+  generateFreeAgents();
+  saveGame();showPage('freeagency');
+}
+function signFreeAgent(i){const p=G.freeAgents[i];const sal=getMyTeam().players.reduce((s,x)=>s+x.salary,0);const newSal=sal+p.asking;if(newSal>G.salaryCap*1.1){alert('Cannot sign! Would exceed 110% of salary cap ($'+((G.salaryCap*1.1)/1e6).toFixed(1)+'M). You must clear cap space first.');return;}if(newSal>G.salaryCap){alert('Warning: Signing '+p.name+' puts you over the cap. Luxury tax will apply!');}G.allTeams[G.team].players.push({...p,id:G.team+'_fa'+Date.now(),num:Math.floor(Math.random()*55)+1,salary:p.asking,contractYears:2,stamina:80,energy:90,morale:80,potential:p.ovr+3,injured:false,injuryGames:0,stats:{ppg:0,rpg:0,apg:0,spg:0,bpg:0,gp:0}});G.freeAgents.splice(i,1);alert('Signed '+p.name+'!');saveGame();showPage('freeagency');}
 
 // ===== SCOUTING =====
 function renderScouting(el){
@@ -1163,17 +1250,28 @@ function upgradeStaff(key,cost){
 }
 
 // ===== ACHIEVEMENTS =====
+function achievementDefs(){
+  return [
+    {id:'first_win',name:'First Win',desc:'Win your first game',icon:'1W',color:'#4caf50',check:()=>G.wins>=1},
+    {id:'streak_5',name:'5-Game Streak',desc:'Win 5 games in a row',icon:'5S',color:'#ff9800',check:()=>G.winStreak>=5},
+    {id:'streak_10',name:'10-Game Streak',desc:'Win 10 games in a row',icon:'10S',color:'#ff5722',check:()=>G.winStreak>=10},
+    {id:'wins_10',name:'10 Wins',desc:'Win 10 games in a season',icon:'10W',color:'#4caf50',check:()=>G.wins>=10},
+    {id:'wins_20',name:'20 Wins',desc:'Win 20 games in a season',icon:'20W',color:'#4caf50',check:()=>G.wins>=20},
+    {id:'wins_40',name:'40 Wins',desc:'Win 40 games in a season',icon:'40W',color:'#2e7d32',check:()=>G.wins>=40},
+    {id:'wins_60',name:'60 Wins',desc:'Win 60 games in a season',icon:'60W',color:'#1b5e20',check:()=>G.wins>=60},
+    {id:'trade_master',name:'Trade Master',desc:'Complete 3 trades',icon:'TRD',color:'var(--accent)',check:()=>(G.tradeCount||0)>=3},
+    {id:'draft_pick',name:'Draft Pick',desc:'Draft a player',icon:'DFT',color:'#9c27b0',check:()=>G.achievements.includes('draft_pick')},
+    {id:'season_mvp',name:'Season MVP',desc:'Have a player averaging 25+ PPG',icon:'MVP',color:'#fdb927',check:()=>getMyTeam().players.some(p=>p.stats.gp>0&&(p.stats.ppg/p.stats.gp)>=25)},
+    {id:'championship',name:'Championship',desc:'Win the NBA Finals',icon:'CHP',color:'#fdb927',check:()=>G.achievements.includes('championship')},
+    {id:'underdog',name:'Underdog Win',desc:'Beat a team with 10+ higher OVR',icon:'UND',color:'#03a9f4',check:()=>G.achievements.includes('underdog')},
+    {id:'perfect_month',name:'Perfect Month',desc:'Win every game in a calendar month',icon:'PRF',color:'#e91e63',check:()=>G.achievements.includes('perfect_month')},
+    {id:'cap_master',name:'Cap Space Master',desc:'Stay under the salary cap with a full roster',icon:'CAP',color:'#607d8b',check:()=>getMyTeam().players.length>=15&&getMyTeam().players.reduce((s,p)=>s+p.salary,0)<G.salaryCap},
+    {id:'full_roster',name:'Full Roster',desc:'Carry 15+ players on your roster',icon:'15+',color:'#795548',check:()=>getMyTeam().players.length>=15}
+  ];
+}
 function checkAchievements(){
   if(!G.achievements)G.achievements=[];
-  const defs=[
-    {id:'first_win',name:'First Win',desc:'Win your first game',check:()=>G.wins>=1},
-    {id:'streak_5',name:'5-Game Streak',desc:'Win 5 games in a row',check:()=>G.winStreak>=5},
-    {id:'wins_10',name:'10 Wins',desc:'Win 10 games in a season',check:()=>G.wins>=10},
-    {id:'trade_master',name:'Trade Master',desc:'Complete 3 trades',check:()=>(G.tradeCount||0)>=3},
-    {id:'draft_pick',name:'Draft Pick',desc:'Draft a player',check:()=>G.achievements.includes('draft_pick')},
-    {id:'season_mvp',name:'Season MVP',desc:'Have a player averaging 25+ PPG',check:()=>getMyTeam().players.some(p=>p.stats.gp>0&&(p.stats.ppg/p.stats.gp)>=25)}
-  ];
-  defs.forEach(d=>{
+  achievementDefs().forEach(d=>{
     if(!G.achievements.includes(d.id)&&d.check()){
       G.achievements.push(d.id);G.capBreakers=(G.capBreakers||0)+1;
       alert('Achievement Unlocked: '+d.name+'! You earned a Cap Breaker!');
@@ -1182,20 +1280,13 @@ function checkAchievements(){
 }
 function renderAchievements(el){
   if(!G.achievements)G.achievements=[];
-  const defs=[
-    {id:'first_win',name:'First Win',desc:'Win your first game',icon:'🏆'},
-    {id:'streak_5',name:'5-Game Streak',desc:'Win 5 games in a row',icon:'🔥'},
-    {id:'wins_10',name:'10 Wins',desc:'Win 10 games in a season',icon:'⭐'},
-    {id:'trade_master',name:'Trade Master',desc:'Complete 3 trades',icon:'🤝'},
-    {id:'draft_pick',name:'Draft Pick',desc:'Draft a player',icon:'📝'},
-    {id:'season_mvp',name:'Season MVP',desc:'Have a player averaging 25+ PPG',icon:'👑'}
-  ];
+  const defs=achievementDefs();
   const capBreakersHtml=G.capBreakers>0?`<div class="card" style="margin-bottom:20px;border:1px solid var(--accent)"><div class="card-header"><h3 style="color:var(--accent)">Cap Breakers Available: ${G.capBreakers}</h3></div><p style="font-size:0.82rem;color:var(--text-dim);margin-bottom:12px">Use a Cap Breaker to extend any player's potential by +2.</p><select id="capbreaker-player" style="width:100%;padding:10px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;margin-bottom:10px">${getMyTeam().players.map(p=>`<option value="${p.id}">${p.name} (POT: ${p.potential})</option>`).join('')}</select><button class="btn btn-accent" onclick="useCapBreaker()">Use Cap Breaker</button></div>`:'';
   el.innerHTML=`<div class="page-header"><div><h2>Achievements</h2><div class="subtitle">${G.achievements.length}/${defs.length} Unlocked | Cap Breakers: ${G.capBreakers||0}</div></div></div>
     ${capBreakersHtml}
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px">${defs.map(d=>{
       const unlocked=G.achievements.includes(d.id);
-      return`<div class="card" style="opacity:${unlocked?1:0.5};border-color:${unlocked?'#4caf5044':'var(--border)'}"><div style="font-size:2rem;margin-bottom:8px">${d.icon}</div><h3 style="font-size:0.95rem;margin-bottom:4px">${d.name}</h3><p style="font-size:0.78rem;color:var(--text-dim)">${d.desc}</p><div style="margin-top:8px;font-size:0.7rem;font-weight:700;color:${unlocked?'#4caf50':'var(--text-dim)'}">${unlocked?'UNLOCKED':'LOCKED'}</div></div>`;
+      return`<div class="card" style="opacity:${unlocked?1:0.5};border-color:${unlocked?'#4caf5044':'var(--border)'}"><div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:${unlocked?d.color:'#444'};color:#000;font-weight:900;font-size:0.75rem;margin-bottom:8px">${d.icon}</div><h3 style="font-size:0.95rem;margin-bottom:4px">${d.name}</h3><p style="font-size:0.78rem;color:var(--text-dim)">${d.desc}</p><div style="margin-top:8px;font-size:0.7rem;font-weight:700;color:${unlocked?'#4caf50':'var(--text-dim)'}">${unlocked?'UNLOCKED':'LOCKED'}</div></div>`;
     }).join('')}</div>`;
 }
 function useCapBreaker(){
@@ -1207,10 +1298,160 @@ function useCapBreaker(){
   saveGame();showPage('achievements');
 }
 
+// ===== PLAYOFFS =====
+function startPlayoffs(){
+  const east=TEAMS.filter(t=>t.conf==='East').map(t=>({...t,...G.allTeams[t.id]})).sort((a,b)=>(b.wins-b.losses)-(a.wins-a.losses)).slice(0,8);
+  const west=TEAMS.filter(t=>t.conf==='West').map(t=>({...t,...G.allTeams[t.id]})).sort((a,b)=>(b.wins-b.losses)-(a.wins-a.losses)).slice(0,8);
+  const seedOrder=conf=>[[0,7],[3,4],[2,5],[1,6]].map(([a,b])=>({a:conf[a],b:conf[b]}));
+  G.playoffs={
+    round:0, // 0=first round,1=conf semis,2=conf finals,3=finals
+    east:seedOrder(east),west:seedOrder(west),
+    finals:null,
+    champion:null,
+    log:[]
+  };
+  saveGame();showPage('playoffs');
+}
+function teamOvr(id){const t=G.allTeams[id];if(!t)return 70;return t.players.slice(0,8).reduce((s,p)=>s+p.ovr,0)/Math.min(8,t.players.length);}
+function simPlayoffSeries(a,b){
+  const aId=a.id,bId=b.id;
+  const aOvr=teamOvr(aId)+(a.wins-a.losses)*0.02;
+  const bOvr=teamOvr(bId)+(b.wins-b.losses)*0.02;
+  const pA=Math.max(0.15,Math.min(0.85,0.5+(aOvr-bOvr)*0.03));
+  let winsA=0,winsB=0;
+  while(winsA<4&&winsB<4){if(Math.random()<pA)winsA++;else winsB++;}
+  const winner=winsA>winsB?a:b;
+  return {winner,score:`${Math.max(winsA,winsB)}-${Math.min(winsA,winsB)}`};
+}
+function advancePlayoffRound(){
+  const pl=G.playoffs;if(!pl)return;
+  if(pl.round<2){
+    ['east','west'].forEach(conf=>{
+      const series=pl[conf];const results=series.map(s=>simPlayoffSeries(s.a,s.b));
+      pl.log.push(...results.map((r,i)=>`${conf.toUpperCase()}: ${series[i].a.name} vs ${series[i].b.name} -> ${r.winner.name} wins ${r.score}`));
+      const winners=results.map(r=>r.winner);
+      pl[conf]=winners.length>1?[{a:winners[0],b:winners[1]},...(winners.length>2?[{a:winners[2],b:winners[3]}]:[])]:winners;
+    });
+    pl.round++;
+  } else if(pl.round===2){
+    const eastWinner=simPlayoffSeries(pl.east[0].a,pl.east[0].b).winner;
+    const westWinner=simPlayoffSeries(pl.west[0].a,pl.west[0].b).winner;
+    pl.log.push(`Eastern Conf Finals -> ${eastWinner.name} advances`);
+    pl.log.push(`Western Conf Finals -> ${westWinner.name} advances`);
+    pl.finals={a:eastWinner,b:westWinner};
+    pl.round++;
+  } else if(pl.round===3){
+    const result=simPlayoffSeries(pl.finals.a,pl.finals.b);
+    pl.champion=result.winner;
+    pl.log.push(`NBA FINALS: ${pl.finals.a.name} vs ${pl.finals.b.name} -> ${result.winner.name} WIN THE CHAMPIONSHIP ${result.score}`);
+    if(pl.champion.id===G.team){if(!G.achievements.includes('championship')){G.achievements.push('championship');G.capBreakers=(G.capBreakers||0)+1;}}
+    pl.round++;
+  }
+  saveGame();showPage('playoffs');
+}
+function renderPlayoffs(el){
+  const pl=G.playoffs;
+  if(!pl){el.innerHTML=`<div class="page-header"><div><h2>Playoffs</h2></div></div><div class="card">No playoffs in progress.</div>`;return;}
+  const seriesRow=s=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--surface2);border-radius:8px;margin-bottom:8px"><span style="font-weight:${s.a.id===G.team||s.b.id===G.team?'800':'500'}">${s.a.name}</span><span style="color:var(--text-dim);font-size:0.75rem">VS</span><span style="font-weight:${s.a.id===G.team||s.b.id===G.team?'800':'500'}">${s.b.name}</span></div>`;
+  let body='';
+  if(pl.round<2){
+    body=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div class="card"><div class="card-header"><h3>Eastern Conference</h3></div>${pl.east.map(seriesRow).join('')}</div>
+      <div class="card"><div class="card-header"><h3>Western Conference</h3></div>${pl.west.map(seriesRow).join('')}</div>
+    </div>`;
+  } else if(pl.round===2){
+    body=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div class="card"><div class="card-header"><h3>Eastern Conference Finals</h3></div>${seriesRow(pl.east[0])}</div>
+      <div class="card"><div class="card-header"><h3>Western Conference Finals</h3></div>${seriesRow(pl.west[0])}</div>
+    </div>`;
+  } else if(pl.round===3&&pl.finals){
+    body=`<div class="card"><div class="card-header"><h3>NBA FINALS</h3></div>${seriesRow(pl.finals)}</div>`;
+  } else if(pl.round>=4&&pl.champion){
+    body=`<div class="card" style="text-align:center;padding:40px"><div style="font-size:0.8rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:10px">NBA CHAMPION</div><div style="font-size:2rem;font-weight:900;background:linear-gradient(135deg,#fdb927,#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent">${pl.champion.name}</div></div>
+      <div style="text-align:center;margin-top:20px"><button class="btn btn-accent" onclick="finishPlayoffsToAwards()">VIEW AWARDS</button></div>`;
+  }
+  const logHtml=pl.log.length?`<div class="card" style="margin-top:20px"><div class="card-header"><h3>Playoff Log</h3></div>${pl.log.map(l=>`<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:0.8rem;color:var(--text-dim)">${l}</div>`).join('')}</div>`:'';
+  const nextBtn=pl.round<4?`<div style="text-align:center;margin-top:20px"><button class="btn btn-primary" onclick="advancePlayoffRound()">SIMULATE ${pl.round===0?'FIRST ROUND':pl.round===1?'CONFERENCE SEMIFINALS':pl.round===2?'CONFERENCE FINALS':'NBA FINALS'}</button></div>`:'';
+  el.innerHTML=`<div class="page-header"><div><h2>NBA Playoffs</h2><div class="subtitle">Season ${G.season}</div></div></div>${body}${nextBtn}${logHtml}`;
+}
+function finishPlayoffsToAwards(){
+  generateAwards();
+  G.playoffs=null;
+  G.awaitingOffseason=true;
+  saveGame();
+  showPage('trophies');
+}
+
+// ===== AWARDS / TROPHIES =====
+function generateAwards(){
+  const allPlayers=[];
+  Object.values(G.allTeams).forEach(team=>{team.players.forEach(p=>{if(p.stats.gp>0)allPlayers.push({...p,teamName:team.name,teamId:team.id});});});
+  if(!allPlayers.length)return;
+  const byPpg=[...allPlayers].sort((a,b)=>(b.stats.ppg/b.stats.gp)-(a.stats.ppg/a.stats.gp));
+  const byRpg=[...allPlayers].sort((a,b)=>(b.stats.rpg/b.stats.gp)-(a.stats.rpg/a.stats.gp));
+  const byApg=[...allPlayers].sort((a,b)=>(b.stats.apg/b.stats.gp)-(a.stats.apg/a.stats.gp));
+  const byOvr=[...allPlayers].sort((a,b)=>b.ovr-a.ovr);
+  const youngsters=allPlayers.filter(p=>p.age<=23).sort((a,b)=>b.ovr-a.ovr);
+  const mvp=byOvr[0];
+  const dpoy=[...allPlayers].sort((a,b)=>((b.ratings?.intDef||0)+(b.ratings?.perDef||0))-((a.ratings?.intDef||0)+(a.ratings?.perDef||0)))[0];
+  const roy=youngsters[0]||byOvr[0];
+  const sixthMan=[...allPlayers].sort((a,b)=>b.ovr-a.ovr)[5]||byOvr[0];
+  const mip=byOvr[Math.floor(Math.random()*Math.min(5,byOvr.length))];
+  const allNba1=byOvr.slice(0,5);
+  const allNba2=byOvr.slice(5,10);
+  const trophy={
+    season:G.season,
+    champion:null,
+    mvp:mvp?{name:mvp.name,team:mvp.teamName,ppg:(mvp.stats.ppg/mvp.stats.gp).toFixed(1)}:null,
+    dpoy:dpoy?{name:dpoy.name,team:dpoy.teamName}:null,
+    roy:roy?{name:roy.name,team:roy.teamName}:null,
+    sixthMan:sixthMan?{name:sixthMan.name,team:sixthMan.teamName}:null,
+    mip:mip?{name:mip.name,team:mip.teamName}:null,
+    allNba1:allNba1.map(p=>({name:p.name,team:p.teamName})),
+    allNba2:allNba2.map(p=>({name:p.name,team:p.teamName})),
+    scoringLeader:byPpg[0]?{name:byPpg[0].name,team:byPpg[0].teamName,val:(byPpg[0].stats.ppg/byPpg[0].stats.gp).toFixed(1)}:null,
+    assistLeader:byApg[0]?{name:byApg[0].name,team:byApg[0].teamName,val:(byApg[0].stats.apg/byApg[0].stats.gp).toFixed(1)}:null,
+    reboundLeader:byRpg[0]?{name:byRpg[0].name,team:byRpg[0].teamName,val:(byRpg[0].stats.rpg/byRpg[0].stats.gp).toFixed(1)}:null
+  };
+  if(!G.trophies)G.trophies=[];
+  G.trophies.unshift(trophy);
+  saveGame();
+}
+function renderTrophies(el){
+  if(!G.trophies)G.trophies=[];
+  if(!G.trophies.length){el.innerHTML=`<div class="page-header"><div><h2>Trophy Room</h2></div></div><div class="card" style="text-align:center;padding:30px;color:var(--text-dim)">No trophies yet. Complete a season and playoffs to earn awards.</div>`;return;}
+  const continueBtn=G.awaitingOffseason?`<div class="card" style="margin-bottom:16px;text-align:center;padding:20px;border:1px solid var(--accent)"><p style="margin-bottom:12px;color:var(--text-dim)">Awards finalized for Season ${G.season}. Proceed to Free Agency and the Draft to build your roster for next season.</p><button class="btn btn-accent" onclick="goToOffseasonMoves()">CONTINUE TO FREE AGENCY & DRAFT</button></div>`:'';
+  el.innerHTML=`<div class="page-header"><div><h2>Trophy Room</h2><div class="subtitle">${G.trophies.length} season(s) of awards</div></div></div>
+    ${continueBtn}
+    ${G.trophies.map(t=>`<div class="card" style="margin-bottom:16px"><div class="card-header"><h3>Season ${t.season}</h3></div>
+      <div class="stat-grid" style="margin-bottom:14px">
+        <div class="stat-card"><div class="stat-label">MVP</div><div class="stat-value" style="font-size:1rem">${t.mvp?t.mvp.name:'--'}</div></div>
+        <div class="stat-card"><div class="stat-label">DPOY</div><div class="stat-value" style="font-size:1rem">${t.dpoy?t.dpoy.name:'--'}</div></div>
+        <div class="stat-card"><div class="stat-label">ROY</div><div class="stat-value" style="font-size:1rem">${t.roy?t.roy.name:'--'}</div></div>
+        <div class="stat-card"><div class="stat-label">6MOY</div><div class="stat-value" style="font-size:1rem">${t.sixthMan?t.sixthMan.name:'--'}</div></div>
+        <div class="stat-card"><div class="stat-label">MIP</div><div class="stat-value" style="font-size:1rem">${t.mip?t.mip.name:'--'}</div></div>
+      </div>
+      <div style="margin-bottom:10px"><div style="font-size:0.7rem;color:var(--text-dim);font-weight:700;letter-spacing:1px;margin-bottom:6px">ALL-NBA FIRST TEAM</div>${t.allNba1.map(p=>`<span class="player-chip">${p.name} (${p.team})</span>`).join('')}</div>
+      <div style="margin-bottom:10px"><div style="font-size:0.7rem;color:var(--text-dim);font-weight:700;letter-spacing:1px;margin-bottom:6px">ALL-NBA SECOND TEAM</div>${t.allNba2.map(p=>`<span class="player-chip">${p.name} (${p.team})</span>`).join('')}</div>
+      <div style="display:flex;gap:20px;font-size:0.8rem;color:var(--text-dim);margin-top:10px">
+        <span>Scoring Leader: <strong style="color:var(--text)">${t.scoringLeader?`${t.scoringLeader.name} (${t.scoringLeader.val} PPG)`:'--'}</strong></span>
+        <span>Assist Leader: <strong style="color:var(--text)">${t.assistLeader?`${t.assistLeader.name} (${t.assistLeader.val} APG)`:'--'}</strong></span>
+        <span>Rebound Leader: <strong style="color:var(--text)">${t.reboundLeader?`${t.reboundLeader.name} (${t.reboundLeader.val} RPG)`:'--'}</strong></span>
+      </div>
+    </div>`).join('')}`;
+}
+
+function goToOffseasonMoves(){
+  G.awaitingOffseason=false;
+  endSeason();
+  showPage('freeagency');
+}
+
 // ===== END SEASON =====
 function endSeason(){
   G.seasonHistory.push({season:G.season,wins:G.wins,losses:G.losses});alert(`Season ${G.season}: ${G.wins}-${G.losses}\n\nFree Agency & Draft open!`);
   generateFreeAgents();
+  G.draftClass=generateDraftClass();
   Object.values(G.allTeams).forEach(team=>{team.players.forEach(p=>{p.age++;if(p.age>33)p.ovr=Math.max(60,p.ovr-Math.floor(Math.random()*3));else if(p.age<26)p.ovr=Math.min(p.potential,p.ovr+Math.floor(Math.random()*2));p.contractYears--;p.stats={ppg:0,rpg:0,apg:0,spg:0,bpg:0,gp:0};p.energy=100;p.injured=false;});team.players=team.players.filter(p=>p.contractYears>0||team.id===G.team);team.wins=0;team.losses=0;});
   G.season++;G.wins=0;G.losses=0;G.gameIndex=0;
   G.draftPicks.push({round:1,team:G.team,year:G.season},{round:2,team:G.team,year:G.season});
