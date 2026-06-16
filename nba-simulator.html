@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <title>NBA Dynasty Simulator</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -10,16 +11,16 @@
   --primary: #1d428a;
   --secondary: #c8102e;
   --accent: #fdb927;
-  --bg: #0a0a0f;
-  --surface: #141424;
-  --surface2: #1c1c34;
-  --surface3: #24243e;
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface2: #21262d;
+  --surface3: #30363d;
   --text: #ffffff;
-  --text-dim: #7a7a9a;
-  --border: rgba(255,255,255,0.06);
+  --text-dim: #8b949e;
+  --border: rgba(255,255,255,0.08);
   --glow: rgba(29,66,138,0.3);
 }
-body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; }
+body { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; }
 .hidden { display: none !important; }
 
 #intro-screen { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; }
@@ -317,6 +318,8 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
     <div class="nav-section">OTHER</div>
     <div class="nav-item" onclick="showPage('betting')">Sportsbook</div>
     <div class="nav-item" onclick="showPage('jersey')">Jersey Lab</div>
+    <div class="nav-item" onclick="showPage('staff')">Staff</div>
+    <div class="nav-item" onclick="showPage('achievements')">Achievements</div>
   </div>
   <div id="main-content"><div id="page-content"></div></div>
   <div class="save-indicator"><button class="save-btn" onclick="manualSave()">SAVE GAME</button></div>
@@ -427,7 +430,8 @@ const PLAYERS_DATA = {
 let G = {
   team:null,season:1,week:0,gameIndex:0,wins:0,losses:0,schedule:[],allTeams:{},news:[],money:5000,morale:75,chemistry:70,momentum:0,salaryCap:136000000,
   draftPicks:[],freeAgents:[],playoffTeams:[],jersey:{primary:'#1d428a',secondary:'#ffffff',number:'00',pattern:'solid'},seasonHistory:[],currentPage:'dashboard',
-  boxScoreVisible:false,liveBoxScore:{home:[],away:[]},scoutTokens:3,scoutedPlayers:[]
+  boxScoreVisible:false,liveBoxScore:{home:[],away:[]},scoutTokens:3,scoutedPlayers:[],
+  staff:{headCoach:1,assistant:1,trainer:1,scout:1},achievements:[],capBreakers:0,tradeCount:0,winStreak:0
 };
 
 function initParticles(){const c=document.getElementById('particles');for(let i=0;i<50;i++){const p=document.createElement('div');p.className='particle';p.style.left=Math.random()*100+'%';p.style.top=Math.random()*100+'%';p.style.animationDelay=Math.random()*4+'s';p.style.animationDuration=(3+Math.random()*3)+'s';c.appendChild(p);}}
@@ -442,11 +446,57 @@ function showSettings(){alert('Settings: Difficulty adjustable via training and 
 
 function renderTeamSelect(){const g=document.getElementById('teams-grid');g.innerHTML='';TEAMS.forEach(t=>{const c=document.createElement('div');c.className='team-card';c.style.background=`linear-gradient(135deg, ${t.primary}33, ${t.secondary}22)`;c.innerHTML=`<div class="team-name">${t.name}</div><div class="team-city">${t.city}</div>`;c.onclick=()=>selectTeam(t.id);g.appendChild(c);});}
 
+function randomRating(ovr){return Math.max(40,Math.min(99,ovr+Math.floor(Math.random()*20)-10));}
+
+function generateBadges(ovr,pos){
+  const allBadges=[
+    {name:'Deadeye',icon:'🎯',desc:'Improved shooting accuracy',forPos:['SG','SF','PG']},
+    {name:'Ankle Breaker',icon:'💀',desc:'Devastating crossovers',forPos:['PG','SG']},
+    {name:'Rim Protector',icon:'🛡️',desc:'Elite shot blocking',forPos:['C','PF']},
+    {name:'Floor General',icon:'🧠',desc:'Superior court vision',forPos:['PG']},
+    {name:'Chase Down Artist',icon:'🏃',desc:'Relentless pursuit blocks',forPos:['SF','PF']},
+    {name:'Catch & Shoot',icon:'🔥',desc:'Deadly off screens',forPos:['SG','SF']},
+    {name:'Post Spin',icon:'🌀',desc:'Unstoppable post moves',forPos:['C','PF']},
+    {name:'Clamps',icon:'🔒',desc:'Lockdown perimeter D',forPos:['PG','SG','SF']},
+    {name:'Rebound Chaser',icon:'📦',desc:'Relentless on the boards',forPos:['C','PF']},
+    {name:'Lob City Finisher',icon:'✈️',desc:'Alley-oop specialist',forPos:['C','PF','SF']},
+    {name:'Dimer',icon:'🅰️',desc:'Boosts teammates shots',forPos:['PG','SG']},
+    {name:'Intimidator',icon:'😤',desc:'Opponents miss more',forPos:['C','PF']},
+    {name:'Limitless Range',icon:'🏹',desc:'Deep three specialist',forPos:['PG','SG']},
+    {name:'Contact Finisher',icon:'💪',desc:'Finishes through contact',forPos:['SF','PF','C']},
+    {name:'Quick First Step',icon:'⚡',desc:'Explosive first step',forPos:['PG','SG','SF']}
+  ];
+  const count=Math.min(6,Math.max(3,Math.floor(ovr/15)));
+  const eligible=allBadges.filter(b=>b.forPos.includes(pos));
+  const shuffled=eligible.sort(()=>Math.random()-0.5).slice(0,count);
+  return shuffled.map(b=>{
+    let tier;
+    if(ovr>=88)tier=Math.random()<0.6?'gold':Math.random()<0.5?'silver':'bronze';
+    else if(ovr>=78)tier=Math.random()<0.3?'gold':Math.random()<0.5?'silver':'bronze';
+    else tier=Math.random()<0.1?'gold':Math.random()<0.4?'silver':'bronze';
+    return {...b,tier};
+  });
+}
+
+function generateFace(){
+  const skins=['#8d5524','#c68642','#e0ac69','#f1c27d','#ffdbac','#3b2219','#6b4226'];
+  const hairs=['#000','#1a1a1a','#4a3728','#8b6914','#d4a574','#c0392b','#2c3e50'];
+  const skin=skins[Math.floor(Math.random()*skins.length)];
+  const hair=hairs[Math.floor(Math.random()*hairs.length)];
+  const hairStyle=Math.floor(Math.random()*4);
+  let hairSvg='';
+  if(hairStyle===0)hairSvg=`<ellipse cx="50" cy="22" rx="30" ry="16" fill="${hair}"/>`;
+  else if(hairStyle===1)hairSvg=`<rect x="20" y="10" width="60" height="25" rx="8" fill="${hair}"/>`;
+  else if(hairStyle===2)hairSvg=`<ellipse cx="50" cy="20" rx="35" ry="20" fill="${hair}"/>`;
+  else hairSvg=`<rect x="22" y="12" width="56" height="18" rx="4" fill="${hair}"/><rect x="18" y="22" width="64" height="8" rx="2" fill="${hair}"/>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="70" height="70"><circle cx="50" cy="50" r="40" fill="${skin}"/>${hairSvg}<circle cx="38" cy="48" r="3" fill="#1a1a1a"/><circle cx="62" cy="48" r="3" fill="#1a1a1a"/><ellipse cx="50" cy="62" rx="8" ry="4" fill="#c0392b" opacity="0.7"/><path d="M38 55 Q50 65 62 55" stroke="#1a1a1a" stroke-width="1.5" fill="none"/></svg>`;
+}
+
 function selectTeam(teamId){
   G.team=teamId;G.allTeams={};
   TEAMS.forEach(t=>{
     const players=JSON.parse(JSON.stringify(PLAYERS_DATA[t.id]||[]));
-    players.forEach((p,i)=>{p.id=t.id+'_'+i;p.num=p.num||i+1;p.salary=Math.floor((p.ovr/100)*35000000*(0.7+Math.random()*0.6));p.contractYears=Math.floor(Math.random()*4)+1;p.stamina=85+Math.floor(Math.random()*15);p.energy=100;p.morale=70+Math.floor(Math.random()*20);p.potential=p.ovr+Math.floor(Math.random()*8)-2;p.stats={ppg:0,rpg:0,apg:0,spg:0,bpg:0,gp:0};p.injured=false;p.injuryGames=0;});
+    players.forEach((p,i)=>{p.id=t.id+'_'+i;p.num=p.num||i+1;p.salary=Math.floor((p.ovr/100)*35000000*(0.7+Math.random()*0.6));p.contractYears=Math.floor(Math.random()*4)+1;p.stamina=85+Math.floor(Math.random()*15);p.energy=100;p.morale=70+Math.floor(Math.random()*20);p.potential=p.ovr+Math.floor(Math.random()*8)-2;p.stats={ppg:0,rpg:0,apg:0,spg:0,bpg:0,gp:0};p.injured=false;p.injuryGames=0;p.ratings={closeShot:randomRating(p.ovr),midRange:randomRating(p.ovr),three:randomRating(p.ovr),freeThrow:randomRating(p.ovr),layup:randomRating(p.ovr),dunk:randomRating(p.ovr),speed:randomRating(p.ovr),acceleration:randomRating(p.ovr),strength:randomRating(p.ovr),vertical:randomRating(p.ovr),stamina:randomRating(p.ovr),hustle:randomRating(p.ovr),passIQ:randomRating(p.ovr),ballHandle:randomRating(p.ovr),intDef:randomRating(p.ovr),perDef:randomRating(p.ovr),steal:randomRating(p.ovr),block:randomRating(p.ovr),rebounding:randomRating(p.ovr),offRebound:randomRating(p.ovr)};p.badges=generateBadges(p.ovr,p.pos);p.face=generateFace();});
     G.allTeams[t.id]={...t,players,wins:0,losses:0};
   });
   G.jersey.primary=getTeamData(teamId).primary;G.jersey.secondary=getTeamData(teamId).secondary;
@@ -464,9 +514,9 @@ function updateSidebar(){const t=getTeamData(G.team);document.getElementById('my
 
 function showPage(page){
   G.currentPage=page;
-  document.querySelectorAll('.nav-item').forEach((n,i)=>{n.classList.toggle('active',['dashboard','calendar','standings','news','roster','depth','training','contracts','trades','scouting','draft','freeagency','betting','jersey'][i]===page);});
+  document.querySelectorAll('.nav-item').forEach((n,i)=>{n.classList.toggle('active',['dashboard','calendar','standings','news','roster','depth','training','contracts','trades','scouting','draft','freeagency','betting','jersey','staff','achievements'][i]===page);});
   const content=document.getElementById('page-content');content.className='fade-in';
-  const r={dashboard:renderDashboard,calendar:renderCalendar,roster:renderRoster,depth:renderDepth,training:renderTraining,trades:renderTrades,contracts:renderContracts,standings:renderStandings,news:renderNews,betting:renderBetting,jersey:renderJersey,draft:renderDraft,freeagency:renderFreeAgency,scouting:renderScouting};
+  const r={dashboard:renderDashboard,calendar:renderCalendar,roster:renderRoster,depth:renderDepth,training:renderTraining,trades:renderTrades,contracts:renderContracts,standings:renderStandings,news:renderNews,betting:renderBetting,jersey:renderJersey,draft:renderDraft,freeagency:renderFreeAgency,scouting:renderScouting,staff:renderStaff,achievements:renderAchievements};
   if(r[page])r[page](content);
 }
 
@@ -476,9 +526,13 @@ function getTradeValue(p){return Math.round((p.ovr*2.5)+(p.potential*1.5)+((30-p
 // ===== PLAYER MODAL =====
 function showPlayerModal(playerId,teamId){
   const team=G.allTeams[teamId||G.team];const p=team.players.find(x=>x.id===playerId);if(!p)return;
+  const ratingNames={closeShot:'Close Shot',midRange:'Mid-Range',three:'3PT',freeThrow:'Free Throw',layup:'Layup',dunk:'Dunk',speed:'Speed',acceleration:'Accel',strength:'Strength',vertical:'Vertical',stamina:'Stamina',hustle:'Hustle',passIQ:'Pass IQ',ballHandle:'Ball Handle',intDef:'Int. Defense',perDef:'Per. Defense',steal:'Steal',block:'Block',rebounding:'Rebound',offRebound:'Off. Reb.'};
+  const ratingsHtml=p.ratings?Object.entries(p.ratings).map(([k,v])=>{const color=v>=85?'#4caf50':v>=75?'#8bc34a':v>=65?'#ffc107':v>=55?'#ff9800':'#f44336';return`<div style="display:flex;align-items:center;gap:6px;padding:3px 0"><span style="font-size:0.65rem;color:var(--text-dim);width:70px;text-align:right">${ratingNames[k]||k}</span><div style="flex:1;height:5px;background:rgba(255,255,255,0.08);border-radius:3px"><div style="width:${v}%;height:100%;background:${color};border-radius:3px"></div></div><span style="font-size:0.65rem;font-weight:700;width:24px">${v}</span></div>`;}).join(''):'<div style="color:var(--text-dim);font-size:0.8rem">No ratings data</div>';
+  const badgesHtml=p.badges?p.badges.map(b=>{const tc=b.tier==='gold'?'#ffd700':b.tier==='silver'?'#c0c0c0':'#cd7f32';return`<div style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:${tc}22;border:1px solid ${tc}44;border-radius:16px;margin:3px;font-size:0.72rem"><span>${b.icon}</span><span style="font-weight:700;color:${tc}">${b.name}</span><span style="font-size:0.55rem;color:var(--text-dim);text-transform:uppercase">${b.tier}</span></div>`;}).join(''):'';
+  const faceHtml=p.face||'';
   const div=document.createElement('div');div.className='player-modal';
-  div.innerHTML=`<div class="player-modal-content"><button class="close-btn" onclick="this.closest('.player-modal').remove()">X</button>
-    <div style="display:flex;gap:20px;align-items:center;margin-bottom:20px"><div style="width:70px;height:70px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:900">${p.num}</div>
+  div.innerHTML=`<div class="player-modal-content" style="width:600px;max-height:85vh;overflow-y:auto"><button class="close-btn" onclick="this.closest('.player-modal').remove()">X</button>
+    <div style="display:flex;gap:20px;align-items:center;margin-bottom:20px"><div style="width:70px;height:70px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;overflow:hidden">${faceHtml||`<span style="font-size:1.5rem;font-weight:900">${p.num}</span>`}</div>
     <div><h2 style="font-size:1.3rem">${p.name}</h2><div style="color:var(--text-dim)">${p.pos} | Age ${p.age} | ${team.city} ${team.name}</div></div></div>
     <div class="stat-grid" style="margin-bottom:15px">
       <div class="stat-card"><div class="stat-label">OVR</div><div class="stat-value">${p.ovr}</div></div>
@@ -486,6 +540,8 @@ function showPlayerModal(playerId,teamId){
       <div class="stat-card"><div class="stat-label">ENERGY</div><div class="stat-value">${p.energy}%</div></div>
       <div class="stat-card"><div class="stat-label">MORALE</div><div class="stat-value">${p.morale}</div></div>
     </div>
+    ${badgesHtml?`<div style="margin-bottom:15px"><h3 style="font-size:0.85rem;margin-bottom:8px;color:var(--text-dim);letter-spacing:1px">BADGES</h3><div>${badgesHtml}</div></div>`:''}
+    <div style="margin-bottom:15px"><h3 style="font-size:0.85rem;margin-bottom:8px;color:var(--text-dim);letter-spacing:1px">RATINGS</h3><div style="display:grid;grid-template-columns:1fr 1fr;gap:0 16px">${ratingsHtml}</div></div>
     <h3 style="margin-bottom:10px;font-size:0.9rem">Season Averages</h3>
     <div class="stat-grid">
       <div class="stat-card"><div class="stat-label">PPG</div><div class="stat-value">${p.stats.gp?(p.stats.ppg/p.stats.gp).toFixed(1):'0.0'}</div></div>
@@ -508,14 +564,30 @@ function renderDashboard(el){
   const pct=G.wins+G.losses>0?(G.wins/(G.wins+G.losses)).toFixed(3):'.000';
   const conf=td.conf;const confTeams=TEAMS.filter(t=>t.conf===conf).map(t=>({...t,...G.allTeams[t.id]})).sort((a,b)=>(b.wins-b.losses)-(a.wins-a.losses));
   const myRank=confTeams.findIndex(t=>t.id===G.team)+1;
+  const last5=G.schedule.filter(g=>g.played).slice(-5).map(g=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;font-size:0.7rem;font-weight:800;background:${g.result==='W'?'rgba(76,175,80,0.2)':'rgba(244,67,54,0.2)'};color:${g.result==='W'?'#4caf50':'#f44336'};border:1px solid ${g.result==='W'?'rgba(76,175,80,0.3)':'rgba(244,67,54,0.3)'}">${g.result}</span>`).join('');
+  const myPlayers=getMyTeam().players;
+  const ptsLeader=myPlayers.filter(p=>p.stats.gp>0).sort((a,b)=>(b.stats.ppg/b.stats.gp)-(a.stats.ppg/a.stats.gp))[0];
+  const rebLeader=myPlayers.filter(p=>p.stats.gp>0).sort((a,b)=>(b.stats.rpg/b.stats.gp)-(a.stats.rpg/a.stats.gp))[0];
+  const astLeader=myPlayers.filter(p=>p.stats.gp>0).sort((a,b)=>(b.stats.apg/b.stats.gp)-(a.stats.apg/a.stats.gp))[0];
+  const myNews=G.news.filter(n=>n.headline.includes(td.name)||n.headline.includes('season begins')).slice(0,3);
+  const nextMatchup=next?`<div style="display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center;padding:20px"><div style="text-align:center"><div style="font-size:0.7rem;color:var(--text-dim);margin-bottom:4px">${next.home?'HOME':'AWAY'}</div><div style="font-size:1.3rem;font-weight:800">${td.name}</div><div style="color:var(--text-dim);font-size:0.85rem">${G.wins}-${G.losses}</div></div><div style="font-size:1.5rem;font-weight:900;color:var(--text-dim)">VS</div><div style="text-align:center"><div style="font-size:0.7rem;color:var(--text-dim);margin-bottom:4px">${next.home?'AWAY':'HOME'}</div><div style="font-size:1.3rem;font-weight:800">${getTeamData(next.opponent).name}</div><div style="color:var(--text-dim);font-size:0.85rem">${G.allTeams[next.opponent].wins}-${G.allTeams[next.opponent].losses}</div></div></div>`:'';
   el.innerHTML=`<div class="page-header"><div><h2>${td.city} ${td.name}</h2><div class="subtitle">Season ${G.season} | Game ${G.gameIndex+1} of 82</div></div><div style="text-align:right"><div style="font-size:2.8rem;font-weight:900;letter-spacing:-1px;background:linear-gradient(135deg,#fff,#aaa);-webkit-background-clip:text;-webkit-text-fill-color:transparent">${G.wins}-${G.losses}</div><div style="color:var(--text-dim);font-size:0.8rem">${pct} PCT | #${myRank} ${conf}</div></div></div>
-    <div class="stat-grid"><div class="stat-card"><div class="stat-label">MORALE</div><div class="stat-value">${G.morale}</div></div><div class="stat-card"><div class="stat-label">CHEMISTRY</div><div class="stat-value">${G.chemistry}</div></div><div class="stat-card"><div class="stat-label">FUNDS</div><div class="stat-value">$${(G.money/1000).toFixed(0)}K</div></div><div class="stat-card"><div class="stat-label">PICKS</div><div class="stat-value">${G.draftPicks.length}</div></div><div class="stat-card"><div class="stat-label">STREAK</div><div class="stat-value">${getStreak()}</div></div></div>
+    <div class="stat-grid"><div class="stat-card"><div class="stat-label">MORALE</div><div class="stat-value">${G.morale}</div></div><div class="stat-card"><div class="stat-label">CHEMISTRY</div><div class="stat-value">${G.chemistry}</div></div><div class="stat-card"><div class="stat-label">FUNDS</div><div class="stat-value">$${(G.money/1000).toFixed(0)}K</div></div><div class="stat-card"><div class="stat-label">PICKS</div><div class="stat-value">${G.draftPicks.length}</div></div><div class="stat-card"><div class="stat-label">LAST 5</div><div class="stat-value" style="font-size:1rem;display:flex;gap:3px;justify-content:center">${last5||'--'}</div></div></div>
     <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:20px">
-      <div class="card"><div class="card-header"><h3>Next Game</h3></div>
-        ${next?`<div style="font-size:1.1rem;margin-bottom:16px">${next.home?'HOME vs':'AWAY @'} <strong style="color:var(--primary)">${getTeamData(next.opponent).city} ${getTeamData(next.opponent).name}</strong></div><div style="display:flex;gap:10px"><button class="btn btn-primary" onclick="playNextGame()">PLAY LIVE</button><button class="btn btn-secondary" onclick="simNextGame()">SIM</button><button class="btn btn-secondary" onclick="simWeek()">SIM WEEK</button></div>`:`<div>Season Complete</div><button class="btn btn-accent" onclick="endSeason()">ADVANCE TO OFFSEASON</button>`}
+      <div class="card"><div class="card-header"><h3>Next Game</h3>${next?`<div class="badge">Game ${G.gameIndex+1}</div>`:''}</div>
+        ${next?`${nextMatchup}<div style="display:flex;gap:10px;padding:0 20px 16px"><button class="btn btn-primary" onclick="playNextGame()">PLAY LIVE</button><button class="btn btn-secondary" onclick="simNextGame()">SIM</button><button class="btn btn-secondary" onclick="simWeek()">SIM WEEK</button></div>`:`<div style="padding:20px">Season Complete</div><div style="padding:0 20px 16px"><button class="btn btn-accent" onclick="endSeason()">ADVANCE TO OFFSEASON</button></div>`}
       </div>
-      <div class="card"><div class="card-header"><h3>Top Players</h3></div>${getMyTeam().players.slice(0,5).map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="showPlayerModal('${p.id}')"><span style="font-size:0.8rem;font-weight:600">${p.name}</span><span class="ovr ${ovrClass(p.ovr)}" style="width:28px;height:28px;font-size:0.7rem">${p.ovr}</span></div>`).join('')}</div>
-    </div>`;
+      <div>
+        <div class="card" style="margin-bottom:12px"><div class="card-header"><h3>Team Leaders</h3></div>
+          ${ptsLeader?`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:0.8rem"><span style="color:var(--text-dim)">PPG</span><span style="font-weight:700">${ptsLeader.name.split(' ')[1]} ${(ptsLeader.stats.ppg/ptsLeader.stats.gp).toFixed(1)}</span></div>`:''}
+          ${rebLeader?`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:0.8rem"><span style="color:var(--text-dim)">RPG</span><span style="font-weight:700">${rebLeader.name.split(' ')[1]} ${(rebLeader.stats.rpg/rebLeader.stats.gp).toFixed(1)}</span></div>`:''}
+          ${astLeader?`<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:0.8rem"><span style="color:var(--text-dim)">APG</span><span style="font-weight:700">${astLeader.name.split(' ')[1]} ${(astLeader.stats.apg/astLeader.stats.gp).toFixed(1)}</span></div>`:''}
+          ${!ptsLeader?'<div style="color:var(--text-dim);font-size:0.8rem;padding:8px 0">No stats yet</div>':''}
+        </div>
+        <div class="card"><div class="card-header"><h3>Top Players</h3></div>${getMyTeam().players.slice(0,4).map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="showPlayerModal('${p.id}')"><span style="font-size:0.78rem;font-weight:600">${p.name}</span><span class="ovr ${ovrClass(p.ovr)}" style="width:26px;height:26px;font-size:0.68rem">${p.ovr}</span></div>`).join('')}</div>
+      </div>
+    </div>
+    ${myNews.length?`<div class="card"><div class="card-header"><h3>Recent News</h3></div>${myNews.map(n=>`<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:0.82rem"><span style="font-weight:700">${n.headline}</span><div style="color:var(--text-dim);font-size:0.75rem;margin-top:2px">${n.body}</div></div>`).join('')}</div>`:''}`;
 }
 function getStreak(){let s=0,t='';for(let i=G.gameIndex-1;i>=0;i--){const g=G.schedule[i];if(!g.played)continue;if(!t)t=g.result;if(g.result===t)s++;else break;}return s>0?`${t}${s}`:'--';}
 
@@ -551,8 +623,9 @@ function renderStandings(el){
 
 // ===== NEWS =====
 function renderNews(el){
-  const cats=['All','Trades','Injuries','Milestones','Your Team'];
-  el.innerHTML=`<div class="page-header"><div><h2>League News</h2><div class="subtitle">Latest updates</div></div></div><div class="news-tabs">${cats.map((c,i)=>`<div class="news-tab ${i===0?'active':''}" onclick="switchNewsTab(this,'${c.toLowerCase()}')">${c}</div>`).join('')}</div><div id="news-content">${renderNewsItems('all')}</div>`;
+  const teamNews=G.news.slice(0,20);
+  el.innerHTML=`<div class="page-header"><div><h2>Team News</h2><div class="subtitle">${getTeamData(G.team).city} ${getTeamData(G.team).name} updates</div></div></div>
+    ${teamNews.length?teamNews.map(n=>{const type=n.headline.includes('TRADE')?'TRADE':n.headline.includes('injury')?'INJURY':n.headline.includes('improvement')?'TRAINING':'UPDATE';const tc=type==='TRADE'?'var(--accent)':type==='INJURY'?'#f44336':type==='TRAINING'?'#4caf50':'var(--primary)';return`<div class="news-card"><div style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.65rem;font-weight:700;margin-bottom:8px;background:${tc}22;color:${tc};border:1px solid ${tc}44">${type}</div><div style="font-weight:700;margin-bottom:6px">${n.headline}</div><div style="font-size:0.82rem;color:var(--text-dim)">${n.body}</div><div style="font-size:0.7rem;color:var(--text-dim);margin-top:8px">${n.date}</div></div>`;}).join(''):'<div style="padding:30px;text-align:center;color:var(--text-dim)">No news yet.</div>'}`;
 }
 function switchNewsTab(btn,cat){btn.parentElement.querySelectorAll('.news-tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');document.getElementById('news-content').innerHTML=renderNewsItems(cat);}
 function renderNewsItems(cat){
@@ -618,28 +691,25 @@ function runDrill(attr,cost){
   saveGame();showPage('training');
 }
 function restPlayer(id){const p=getMyTeam().players.find(x=>x.id===id);if(p){p.energy=Math.min(100,p.energy+25);saveGame();showPage('training');}}
-function trainPlayer(id){if(G.money<500){alert('Not enough funds!');return;}const p=getMyTeam().players.find(x=>x.id===id);if(p&&p.ovr<p.potential){p.ovr+=1;G.money-=500;saveGame();showPage('training');}else alert('At max potential!');}
+function trainPlayer(id){if(G.money<500){alert('Not enough funds!');return;}const p=getMyTeam().players.find(x=>x.id===id);if(!p)return;if(p.ovr>=p.potential){alert('At max potential!');return;}G.money-=500;const assistBoost=G.staff?G.staff.assistant*0.1:0;if(Math.random()<(0.5+assistBoost)){p.ovr+=1;alert(`${p.name} improved to ${p.ovr} OVR!`);}else{alert(`${p.name} trained hard but no improvement this time.`);}saveGame();showPage('training');}
 
 // ===== TRADES =====
 function renderTradeValueBar(val){const pct=Math.min(100,val/2.5);const color=pct>70?'#4caf50':pct>40?'#ffc107':'#f44336';return`<div class="trade-value-bar" style="width:100%;margin-top:4px"><div class="trade-value-fill" style="width:${pct}%;background:linear-gradient(90deg,${color},${color}cc)"></div></div>`;}
 function renderTrades(el){
   const ot=TEAMS.filter(t=>t.id!==G.team);
-  el.innerHTML=`<div class="page-header"><div><h2 style="background:linear-gradient(135deg,#fff,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent">Trade Center</h2><div class="subtitle">Build fair packages — you must offer equal or greater value</div></div></div>
-    <div id="trade-balance" style="margin-bottom:16px;padding:14px 20px;background:var(--surface);border:1px solid var(--border);border-radius:10px"><div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:0.8rem;font-weight:700"><span>Your Package Value</span><span>Their Package Value</span></div><div style="display:flex;gap:8px;align-items:center"><div style="flex:1;height:10px;background:rgba(255,255,255,0.06);border-radius:5px;overflow:hidden"><div id="trade-bar-mine" style="height:100%;background:linear-gradient(90deg,var(--primary),var(--accent));width:0%;transition:width 0.3s;border-radius:5px"></div></div><span style="font-size:1.2rem;font-weight:900;color:var(--accent)" id="trade-vs">⚖️</span><div style="flex:1;height:10px;background:rgba(255,255,255,0.06);border-radius:5px;overflow:hidden"><div id="trade-bar-other" style="height:100%;background:linear-gradient(90deg,var(--secondary),#f44336);width:0%;transition:width 0.3s;border-radius:5px"></div></div></div><div style="text-align:center;margin-top:6px;font-size:0.75rem;color:var(--text-dim)" id="trade-fairness">Select players to see trade balance</div></div>
-    <div class="trade-container">
-      <div class="trade-side" style="border-top:3px solid var(--primary)"><h4 style="margin-bottom:10px;font-size:0.95rem;letter-spacing:0.5px">Your Assets</h4>
-        <p style="font-size:0.65rem;font-weight:700;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:8px">PLAYERS</p>
-        ${getMyTeam().players.map(p=>`<div class="player-chip" onclick="toggleTrade('mine','${p.id}')" id="trade-${p.id}">${p.name} <span class="ovr ${ovrClass(p.ovr)}" style="width:22px;height:22px;font-size:0.6rem;display:inline-flex">${p.ovr}</span>${renderTradeValueBar(getTradeValue(p))}</div>`).join('')}
-        <p style="font-size:0.65rem;font-weight:700;letter-spacing:1.5px;color:var(--text-dim);margin:12px 0 8px">DRAFT PICKS</p>
-        ${G.draftPicks.map((pk,i)=>`<div class="player-chip" onclick="toggleTradePick('mine',${i})" id="trade-pick-mine-${i}">Yr${pk.year} Rd${pk.round} (${getTeamData(pk.team).name})</div>`).join('')}
-      </div>
-      <div class="trade-arrow">⇄</div>
-      <div class="trade-side" style="border-top:3px solid var(--secondary)"><h4 style="margin-bottom:10px;font-size:0.95rem;letter-spacing:0.5px">Their Assets</h4>
-        <select id="trade-team" onchange="showTradeTeam()" style="width:100%;padding:10px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;margin-bottom:12px;font-size:0.85rem;font-weight:600">${ot.map(t=>`<option value="${t.id}">${t.city} ${t.name}</option>`).join('')}</select>
-        <div id="trade-other-players"></div>
-      </div>
+  el.innerHTML=`<div class="page-header"><div><h2>Trade Center</h2><div class="subtitle">Build packages — equal or greater value required</div></div></div>
+    <div id="trade-balance" style="margin-bottom:16px;padding:14px 20px;background:var(--surface);border:1px solid var(--border);border-radius:10px"><div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:0.8rem;font-weight:700"><span>Your Value</span><span>Their Value</span></div><div style="display:flex;gap:8px;align-items:center"><div style="flex:1;height:10px;background:rgba(255,255,255,0.06);border-radius:5px;overflow:hidden"><div id="trade-bar-mine" style="height:100%;background:linear-gradient(90deg,var(--primary),var(--accent));width:0%;transition:width 0.3s;border-radius:5px"></div></div><span style="font-size:1rem;font-weight:900;color:var(--accent)">⚖️</span><div style="flex:1;height:10px;background:rgba(255,255,255,0.06);border-radius:5px;overflow:hidden"><div id="trade-bar-other" style="height:100%;background:linear-gradient(90deg,var(--secondary),#f44336);width:0%;transition:width 0.3s;border-radius:5px"></div></div></div><div style="text-align:center;margin-top:6px;font-size:0.75rem;color:var(--text-dim)" id="trade-fairness">Select players to see trade balance</div></div>
+    <div class="card" style="margin-bottom:16px"><div class="card-header"><h3>Your Players</h3><div class="badge">${getMyTeam().players.length} players</div></div>
+      <table class="data-table"><thead><tr><th></th><th>Name</th><th>Pos</th><th>OVR</th><th>Value</th></tr></thead><tbody>
+      ${getMyTeam().players.map(p=>`<tr onclick="toggleTrade('mine','${p.id}');this.classList.toggle('highlighted')" style="cursor:pointer" id="trade-row-${p.id}"><td><input type="checkbox" style="pointer-events:none"></td><td style="font-weight:600">${p.name}</td><td>${p.pos}</td><td><span class="ovr ${ovrClass(p.ovr)}" style="width:26px;height:26px;font-size:0.7rem">${p.ovr}</span></td><td style="font-size:0.8rem">${getTradeValue(p)}</td></tr>`).join('')}
+      </tbody></table>
+      ${G.draftPicks.length?`<div style="padding:10px"><p style="font-size:0.7rem;font-weight:700;color:var(--text-dim);margin-bottom:6px">DRAFT PICKS</p>${G.draftPicks.map((pk,i)=>`<div class="player-chip" onclick="toggleTradePick('mine',${i})" id="trade-pick-mine-${i}">Yr${pk.year} Rd${pk.round}</div>`).join('')}</div>`:''}
     </div>
-    <div style="text-align:center;margin-top:20px"><button class="btn btn-accent" style="padding:14px 40px;font-size:0.95rem;letter-spacing:1px" onclick="proposeTrade()">PROPOSE TRADE</button></div>`;
+    <div class="card" style="margin-bottom:16px"><div class="card-header"><h3>Trade Partner</h3></div>
+      <select id="trade-team" onchange="showTradeTeam()" style="width:100%;padding:10px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;margin-bottom:12px;font-size:0.85rem;font-weight:600">${ot.map(t=>`<option value="${t.id}">${t.city} ${t.name} (${G.allTeams[t.id].wins}-${G.allTeams[t.id].losses})</option>`).join('')}</select>
+      <div id="trade-other-players"></div>
+    </div>
+    <div style="text-align:center;margin-top:20px"><button class="btn btn-accent" style="padding:14px 40px;font-size:0.95rem" onclick="proposeTrade()">PROPOSE TRADE</button></div>`;
   showTradeTeam();
 }
 let tradeSelMine=[],tradeSelOther=[],tradePicksMine=[],tradePicksOther=[];
@@ -657,7 +727,7 @@ function updateTradeBalance(){
 }
 function showTradeTeam(){
   tradeSelOther=[];tradePicksOther=[];const tid=document.getElementById('trade-team').value;
-  document.getElementById('trade-other-players').innerHTML=`<p style="font-size:0.65rem;font-weight:700;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:8px">PLAYERS</p>${G.allTeams[tid].players.map(p=>`<div class="player-chip" onclick="toggleTrade('other','${p.id}')" id="trade-${p.id}">${p.name} <span class="ovr ${ovrClass(p.ovr)}" style="width:22px;height:22px;font-size:0.6rem;display:inline-flex">${p.ovr}</span>${renderTradeValueBar(getTradeValue(p))}</div>`).join('')}`;
+  document.getElementById('trade-other-players').innerHTML=`<table class="data-table"><thead><tr><th></th><th>Name</th><th>Pos</th><th>OVR</th><th>Value</th></tr></thead><tbody>${G.allTeams[tid].players.map(p=>`<tr onclick="toggleTrade('other','${p.id}');this.classList.toggle('highlighted')" style="cursor:pointer" id="trade-row-${p.id}"><td><input type="checkbox" style="pointer-events:none"></td><td style="font-weight:600">${p.name}</td><td>${p.pos}</td><td><span class="ovr ${ovrClass(p.ovr)}" style="width:26px;height:26px;font-size:0.7rem">${p.ovr}</span></td><td style="font-size:0.8rem">${getTradeValue(p)}</td></tr>`).join('')}</tbody></table>`;
   updateTradeBalance();
 }
 function proposeTrade(){
@@ -673,7 +743,7 @@ function proposeTrade(){
     G.allTeams[G.team].players=G.allTeams[G.team].players.filter(p=>!tradeSelMine.includes(p.id)).concat(otherP);
     G.allTeams[tid].players=G.allTeams[tid].players.filter(p=>!tradeSelOther.includes(p.id)).concat(myP);
     tradePicksMine.sort((a,b)=>b-a).forEach(i=>G.draftPicks.splice(i,1));
-    generateNews('trade',{otherTeam:tid});alert('Trade accepted!');
+    generateNews('trade',{otherTeam:tid});alert('Trade accepted!');G.tradeCount=(G.tradeCount||0)+1;checkAchievements();
     tradeSelMine=[];tradeSelOther=[];tradePicksMine=[];tradePicksOther=[];saveGame();showPage('trades');
   }
 }
@@ -732,7 +802,7 @@ function renderDraft(el){
   el.innerHTML=`<div class="page-header"><div><h2>NBA Draft</h2></div><div class="badge">${G.draftPicks.length} Picks</div></div><div class="draft-board">${pr.map((p,i)=>`<div class="draft-prospect" onclick="draftPlayer(${i})"><div style="position:absolute;top:8px;right:12px;font-size:1.6rem;font-weight:900;color:rgba(255,255,255,0.05)">${i+1}</div><div style="font-weight:700;margin-bottom:4px">${p.name}</div><div style="color:var(--text-dim);font-size:0.8rem;margin-bottom:8px">${p.college} | ${p.pos} | ${p.age}</div><div style="display:flex;gap:10px;align-items:center"><span class="ovr ${ovrClass(p.ovr)}">${p.ovr}</span><div><div style="font-size:0.6rem;color:var(--text-dim)">POT</div><div style="font-weight:700;color:var(--accent)">${p.potential}</div></div></div></div>`).join('')}</div>`;
 }
 function generateDraftClass(){const fn=['James','Marcus','DeShawn','Tyler','Brandon','Jaylen','Malik','Tre','Zion','Cade','Jabari','Scoot','Amen','Ausar','Dereck','Reed'];const ln=['Williams','Johnson','Smith','Brown','Davis','Anderson','Thomas','Jackson','Harris','Martin'];const col=['Duke','Kentucky','UNC','Kansas','Gonzaga','UCLA','Auburn','Baylor'];const pos=['PG','SG','SF','PF','C'];const p=[];for(let i=0;i<30;i++)p.push({name:fn[Math.floor(Math.random()*fn.length)]+' '+ln[Math.floor(Math.random()*ln.length)],college:col[Math.floor(Math.random()*col.length)],pos:pos[Math.floor(Math.random()*pos.length)],age:19+Math.floor(Math.random()*3),ovr:Math.max(65,Math.min(85,78-i+Math.floor(Math.random()*10))),potential:Math.max(70,Math.min(95,88-i/2+Math.floor(Math.random()*10)))});return p.sort((a,b)=>b.potential-a.potential);}
-function draftPlayer(idx){if(!G.draftPicks.length){alert('No picks!');return;}const p=generateDraftClass()[idx];G.allTeams[G.team].players.push({...p,id:G.team+'_d'+Date.now(),num:Math.floor(Math.random()*55)+1,salary:3e6+Math.floor(Math.random()*5e6),contractYears:4,stamina:90,energy:100,morale:85,potential:p.potential,injured:false,injuryGames:0,stats:{ppg:0,rpg:0,apg:0,spg:0,bpg:0,gp:0}});G.draftPicks.shift();alert(`Drafted ${p.name}!`);saveGame();showPage('draft');}
+function draftPlayer(idx){if(!G.draftPicks.length){alert('No picks!');return;}const p=generateDraftClass()[idx];G.allTeams[G.team].players.push({...p,id:G.team+'_d'+Date.now(),num:Math.floor(Math.random()*55)+1,salary:3e6+Math.floor(Math.random()*5e6),contractYears:4,stamina:90,energy:100,morale:85,potential:p.potential,injured:false,injuryGames:0,stats:{ppg:0,rpg:0,apg:0,spg:0,bpg:0,gp:0}});G.draftPicks.shift();alert(`Drafted ${p.name}!`);if(!G.achievements)G.achievements=[];if(!G.achievements.includes('draft_pick'))G.achievements.push('draft_pick');G.capBreakers=(G.capBreakers||0)+1;saveGame();showPage('draft');}
 
 function renderFreeAgency(el){
   if(G.schedule.some(g=>!g.played)){el.innerHTML=`<div class="page-header"><div><h2>Free Agency</h2><div class="subtitle">Opens after season</div></div></div>`;return;}
@@ -740,7 +810,7 @@ function renderFreeAgency(el){
   el.innerHTML=`<div class="page-header"><div><h2>Free Agency</h2></div></div>${G.freeAgents.map((p,i)=>`<div class="fa-player"><div><span style="font-weight:700">${p.name}</span><span style="margin-left:10px;padding:2px 8px;background:var(--surface2);border-radius:4px;font-size:0.75rem">${p.pos}</span><span style="margin-left:10px"><span class="ovr ${ovrClass(p.ovr)}" style="width:26px;height:26px;font-size:0.7rem;display:inline-flex">${p.ovr}</span></span><span style="margin-left:10px;color:var(--text-dim);font-size:0.8rem">Age ${p.age}</span></div><div style="display:flex;align-items:center;gap:12px"><span style="color:var(--accent);font-weight:700">$${(p.asking/1e6).toFixed(1)}M</span><button class="btn btn-primary btn-sm" onclick="signFreeAgent(${i})">Sign</button></div></div>`).join('')}`;
 }
 function generateFreeAgents(){const n=['Marcus Morris','Derrick Rose','Blake Griffin','Dwight Howard','Carmelo Anthony','Kyle Lowry','Montrezl Harrell','DeAndre Jordan','Isaiah Thomas','J.R. Smith','Rajon Rondo','Andre Iguodala','Jamal Crawford','Joe Johnson','Vince Carter'];const pos=['PG','SG','SF','PF','C'];G.freeAgents=n.map(name=>({name,pos:pos[Math.floor(Math.random()*5)],ovr:68+Math.floor(Math.random()*12),age:28+Math.floor(Math.random()*8),asking:3e6+Math.floor(Math.random()*15e6)}));}
-function signFreeAgent(i){const p=G.freeAgents[i];const sal=getMyTeam().players.reduce((s,x)=>s+x.salary,0);if(sal+p.asking>G.salaryCap*1.1){alert('Over cap!');return;}G.allTeams[G.team].players.push({...p,id:G.team+'_fa'+Date.now(),num:Math.floor(Math.random()*55)+1,salary:p.asking,contractYears:2,stamina:80,energy:90,morale:80,potential:p.ovr+3,injured:false,injuryGames:0,stats:{ppg:0,rpg:0,apg:0,spg:0,bpg:0,gp:0}});G.freeAgents.splice(i,1);alert(`Signed ${p.name}!`);saveGame();showPage('freeagency');}
+function signFreeAgent(i){const p=G.freeAgents[i];const sal=getMyTeam().players.reduce((s,x)=>s+x.salary,0);const newSal=sal+p.asking;if(newSal>G.salaryCap*1.1){alert('Cannot sign! Would exceed 110% of salary cap ($'+((G.salaryCap*1.1)/1e6).toFixed(1)+'M). You must clear cap space first.');return;}if(newSal>G.salaryCap){alert('Warning: Signing '+p.name+' puts you over the cap. Luxury tax will apply!');}G.allTeams[G.team].players.push({...p,id:G.team+'_fa'+Date.now(),num:Math.floor(Math.random()*55)+1,salary:p.asking,contractYears:2,stamina:80,energy:90,morale:80,potential:p.ovr+3,injured:false,injuryGames:0,stats:{ppg:0,rpg:0,apg:0,spg:0,bpg:0,gp:0},ratings:{closeShot:randomRating(p.ovr),midRange:randomRating(p.ovr),three:randomRating(p.ovr),freeThrow:randomRating(p.ovr),layup:randomRating(p.ovr),dunk:randomRating(p.ovr),speed:randomRating(p.ovr),acceleration:randomRating(p.ovr),strength:randomRating(p.ovr),vertical:randomRating(p.ovr),stamina:randomRating(p.ovr),hustle:randomRating(p.ovr),passIQ:randomRating(p.ovr),ballHandle:randomRating(p.ovr),intDef:randomRating(p.ovr),perDef:randomRating(p.ovr),steal:randomRating(p.ovr),block:randomRating(p.ovr),rebounding:randomRating(p.ovr),offRebound:randomRating(p.ovr)},badges:generateBadges(p.ovr,p.pos),face:generateFace()});G.freeAgents.splice(i,1);alert('Signed '+p.name+'!');saveGame();showPage('freeagency');}
 
 // ===== SCOUTING =====
 function renderScouting(el){
@@ -780,15 +850,19 @@ function simNextGame(){
   const myStarters=getStarters();
   const myOvr=myStarters.reduce((s,p)=>s+p.ovr*(p.energy/100),0)/5;
   const oppOvr=G.allTeams[game.opponent].players.slice(0,5).reduce((s,p)=>s+p.ovr,0)/5;
-  const hca=game.home?3:0;const diff=myOvr-oppOvr+hca;
-  const base=100+Math.floor(Math.random()*16)-8;
-  const spread=Math.round(diff*0.4);
-  const variance=Math.floor(Math.random()*10)-5;
-  const myScore=Math.max(85,base+spread+variance);
-  const oppScore=Math.max(85,base-spread-variance+Math.floor(Math.random()*6)-3);
+  const hca=game.home;const diff=myOvr-oppOvr;
+  const coachBoost=(G.staff?G.staff.headCoach:1)*1.2;
+  const winChance=Math.max(0.12,Math.min(0.88,0.5+(diff*0.03)+(hca?0.05:0)+(coachBoost*0.01)));
+  const myWin=Math.random()<winChance;
+  const baseScore=100+Math.floor(Math.random()*16);
+  const margin=2+Math.floor(Math.random()*11);
+  const myScore=myWin?baseScore+Math.floor(margin/2):baseScore-Math.ceil(margin/2);
+  const oppScore=myWin?baseScore-Math.ceil(margin/2):baseScore+Math.floor(margin/2);
   game.played=true;game.myScore=myScore;game.oppScore=oppScore;game.result=myScore>oppScore?'W':'L';
   if(game.result==='W'){G.wins++;G.allTeams[G.team].wins++;}else{G.losses++;G.allTeams[G.team].losses++;}
   G.allTeams[game.opponent][myScore>oppScore?'losses':'wins']++;
+  if(game.result==='W'){G.winStreak=(G.winStreak||0)+1;}else{G.winStreak=0;}
+  checkAchievements();
   simulateOtherGames();updatePlayerStats(myScore);postGameEnergy();G.gameIndex++;G.money+=1000;
   if(G.gameIndex%5===0){if(!G.scoutTokens)G.scoutTokens=0;G.scoutTokens++;}
   if(Math.random()<0.08){const inj=getMyTeam().players[Math.floor(Math.random()*getMyTeam().players.length)];inj.injured=true;inj.injuryGames=2+Math.floor(Math.random()*6);generateNews('injury',{name:inj.name,games:inj.injuryGames});}
@@ -842,6 +916,11 @@ function showPregame(game){
       </div>
     </div>
     ${game.home?'<div class="hca-badge">HOME COURT ADVANTAGE</div>':'<div style="padding:8px 20px;background:rgba(255,255,255,0.05);border-radius:20px;font-size:0.8rem;color:var(--text-dim);margin-top:20px">AWAY GAME</div>'}
+    <div style="display:flex;gap:40px;margin-top:20px;align-items:center">
+      <div style="text-align:center"><div style="width:80px;height:110px;border-radius:8px;background:${awayTd.primary};border:2px solid ${awayTd.secondary};display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:900;color:${awayTd.secondary};margin-bottom:6px">23</div><div style="font-size:0.7rem;color:var(--text-dim)">AWAY</div></div>
+      <div style="font-size:0.8rem;color:var(--text-dim);font-weight:700">VS</div>
+      <div style="text-align:center"><div style="width:80px;height:110px;border-radius:8px;background:${homeTd.primary};border:2px solid ${homeTd.secondary};display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:900;color:${homeTd.secondary};margin-bottom:6px">00</div><div style="font-size:0.7rem;color:var(--text-dim)">HOME</div></div>
+    </div>
     <button class="btn btn-accent" style="margin-top:24px;padding:16px 50px;font-size:1.1rem;letter-spacing:2px;border-radius:10px" onclick="startLiveGame()">TIP OFF</button>`;
 }
 
@@ -861,6 +940,11 @@ function startLiveGame(){
   else{document.getElementById('away-name').textContent=my.name;document.getElementById('home-name').textContent=opp.name;}
   document.getElementById('court-home-label').textContent=game.home?my.name.toUpperCase():opp.name.toUpperCase();
   document.getElementById('court-away-label').textContent=game.home?opp.name.toUpperCase():my.name.toUpperCase();
+  const homeColor=game.home?my.primary:opp.primary;const awayColor=game.home?opp.primary:my.primary;
+  document.querySelector('.key-left').style.background=awayColor+'33';
+  document.querySelector('.key-right').style.background=homeColor+'33';
+  document.querySelector('.court .team-label.home-label').style.fontSize='2.2rem';
+  document.querySelector('.court .team-label.away-label').style.fontSize='2.2rem';
 
   renderCourtPlayers();updateGameDisplay();updateBoxScorePanel();gameLoop();
 }
@@ -964,42 +1048,137 @@ function endLiveGame(){
   const game=G.schedule[G.gameIndex];game.played=true;game.myScore=myScore;game.oppScore=oppScore;game.result=myScore>oppScore?'W':'L';
   if(game.result==='W'){G.wins++;G.allTeams[G.team].wins++;}else{G.losses++;G.allTeams[G.team].losses++;}
   G.allTeams[game.opponent][myScore>oppScore?'losses':'wins']++;
+  if(game.result==='W'){G.winStreak=(G.winStreak||0)+1;}else{G.winStreak=0;}
+  checkAchievements();
   simulateOtherGames();updatePlayerStats(myScore);postGameEnergy();G.gameIndex++;G.money+=1500;
   setTimeout(()=>showPostGameInterview(myScore,oppScore,game.result),500);
 }
 
 function showPostGameInterview(my,opp,result){
-  const questions=result==='W'?[
-    {q:"That was a dominant performance tonight. Walk us through the game plan.",responses:[{label:'Credit the team',desc:'Talk about team effort and preparation',effect:'morale+3,chem+2'},{label:'Own the moment',desc:'Take personal credit for the win',effect:'morale+1,momentum+2'},{label:'Stay focused',desc:'Deflect and talk about next game',effect:'chem+1'}]},
-    {q:"The fans are going crazy! How does it feel to get this win at home?",responses:[{label:'Thank the fans',desc:'Show love to the crowd',effect:'morale+2,money+500'},{label:'Job not done',desc:'Keep expectations measured',effect:'chem+2'},{label:'We expected this',desc:'Show supreme confidence',effect:'momentum+3,morale-1'}]}
+  const allQs=result==='W'?[
+    {q:"That was a dominant performance tonight. Walk us through the game plan.",responses:[{label:'Credit the team',desc:'Talk about team effort',effect:'morale+3,chem+2'},{label:'Own the moment',desc:'Take personal credit',effect:'morale+1,momentum+2'},{label:'Stay focused',desc:'Talk about next game',effect:'chem+1'}]},
+    {q:"The fans are going crazy! How does it feel?",responses:[{label:'Thank the fans',desc:'Show love to the crowd',effect:'morale+2,money+500'},{label:'Job not done',desc:'Keep expectations measured',effect:'chem+2'},{label:'We expected this',desc:'Show confidence',effect:'momentum+3,morale-1'}]},
+    {q:"Who was the key player tonight?",responses:[{label:'Whole squad',desc:'Everyone contributed',effect:'chem+3'},{label:'Name the star',desc:'Highlight best performer',effect:'morale+2'},{label:'Coach deserves credit',desc:'Praise coaching staff',effect:'chem+1,morale+1'}]}
   ]:[
-    {q:"Tough one tonight. Can you break down what went wrong out there?",responses:[{label:'Take responsibility',desc:'Own the mistakes and move forward',effect:'morale+2,chem+2'},{label:'Blame execution',desc:'Point to specific breakdowns',effect:'chem-1,momentum+1'},{label:'We\'ll bounce back',desc:'Stay positive and look ahead',effect:'morale+1'}]},
-    {q:"There are questions about this team\'s direction. How do you respond to critics?",responses:[{label:'Stay composed',desc:'Give a measured, professional answer',effect:'morale+2'},{label:'Fire back',desc:'Show passion and fight',effect:'momentum+3,chem-1'},{label:'No comment',desc:'Shut it down and walk away',effect:'morale-1'}]}
+    {q:"Tough one tonight. Can you break down what went wrong?",responses:[{label:'Take responsibility',desc:'Own the mistakes',effect:'morale+2,chem+2'},{label:'Blame execution',desc:'Point to breakdowns',effect:'chem-1,momentum+1'},{label:'We\'ll bounce back',desc:'Stay positive',effect:'morale+1'}]},
+    {q:"There are questions about this team's direction. How do you respond?",responses:[{label:'Stay composed',desc:'Professional answer',effect:'morale+2'},{label:'Fire back',desc:'Show passion',effect:'momentum+3,chem-1'},{label:'No comment',desc:'Walk away',effect:'morale-1'}]},
+    {q:"What needs to change going forward?",responses:[{label:'More practice',desc:'Commit to training',effect:'chem+2'},{label:'Trust the process',desc:'Stay the course',effect:'morale+1,chem+1'},{label:'Need changes',desc:'Hint at roster moves',effect:'momentum+2,morale-1'}]}
   ];
-  const qSet=questions[Math.floor(Math.random()*questions.length)];
-  const div=document.createElement('div');div.className='interview-overlay';
-  div.innerHTML=`<div class="interview-room">
-    <div style="text-align:center;margin-bottom:20px"><div style="font-size:0.7rem;letter-spacing:2px;color:var(--text-dim);margin-bottom:8px">POST-GAME PRESS CONFERENCE</div><div style="font-size:2rem;font-weight:900;margin-bottom:5px">FINAL: ${my} - ${opp}</div><div style="font-size:1.2rem;font-weight:700;color:${result==='W'?'#4caf50':'#f44336'}">${result==='W'?'VICTORY':'DEFEAT'}</div></div>
-    <div class="reporter-q">"${qSet.q}"</div>
-    <div class="response-options">${qSet.responses.map((r,i)=>`<div class="response-opt" onclick="handleInterviewResponse(${i},'${r.effect}',this.closest('.interview-overlay'))"><div class="opt-label">${r.label}</div><div class="opt-desc">${r.desc}</div></div>`).join('')}</div>
-  </div>`;
-  document.body.appendChild(div);
-}
-
-function handleInterviewResponse(idx,effect,overlay){
-  effect.split(',').forEach(e=>{
-    const[k,v]=e.split(/([+-]\d+)/);const val=parseInt(e.match(/[+-]\d+/)?.[0]||0);
-    if(e.includes('morale'))G.morale=Math.max(0,Math.min(100,G.morale+val));
-    if(e.includes('chem'))G.chemistry=Math.max(0,Math.min(100,G.chemistry+val));
-    if(e.includes('momentum'))G.momentum+=val;
-    if(e.includes('money'))G.money+=val;
-  });
-  overlay.remove();
-  document.getElementById('live-game').classList.add('hidden');document.getElementById('game-screen').classList.remove('hidden');
-  G.boxScoreVisible=false;saveGame();updateSidebar();showPage('dashboard');
+  let qIdx=0;
+  function showQuestion(){
+    if(qIdx>=3){finishInterview();return;}
+    const qSet=allQs[qIdx];
+    const div=document.querySelector('.interview-overlay')||document.createElement('div');
+    div.className='interview-overlay';
+    div.innerHTML=`<div class="interview-room" style="background:linear-gradient(180deg,#1a1a2e 0%,#0a0a1a 100%);position:relative;overflow:hidden">
+      <div style="position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;overflow:hidden">
+        <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:120%;height:40px;background:linear-gradient(90deg,#333,#555,#333);border-radius:4px 4px 0 0"></div>
+        <div style="position:absolute;bottom:40px;left:30%;width:8px;height:30px;background:#666;border-radius:2px"></div>
+        <div style="position:absolute;bottom:40px;left:32%;width:20px;height:6px;background:#888;border-radius:50%"></div>
+        <div style="position:absolute;bottom:40px;right:30%;width:8px;height:30px;background:#666;border-radius:2px"></div>
+        <div style="position:absolute;bottom:40px;right:28%;width:20px;height:6px;background:#888;border-radius:50%"></div>
+        ${Array.from({length:5},(_,i)=>`<div style="position:absolute;top:${10+Math.random()*30}%;left:${10+i*18}%;width:4px;height:4px;background:#fff;border-radius:50%;opacity:${0.2+Math.random()*0.5};animation:pulse ${1+Math.random()*2}s infinite"></div>`).join('')}
+      </div>
+      <div style="position:relative;z-index:1">
+        <div style="text-align:center;margin-bottom:20px"><div style="font-size:0.65rem;letter-spacing:3px;color:var(--text-dim);margin-bottom:8px">POST-GAME PRESS CONFERENCE</div><div style="font-size:2rem;font-weight:900;margin-bottom:5px">FINAL: ${my} - ${opp}</div><div style="font-size:1rem;font-weight:700;color:${result==='W'?'#4caf50':'#f44336'}">${result==='W'?'VICTORY':'DEFEAT'}</div><div style="font-size:0.7rem;color:var(--text-dim);margin-top:8px">Question ${qIdx+1} of 3</div></div>
+        <div class="reporter-q">"${qSet.q}"</div>
+        <div class="response-options">${qSet.responses.map((r,i)=>`<div class="response-opt" onclick="handleSequentialResponse(${i},'${r.effect}')"><div class="opt-label">${r.label}</div><div class="opt-desc">${r.desc}</div></div>`).join('')}</div>
+      </div>
+    </div>`;
+    if(!document.querySelector('.interview-overlay'))document.body.appendChild(div);
+  }
+  window.handleSequentialResponse=function(idx,effect){
+    effect.split(',').forEach(e=>{
+      const val=parseInt(e.match(/[+-]\d+/)?.[0]||0);
+      if(e.includes('morale'))G.morale=Math.max(0,Math.min(100,G.morale+val));
+      if(e.includes('chem'))G.chemistry=Math.max(0,Math.min(100,G.chemistry+val));
+      if(e.includes('momentum'))G.momentum+=val;
+      if(e.includes('money'))G.money+=val;
+    });
+    qIdx++;
+    if(qIdx>=3){
+      const overlay=document.querySelector('.interview-overlay');if(overlay)overlay.remove();
+      document.getElementById('live-game').classList.add('hidden');document.getElementById('game-screen').classList.remove('hidden');
+      G.boxScoreVisible=false;saveGame();updateSidebar();showPage('dashboard');
+    }else showQuestion();
+  };
+  showQuestion();
 }
 
 function exitGame(){if(confirm('Exit? Progress lost.')){document.getElementById('live-game').classList.add('hidden');document.getElementById('game-screen').classList.remove('hidden');}}
+
+// ===== STAFF =====
+function renderStaff(el){
+  if(!G.staff)G.staff={headCoach:1,assistant:1,trainer:1,scout:1};
+  const staffInfo=[
+    {key:'headCoach',name:'Head Coach',desc:'Game strategy boost (+2 to +5 OVR boost in sims)',icon:'📋',costs:[2000,5000,10000]},
+    {key:'assistant',name:'Assistant Coach',desc:'Training effectiveness (+10%/+20%/+30% train chance)',icon:'📊',costs:[2000,5000,10000]},
+    {key:'trainer',name:'Trainer',desc:'Injury recovery speed & energy restoration',icon:'🏥',costs:[2000,5000,10000]},
+    {key:'scout',name:'Scout',desc:'Extra scout tokens per 5 games (+1/+2/+3)',icon:'🔍',costs:[2000,5000,10000]}
+  ];
+  el.innerHTML=`<div class="page-header"><div><h2>Staff Management</h2><div class="subtitle">Upgrade your staff to gain competitive advantages</div></div><div style="background:var(--surface2);padding:10px 18px;border-radius:8px;border:1px solid var(--border)"><div style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1px">FUNDS</div><div style="font-size:1.5rem;font-weight:800;color:var(--accent)">$${G.money.toLocaleString()}</div></div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">${staffInfo.map(s=>{
+      const lvl=G.staff[s.key]||1;const maxed=lvl>=3;const cost=maxed?0:s.costs[lvl-1];
+      const stars='★'.repeat(lvl)+'☆'.repeat(3-lvl);
+      return`<div class="card"><div class="card-header"><h3><span style="margin-right:8px">${s.icon}</span>${s.name}</h3><div class="badge">Level ${lvl}</div></div>
+        <div style="font-size:1.2rem;color:var(--accent);margin-bottom:8px">${stars}</div>
+        <p style="font-size:0.82rem;color:var(--text-dim);margin-bottom:14px">${s.desc}</p>
+        ${maxed?'<div style="padding:8px;background:rgba(76,175,80,0.15);border-radius:6px;text-align:center;font-size:0.8rem;color:#4caf50;font-weight:700">MAX LEVEL</div>':`<button class="btn btn-primary" onclick="upgradeStaff('${s.key}',${cost})">Upgrade to Level ${lvl+1} — $${cost.toLocaleString()}</button>`}
+      </div>`;
+    }).join('')}</div>`;
+}
+function upgradeStaff(key,cost){
+  if(!G.staff)G.staff={headCoach:1,assistant:1,trainer:1,scout:1};
+  if(G.money<cost){alert('Not enough funds!');return;}
+  if(G.staff[key]>=3){alert('Already at max level!');return;}
+  G.money-=cost;G.staff[key]++;
+  alert('Staff upgraded!');saveGame();showPage('staff');
+}
+
+// ===== ACHIEVEMENTS =====
+function checkAchievements(){
+  if(!G.achievements)G.achievements=[];
+  const defs=[
+    {id:'first_win',name:'First Win',desc:'Win your first game',check:()=>G.wins>=1},
+    {id:'streak_5',name:'5-Game Streak',desc:'Win 5 games in a row',check:()=>G.winStreak>=5},
+    {id:'wins_10',name:'10 Wins',desc:'Win 10 games in a season',check:()=>G.wins>=10},
+    {id:'trade_master',name:'Trade Master',desc:'Complete 3 trades',check:()=>(G.tradeCount||0)>=3},
+    {id:'draft_pick',name:'Draft Pick',desc:'Draft a player',check:()=>G.achievements.includes('draft_pick')},
+    {id:'season_mvp',name:'Season MVP',desc:'Have a player averaging 25+ PPG',check:()=>getMyTeam().players.some(p=>p.stats.gp>0&&(p.stats.ppg/p.stats.gp)>=25)}
+  ];
+  defs.forEach(d=>{
+    if(!G.achievements.includes(d.id)&&d.check()){
+      G.achievements.push(d.id);G.capBreakers=(G.capBreakers||0)+1;
+      alert('Achievement Unlocked: '+d.name+'! You earned a Cap Breaker!');
+    }
+  });
+}
+function renderAchievements(el){
+  if(!G.achievements)G.achievements=[];
+  const defs=[
+    {id:'first_win',name:'First Win',desc:'Win your first game',icon:'🏆'},
+    {id:'streak_5',name:'5-Game Streak',desc:'Win 5 games in a row',icon:'🔥'},
+    {id:'wins_10',name:'10 Wins',desc:'Win 10 games in a season',icon:'⭐'},
+    {id:'trade_master',name:'Trade Master',desc:'Complete 3 trades',icon:'🤝'},
+    {id:'draft_pick',name:'Draft Pick',desc:'Draft a player',icon:'📝'},
+    {id:'season_mvp',name:'Season MVP',desc:'Have a player averaging 25+ PPG',icon:'👑'}
+  ];
+  const capBreakersHtml=G.capBreakers>0?`<div class="card" style="margin-bottom:20px;border:1px solid var(--accent)"><div class="card-header"><h3 style="color:var(--accent)">Cap Breakers Available: ${G.capBreakers}</h3></div><p style="font-size:0.82rem;color:var(--text-dim);margin-bottom:12px">Use a Cap Breaker to extend any player's potential by +2.</p><select id="capbreaker-player" style="width:100%;padding:10px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;margin-bottom:10px">${getMyTeam().players.map(p=>`<option value="${p.id}">${p.name} (POT: ${p.potential})</option>`).join('')}</select><button class="btn btn-accent" onclick="useCapBreaker()">Use Cap Breaker</button></div>`:'';
+  el.innerHTML=`<div class="page-header"><div><h2>Achievements</h2><div class="subtitle">${G.achievements.length}/${defs.length} Unlocked | Cap Breakers: ${G.capBreakers||0}</div></div></div>
+    ${capBreakersHtml}
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px">${defs.map(d=>{
+      const unlocked=G.achievements.includes(d.id);
+      return`<div class="card" style="opacity:${unlocked?1:0.5};border-color:${unlocked?'#4caf5044':'var(--border)'}"><div style="font-size:2rem;margin-bottom:8px">${d.icon}</div><h3 style="font-size:0.95rem;margin-bottom:4px">${d.name}</h3><p style="font-size:0.78rem;color:var(--text-dim)">${d.desc}</p><div style="margin-top:8px;font-size:0.7rem;font-weight:700;color:${unlocked?'#4caf50':'var(--text-dim)'}">${unlocked?'UNLOCKED':'LOCKED'}</div></div>`;
+    }).join('')}</div>`;
+}
+function useCapBreaker(){
+  if(!G.capBreakers||G.capBreakers<=0){alert('No Cap Breakers available!');return;}
+  const sel=document.getElementById('capbreaker-player');if(!sel)return;
+  const p=getMyTeam().players.find(x=>x.id===sel.value);if(!p)return;
+  p.potential+=2;G.capBreakers--;
+  alert(p.name+"'s potential increased to "+p.potential+"!");
+  saveGame();showPage('achievements');
+}
 
 // ===== END SEASON =====
 function endSeason(){
