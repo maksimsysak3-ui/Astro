@@ -653,7 +653,7 @@ function renderDashboard(el){
         <div class="card" style="margin-bottom:16px"><div class="card-header"><h3>Upcoming Schedule</h3><div class="badge">${upcoming.length} games</div></div>
           ${upcoming.map((g,i)=>{const o=getTeamData(g.opponent);return`<div style="display:flex;align-items:center;gap:12px;padding:10px 0;${i<upcoming.length-1?'border-bottom:1px solid var(--border)':''}"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${o.primary}"></span><span style="font-weight:600;flex:1">${g.home?'vs':'@'} ${o.city} ${o.name}</span><span style="font-size:0.75rem;color:var(--text-dim)">${G.allTeams[g.opponent].wins}-${G.allTeams[g.opponent].losses}</span><span style="font-size:0.65rem;padding:2px 8px;border-radius:4px;background:${g.home?'rgba(76,175,80,0.15)':'rgba(255,152,0,0.15)'};color:${g.home?'#4caf50':'#ff9800'};font-weight:700">${g.home?'HOME':'AWAY'}</span></div>`;}).join('')}
         </div>
-        ${recentLog.length?`<div class="card"><div class="card-header"><h3>Game Log</h3><div class="badge">Last ${recentLog.length}</div></div><table class="data-table" style="border:none"><thead><tr><th>G#</th><th>OPP</th><th>Result</th><th>Score</th><th>Top Scorer</th></tr></thead><tbody>${recentLog.map(g=>`<tr><td style="color:var(--text-dim)">${g.game}</td><td><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${getTeamData(g.opp)?.primary||'#333'};margin-right:6px"></span>${g.opp}</td><td style="color:${g.result==='W'?'#4caf50':'#f44336'};font-weight:700">${g.result}</td><td>${g.myScore}-${g.oppScore}</td><td style="font-size:0.78rem">${g.topScorer||'--'}</td></tr>`).join('')}</tbody></table></div>`:''}
+        ${recentLog.length?`<div class="card"><div class="card-header"><h3>Game Log</h3><div class="badge">Last ${recentLog.length}</div></div><table class="data-table" style="border:none"><thead><tr><th>G#</th><th>OPP</th><th>Result</th><th>Score</th><th>Top Scorer</th></tr></thead><tbody>${recentLog.map((g,i)=>`<tr style="cursor:pointer" onclick="showGameBoxScore(${i})"><td style="color:var(--text-dim)">${g.game}</td><td><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${getTeamData(g.opp)?.primary||'#333'};margin-right:6px"></span>${g.opp}</td><td style="color:${g.result==='W'?'#4caf50':'#f44336'};font-weight:700">${g.result}</td><td>${g.myScore}-${g.oppScore}</td><td style="font-size:0.78rem">${g.topScorer||'--'}</td></tr>`).join('')}</tbody></table></div>`:''}
       </div>
       <div>
         <div class="card" style="margin-bottom:12px"><div class="card-header"><h3>Team Leaders</h3></div>
@@ -667,6 +667,16 @@ function renderDashboard(el){
       </div>
     </div>
     ${myNews.length?`<div class="card"><div class="card-header"><h3>Recent News</h3></div>${myNews.map(n=>`<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:0.82rem"><span style="font-weight:700">${n.headline}</span><div style="color:var(--text-dim);font-size:0.75rem;margin-top:2px">${n.body}</div></div>`).join('')}</div>`:''}`;
+}
+function showGameBoxScore(gameIdx){
+  const g=G.gameLog[gameIdx];if(!g||!g.boxScore)return;
+  const div=document.createElement('div');div.className='modal-overlay';
+  div.innerHTML=`<div class="modal" style="max-width:550px"><h3>Game ${g.game} vs ${getTeamData(g.opp)?.name||g.opp} - ${g.result} ${g.myScore}-${g.oppScore}</h3>
+    <table class="data-table" style="margin-top:12px"><thead><tr><th>Player</th><th>PTS</th><th>REB</th><th>AST</th>${g.boxScore[0]?.fga!==undefined?'<th>FG%</th>':''}</tr></thead><tbody>
+    ${g.boxScore.map(p=>`<tr><td style="font-weight:600">${p.name}</td><td>${p.pts}</td><td>${p.reb}</td><td>${p.ast}</td>${p.fga!==undefined?`<td>${p.fga>0?Math.round(p.fgm/p.fga*100):0}%</td>`:''}</tr>`).join('')}
+    </tbody></table>
+    <button class="btn btn-secondary" style="margin-top:14px;width:100%" onclick="this.closest('.modal-overlay').remove()">Close</button></div>`;
+  document.body.appendChild(div);
 }
 function getStreak(){let s=0,t='';for(let i=G.gameIndex-1;i>=0;i--){const g=G.schedule[i];if(!g.played)continue;if(!t)t=g.result;if(g.result===t)s++;else break;}return s>0?`${t}${s}`:'--';}
 
@@ -837,7 +847,7 @@ function renderContracts(el){
   el.innerHTML=`<div class="page-header"><div><h2>Contracts</h2><div class="subtitle">Manage salary cap</div></div></div>
     <div class="cap-bar"><div style="display:flex;justify-content:space-between"><span style="font-weight:700">Cap Usage</span><span>$${(sal/1e6).toFixed(1)}M / $${(G.salaryCap/1e6).toFixed(0)}M</span></div><div class="cap-visual"><div class="cap-fill" style="width:${pct}%;background:linear-gradient(90deg,${pct>100?'#f44336,#ff5722':'var(--primary),var(--accent)'})"></div></div></div>
     <table class="data-table"><thead><tr><th>Player</th><th>OVR</th><th>Salary</th><th>Years</th><th>Action</th></tr></thead><tbody>
-    ${p.sort((a,b)=>b.salary-a.salary).map(x=>`<tr><td style="font-weight:600">${x.name}</td><td><span class="ovr ${ovrClass(x.ovr)}" style="width:26px;height:26px;font-size:0.7rem">${x.ovr}</span></td><td style="color:var(--accent);font-weight:600">$${(x.salary/1e6).toFixed(1)}M</td><td>${x.contractYears}yr</td><td>${x.contractYears<=1?`<button class="btn btn-primary btn-sm" onclick="negotiateExtension('${x.id}')">Negotiate</button>`:''}</td></tr>`).join('')}</tbody></table>`;
+    ${p.sort((a,b)=>b.salary-a.salary).map(x=>`<tr><td style="font-weight:600">${x.name}</td><td><span class="ovr ${ovrClass(x.ovr)}" style="width:26px;height:26px;font-size:0.7rem">${x.ovr}</span></td><td style="color:var(--accent);font-weight:600">$${(x.salary/1e6).toFixed(1)}M</td><td>${Math.max(0,x.contractYears)}yr${x.contractYears<=0?' <span style="color:#f44336;font-size:0.7rem">EXPIRING</span>':''}</td><td>${x.contractYears<=1?`<button class="btn btn-primary btn-sm" onclick="negotiateExtension('${x.id}')">Negotiate</button>`:''}</td></tr>`).join('')}</tbody></table>`;
 }
 function negotiateExtension(id){
   const p=getMyTeam().players.find(x=>x.id===id);if(!p)return;
@@ -882,10 +892,23 @@ function updateJersey(){saveGame();showPage('jersey');}
 function renderDraft(el){
   if(G.schedule.some(g=>!g.played)){el.innerHTML=`<div class="page-header"><div><h2>NBA Draft</h2><div class="subtitle">Available after season</div></div></div><div class="card"><div class="card-header"><h3>Your Picks (${G.draftPicks.length})</h3></div>${G.draftPicks.map(p=>`<div style="padding:10px;background:var(--surface2);border-radius:8px;margin:6px 0;display:flex;justify-content:space-between"><span>Year ${p.year} - Round ${p.round}</span><span style="color:var(--text-dim)">via ${getTeamData(p.team).name}</span></div>`).join('')}</div>`;return;}
   if(!G.draftClass||!G.draftClass.length)G.draftClass=generateDraftClass();
-  const pr=G.draftClass;
-  const picksByRound={};G.draftPicks.forEach(pk=>{picksByRound[pk.round]=(picksByRound[pk.round]||0)+1;});
-  el.innerHTML=`<div class="page-header"><div><h2>NBA Draft</h2><div class="subtitle">Round 1: Picks 1-15 | Round 2: Picks 16-30</div></div><div class="badge">${G.draftPicks.length} Picks Available</div></div>
-    <div class="draft-board">${pr.map((p,i)=>{const round=i<15?1:2;const pickNum=i+1;return`<div class="draft-prospect" onclick="draftPlayer(${i})"><div style="position:absolute;top:8px;right:12px;font-size:1.6rem;font-weight:900;color:rgba(255,255,255,0.05)">${pickNum}</div><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><div style="width:44px;height:44px;border-radius:50%;overflow:hidden;background:var(--surface2)">${p.face||''}</div><div><div style="font-weight:700">${p.name}</div><div style="color:var(--text-dim);font-size:0.72rem">Round ${round} Pick ${round===1?pickNum:pickNum-15}</div></div></div><div style="color:var(--text-dim);font-size:0.8rem;margin-bottom:8px">${p.college} | ${p.pos} | Age ${p.age}</div><div style="display:flex;gap:10px;align-items:center"><span class="ovr ${ovrClass(p.ovr)}">${p.ovr}</span><div><div style="font-size:0.6rem;color:var(--text-dim)">POT</div><div style="font-weight:700;color:var(--accent)">${p.potential}</div></div></div></div>`;}).join('')}</div>`;
+  if(!G.draftLog)G.draftLog=[];
+  if(!G.draftCurrentPick)G.draftCurrentPick=0;
+  // Build draft order: all 30 teams sorted by record (worst first)
+  if(!G.draftOrder){
+    G.draftOrder=TEAMS.map(t=>({id:t.id,record:G.allTeams[t.id].wins-G.allTeams[t.id].losses})).sort((a,b)=>a.record-b.record).map(t=>t.id);
+  }
+  const totalPicks=Math.min(30,G.draftClass.length);
+  const picksDone=G.draftCurrentPick>=totalPicks;
+  const currentTeam=!picksDone?G.draftOrder[G.draftCurrentPick]:null;
+  const isMyPick=currentTeam===G.team&&G.draftPicks.some(pk=>pk.round===1);
+
+  el.innerHTML=`<div class="page-header"><div><h2>NBA Draft</h2><div class="subtitle">Pick ${G.draftCurrentPick+1} of ${totalPicks}</div></div>${picksDone?'<div class="badge" style="background:#4caf5033;color:#4caf50;border-color:#4caf5044">DRAFT COMPLETE</div>':isMyPick?'<div class="badge" style="background:var(--accent);color:#000">YOUR PICK!</div>':`<div class="badge">On the clock: ${getTeamData(currentTeam)?.name||'--'}</div>`}</div>
+    ${!picksDone&&!isMyPick?`<div style="text-align:center;margin-bottom:20px"><button class="btn btn-primary" onclick="simDraftToMyPick()">SIM TO YOUR PICK</button> <button class="btn btn-secondary" onclick="simEntireDraft()">SIM ENTIRE DRAFT</button></div>`:''}
+    ${!picksDone&&isMyPick?`<div class="card" style="margin-bottom:16px;border-color:var(--accent)"><div class="card-header"><h3 style="color:var(--accent)">You're On The Clock!</h3><div class="badge">Pick #${G.draftCurrentPick+1}</div></div><p style="color:var(--text-dim);font-size:0.85rem">Select a prospect below to draft them.</p></div>`:''}
+    ${picksDone?`<div style="text-align:center;margin-bottom:16px"><button class="btn btn-accent" onclick="showPage('freeagency')">CONTINUE TO FREE AGENCY</button></div>`:''}
+    ${G.draftLog.length?`<div class="card" style="margin-bottom:16px"><div class="card-header"><h3>Draft Results</h3></div><div style="max-height:200px;overflow-y:auto">${G.draftLog.map(l=>`<div style="display:flex;justify-content:space-between;padding:6px 10px;border-bottom:1px solid var(--border);font-size:0.8rem;${l.teamId===G.team?'background:color-mix(in srgb, var(--primary) 10%, transparent);font-weight:700':''}"><span style="color:var(--text-dim);width:30px">#${l.pick}</span><span style="flex:1;font-weight:600">${l.playerName}</span><span style="color:var(--text-dim)">${l.teamName}</span><span class="ovr ${ovrClass(l.ovr)}" style="width:24px;height:24px;font-size:0.65rem;margin-left:8px">${l.ovr}</span></div>`).join('')}</div></div>`:''}
+    ${!picksDone&&isMyPick?`<div class="draft-board">${G.draftClass.map((p,i)=>`<div class="draft-prospect" onclick="draftPlayer(${i})"><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><div style="width:44px;height:44px;border-radius:50%;overflow:hidden;background:var(--surface2)">${p.face||''}</div><div><div style="font-weight:700">${p.name}</div><div style="color:var(--text-dim);font-size:0.72rem">${p.college} | ${p.pos} | Age ${p.age}</div></div></div><div style="display:flex;gap:10px;align-items:center"><span class="ovr ${ovrClass(p.ovr)}">${p.ovr}</span><div><div style="font-size:0.6rem;color:var(--text-dim)">POT</div><div style="font-weight:700;color:var(--accent)">${p.potential}</div></div></div></div>`).join('')}</div>`:''}`;
 }
 function generateDraftClass(){
   const fn=['James','Marcus','DeShawn','Tyler','Brandon','Jaylen','Malik','Tre','Zion','Cade','Jabari','Scoot','Amen','Ausar','Dereck','Reed','Jaden','Keon','Anthony','Isaiah','Trayvon','Marquis','Cole','Devon','Elijah'];
@@ -909,16 +932,64 @@ function generateDraftClass(){
   }
   return p.sort((a,b)=>b.potential-a.potential);
 }
+function simDraftToMyPick(){
+  if(!G.draftClass||!G.draftOrder)return;
+  const totalPicks=Math.min(30,G.draftClass.length);
+  while(G.draftCurrentPick<totalPicks){
+    const teamId=G.draftOrder[G.draftCurrentPick];
+    if(teamId===G.team&&G.draftPicks.some(pk=>pk.round===1))break;
+    aiDraftPick(teamId);
+    if(G.draftCurrentPick>=totalPicks)break;
+  }
+  saveGame();showPage('draft');
+}
+
+function simEntireDraft(){
+  if(!G.draftClass||!G.draftOrder)return;
+  const totalPicks=Math.min(30,G.draftClass.length);
+  while(G.draftCurrentPick<totalPicks&&G.draftClass.length>0){
+    const teamId=G.draftOrder[G.draftCurrentPick];
+    aiDraftPick(teamId);
+  }
+  saveGame();showPage('draft');
+}
+
+function aiDraftPick(teamId){
+  if(!G.draftClass.length)return;
+  if(!G.draftLog)G.draftLog=[];
+  const team=G.allTeams[teamId];
+  // AI picks best available (with some randomness)
+  const idx=Math.random()<0.7?0:Math.min(Math.floor(Math.random()*3),G.draftClass.length-1);
+  const p=G.draftClass[idx];
+  const td=getTeamData(teamId);
+  team.players.push({...p,id:teamId+'_d'+Date.now()+Math.random(),num:Math.floor(Math.random()*55)+1,salary:3e6+Math.floor(Math.random()*5e6),contractYears:4,stamina:90,energy:100,morale:85,potential:p.potential,injured:false,injuryGames:0,stats:{ppg:0,rpg:0,apg:0,spg:0,bpg:0,gp:0}});
+  G.draftLog.push({pick:G.draftCurrentPick+1,playerName:p.name,teamName:td.name,teamId:teamId,ovr:p.ovr});
+  G.draftClass.splice(idx,1);
+  G.draftCurrentPick++;
+}
+
 function draftPlayer(idx){
-  if(!G.draftPicks.length){alert('No picks!');return;}
-  if(!G.draftClass||!G.draftClass.length)G.draftClass=generateDraftClass();
+  if(!G.draftPicks.length){showToast('No picks!','error');return;}
+  if(!G.draftClass||!G.draftClass.length)return;
+  if(!G.draftLog)G.draftLog=[];
   const p=G.draftClass[idx];if(!p)return;
+  const td=getTeamData(G.team);
   G.allTeams[G.team].players.push({...p,id:G.team+'_d'+Date.now(),num:Math.floor(Math.random()*55)+1,salary:3e6+Math.floor(Math.random()*5e6),contractYears:4,stamina:90,energy:100,morale:85,potential:p.potential,injured:false,injuryGames:0,stats:{ppg:0,rpg:0,apg:0,spg:0,bpg:0,gp:0}});
+  G.draftLog.push({pick:G.draftCurrentPick+1,playerName:p.name,teamName:td.name,teamId:G.team,ovr:p.ovr});
   G.draftPicks.shift();
   G.draftClass.splice(idx,1);
+  G.draftCurrentPick++;
   showToast('Drafted '+p.name+'!','success');
   if(!G.achievements)G.achievements=[];if(!G.achievements.includes('draft_pick'))G.achievements.push('draft_pick');
-  G.capBreakers=(G.capBreakers||0)+1;saveGame();showPage('draft');
+  G.capBreakers=(G.capBreakers||0)+1;
+  // Continue draft with AI picks after user pick
+  const totalPicks=Math.min(30,(G.draftClass.length||0)+G.draftCurrentPick);
+  while(G.draftCurrentPick<totalPicks&&G.draftClass.length>0){
+    const teamId=G.draftOrder[G.draftCurrentPick];
+    if(teamId===G.team&&G.draftPicks.some(pk=>pk.round===1))break;
+    aiDraftPick(teamId);
+  }
+  saveGame();showPage('draft');
 }
 
 function renderFreeAgency(el){
@@ -999,9 +1070,16 @@ function simNextGame(){
   if(game.result==='W'){G.wins++;G.allTeams[G.team].wins++;G.trainingPoints=(G.trainingPoints||0)+1;G.chemistry=Math.min(95,G.chemistry+1);}else{G.losses++;G.allTeams[G.team].losses++;G.chemistry=Math.max(30,G.chemistry-0.5);}
   G.allTeams[game.opponent][myScore>oppScore?'losses':'wins']++;
   if(game.result==='W'){G.winStreak=(G.winStreak||0)+1;}else{G.winStreak=0;}
-  const topP=getStarters().sort((a,b)=>b.ovr-a.ovr)[0];
+  const starters2=getStarters();
+  const weights2=starters2.map(p=>p.ovr+Math.random()*30);
+  const totalW=weights2.reduce((s,w)=>s+w,0);
+  let rr=Math.random()*totalW,topIdx=0;
+  for(let i=0;i<weights2.length;i++){rr-=weights2[i];if(rr<=0){topIdx=i;break;}}
+  const topP=starters2[topIdx];
   if(!G.gameLog)G.gameLog=[];
-  G.gameLog.unshift({game:G.gameIndex+1,opp:game.opponent,result:game.result,myScore,oppScore,topScorer:topP?topP.name.split(' ')[1]+' '+(Math.floor(myScore*0.25+Math.random()*5)):'--'});
+  const topPts=Math.floor(myScore*0.18+Math.random()*12+5);
+  const simBoxScore=starters2.map(p=>({name:p.name,pts:Math.round(myScore*((p.ovr+Math.random()*20)/(starters2.reduce((s,x)=>s+x.ovr,0)+starters2.length*10))),reb:Math.floor((p.pos==='C'||p.pos==='PF'?5:1)+Math.random()*6),ast:Math.floor((p.pos==='PG'||p.pos==='SG'?3:0)+Math.random()*5),pos:p.pos}));
+  G.gameLog.unshift({game:G.gameIndex+1,opp:game.opponent,result:game.result,myScore,oppScore,topScorer:topP?topP.name.split(' ')[1]+' '+topPts:'--',boxScore:simBoxScore});
   if(G.gameLog.length>30)G.gameLog.length=30;
   checkAchievements();
   simulateOtherGames();updatePlayerStats(myScore);postGameEnergy();G.gameIndex++;G.money+=1000;
@@ -1010,7 +1088,29 @@ function simNextGame(){
   saveGame();updateSidebar();showPage(G.currentPage);
 }
 function simWeek(){for(let i=0;i<7&&G.gameIndex<82;i++)simNextGame();}
-function simulateOtherGames(){TEAMS.forEach(t=>{if(t.id===G.team)return;if(Math.random()<0.5)G.allTeams[t.id].wins++;else G.allTeams[t.id].losses++;});}
+function simulateOtherGames(){
+  TEAMS.forEach(t=>{
+    if(t.id===G.team)return;
+    const won=Math.random()<0.5;
+    if(won)G.allTeams[t.id].wins++;else G.allTeams[t.id].losses++;
+    const score=95+Math.floor(Math.random()*20);
+    const players=G.allTeams[t.id].players.slice(0,9);
+    const shares=players.map((_,i)=>i<5?(12+Math.random()*10):(3+Math.random()*6));
+    const ts=shares.reduce((s,v)=>s+v,0);
+    players.forEach((p,i)=>{
+      p.stats.gp++;
+      const pts=Math.round(score*shares[i]/ts);
+      p.stats.ppg+=pts;
+      const fga=Math.round(pts/1.05+Math.random()*3);
+      const fgm=Math.round(fga*(0.4+Math.random()*0.15));
+      p.stats.fga=(p.stats.fga||0)+fga;
+      p.stats.fgm=(p.stats.fgm||0)+fgm;
+      const isCenter=p.pos==='C'||p.pos==='PF';const isGuard=p.pos==='PG'||p.pos==='SG';
+      p.stats.rpg+=isCenter?Math.floor(4+Math.random()*7):Math.floor(1+Math.random()*4);
+      p.stats.apg+=isGuard?Math.floor(2+Math.random()*6):Math.floor(0+Math.random()*3);
+    });
+  });
+}
 function updatePlayerStats(myScore){
   const starters=getStarters();
   const bench=getMyTeam().players.filter(x=>!x.injured&&!starters.includes(x));
@@ -1027,6 +1127,24 @@ function updatePlayerStats(myScore){
     const isCenter=x.pos==='C'||x.pos==='PF';const isGuard=x.pos==='PG'||x.pos==='SG';
     x.stats.rpg+=isCenter?Math.floor(5+Math.random()*8):Math.floor(1+Math.random()*5);
     x.stats.apg+=isGuard?Math.floor(3+Math.random()*7):Math.floor(0+Math.random()*4);
+  });
+  getMyTeam().players.filter(x=>!x.injured&&!allActive.includes(x)).forEach(x=>{x.stats.gp++;});
+}
+function updatePlayerStatsFromBoxScore(){
+  const myKey=gameState.isHome?'home':'away';
+  const myData=G.liveBoxScore[myKey];
+  const starters=getStarters();
+  const bench=getMyTeam().players.filter(x=>!x.injured&&!starters.includes(x));
+  const allActive=[...starters,...bench.slice(0,Math.min(4,bench.length))];
+  allActive.forEach(p=>{
+    p.stats.gp++;
+    if(myData[p.id]){
+      p.stats.ppg+=myData[p.id].pts;
+      p.stats.rpg+=myData[p.id].reb;
+      p.stats.apg+=myData[p.id].ast;
+      p.stats.fga=(p.stats.fga||0)+myData[p.id].fga;
+      p.stats.fgm=(p.stats.fgm||0)+myData[p.id].fgm;
+    }
   });
   getMyTeam().players.filter(x=>!x.injured&&!allActive.includes(x)).forEach(x=>{x.stats.gp++;});
 }
@@ -1217,10 +1335,10 @@ function endLiveGame(){
   if(game.result==='W'){G.winStreak=(G.winStreak||0)+1;}else{G.winStreak=0;}
   const topBS=Object.values(G.liveBoxScore[gameState.isHome?'home':'away']).sort((a,b)=>b.pts-a.pts)[0];
   if(!G.gameLog)G.gameLog=[];
-  G.gameLog.unshift({game:G.gameIndex+1,opp:game.opponent,result:game.result,myScore,oppScore,topScorer:topBS?topBS.name.split(' ')[1]+' '+topBS.pts:'--'});
+  G.gameLog.unshift({game:G.gameIndex+1,opp:game.opponent,result:game.result,myScore,oppScore,topScorer:topBS?topBS.name.split(' ')[1]+' '+topBS.pts:'--',boxScore:Object.values(G.liveBoxScore[gameState.isHome?'home':'away']).map(p=>({name:p.name,pts:p.pts,reb:p.reb,ast:p.ast,fgm:p.fgm,fga:p.fga,pos:p.pos}))});
   if(G.gameLog.length>30)G.gameLog.length=30;
   checkAchievements();
-  simulateOtherGames();updatePlayerStats(myScore);postGameEnergy();G.gameIndex++;G.money+=1500;
+  simulateOtherGames();updatePlayerStatsFromBoxScore();postGameEnergy();G.gameIndex++;G.money+=1500;
   setTimeout(()=>showPostGameInterview(myScore,oppScore,game.result),500);
 }
 
@@ -1358,7 +1476,7 @@ function useCapBreaker(){
 function startPlayoffs(){
   const east=TEAMS.filter(t=>t.conf==='East').map(t=>({...t,...G.allTeams[t.id]})).sort((a,b)=>(b.wins-b.losses)-(a.wins-a.losses)).slice(0,8);
   const west=TEAMS.filter(t=>t.conf==='West').map(t=>({...t,...G.allTeams[t.id]})).sort((a,b)=>(b.wins-b.losses)-(a.wins-a.losses)).slice(0,8);
-  const seedOrder=conf=>[[0,7],[3,4],[2,5],[1,6]].map(([a,b])=>({a:conf[a],b:conf[b]}));
+  const seedOrder=conf=>[[0,7],[3,4],[2,5],[1,6]].map(([a,b])=>({a:{...conf[a],seed:a+1},b:{...conf[b],seed:b+1}}));
   G.playoffs={
     round:0, // 0=first round,1=conf semis,2=conf finals,3=finals
     east:seedOrder(east),west:seedOrder(west),
@@ -1408,7 +1526,7 @@ function advancePlayoffRound(){
 function renderPlayoffs(el){
   const pl=G.playoffs;
   if(!pl){el.innerHTML=`<div class="page-header"><div><h2>Playoffs</h2></div></div><div class="card">No playoffs in progress.</div>`;return;}
-  const seriesRow=s=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--surface2);border-radius:8px;margin-bottom:8px"><span style="font-weight:${s.a.id===G.team||s.b.id===G.team?'800':'500'}">${s.a.name}</span><span style="color:var(--text-dim);font-size:0.75rem">VS</span><span style="font-weight:${s.a.id===G.team||s.b.id===G.team?'800':'500'}">${s.b.name}</span></div>`;
+  const seriesRow=s=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--surface2);border-radius:8px;margin-bottom:8px"><span style="font-weight:${s.a.id===G.team||s.b.id===G.team?'800':'500'}"><span style="color:var(--accent);font-size:0.7rem;margin-right:4px">#${s.a.seed||'?'}</span>${s.a.name}</span><span style="color:var(--text-dim);font-size:0.75rem">VS</span><span style="font-weight:${s.a.id===G.team||s.b.id===G.team?'800':'500'}">${s.b.name}<span style="color:var(--accent);font-size:0.7rem;margin-left:4px">#${s.b.seed||'?'}</span></span></div>`;
   let body='';
   if(pl.round<2){
     body=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
@@ -1508,7 +1626,33 @@ function endSeason(){
   G.seasonHistory.push({season:G.season,wins:G.wins,losses:G.losses});alert(`Season ${G.season}: ${G.wins}-${G.losses}\n\nFree Agency & Draft open!`);
   generateFreeAgents();
   G.draftClass=generateDraftClass();
-  Object.values(G.allTeams).forEach(team=>{team.players.forEach(p=>{p.age++;if(p.age>33)p.ovr=Math.max(60,p.ovr-Math.floor(Math.random()*3));else if(p.age<26)p.ovr=Math.min(p.potential,p.ovr+Math.floor(Math.random()*2));p.contractYears--;p.stats={ppg:0,rpg:0,apg:0,spg:0,bpg:0,gp:0};p.energy=100;p.injured=false;});team.players=team.players.filter(p=>p.contractYears>0||team.id===G.team);team.wins=0;team.losses=0;});
+  G.draftLog=[];
+  G.draftCurrentPick=0;
+  G.draftOrder=null;
+  Object.values(G.allTeams).forEach(team=>{team.players.forEach(p=>{p.age++;if(p.age>33)p.ovr=Math.max(60,p.ovr-Math.floor(Math.random()*3));else if(p.age>28)p.ovr=Math.max(65,p.ovr-Math.floor(Math.random()*2));else if(p.age<=23)p.ovr=Math.min(p.potential,p.ovr+Math.floor(1+Math.random()*3));else if(p.age<=28)p.ovr=Math.min(p.potential,p.ovr+Math.floor(Math.random()*2));p.contractYears--;p.stats={ppg:0,rpg:0,apg:0,spg:0,bpg:0,gp:0};p.energy=100;p.injured=false;});team.wins=0;team.losses=0;});
+  // AI roster management
+  Object.values(G.allTeams).forEach(team=>{
+    if(team.id===G.team){
+      team.players=team.players.filter(p=>p.contractYears>0);
+      return;
+    }
+    // AI re-signs expiring players
+    team.players.forEach(p=>{
+      if(p.contractYears<=0){
+        if(p.ovr>=72||Math.random()<0.6){
+          p.contractYears=1+Math.floor(Math.random()*4);
+          p.salary=Math.floor((p.ovr/100)*30000000*(0.6+Math.random()*0.5));
+        }
+      }
+    });
+    team.players=team.players.filter(p=>p.contractYears>0);
+    // AI signs free agents if roster thin
+    while(team.players.length<10&&G.freeAgents.length>0){
+      const best=G.freeAgents.sort((a,b)=>b.ovr-a.ovr)[0];
+      team.players.push({...best,id:team.id+'_ai'+Date.now()+Math.random(),num:Math.floor(Math.random()*55)+1,salary:best.asking||5e6,contractYears:2+Math.floor(Math.random()*3),stamina:85,energy:100,morale:75,potential:best.ovr+3,injured:false,injuryGames:0,stats:{ppg:0,rpg:0,apg:0,spg:0,bpg:0,gp:0}});
+      G.freeAgents.splice(G.freeAgents.indexOf(best),1);
+    }
+  });
   G.season++;G.wins=0;G.losses=0;G.gameIndex=0;
   G.draftPicks.push({round:1,team:G.team,year:G.season},{round:2,team:G.team,year:G.season});
   generateSchedule();generateNews('offseason');saveGame();updateSidebar();showPage('dashboard');
