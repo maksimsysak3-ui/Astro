@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>AETHER — The Last Lantern</title>
+<style>
+/* ============================================================================
+   AETHER — THE LAST LANTERN
+   A self-contained generative voyage. No frameworks, no assets, no network.
+   Everything — the map, the stories, the music, the dark — is made at runtime.
+   ============================================================================ */
+:root{
+  --ink:#ede7da; --dim:#7d7666; --faint:#4a463d;
+  --ember:#ff8a3c; --gold:#e7b24a; --cold:#6fb6d6; --blood:#d6485a;
+  --bg:#04050a; --panel:rgba(10,11,18,.82);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:var(--bg);color:var(--ink);overflow:hidden;
+  font-family:"Iowan Old Style","Palatino Linotype","Georgia",serif;cursor:none;}
+canvas{position:fixed;inset:0;display:block;z-index:0;}
+
+/* ---- cinematic frame ---- */
+.bar{position:fixed;left:0;right:0;height:6.2vh;background:#000;z-index:60;pointer-events:none;
+  transition:height 1s cubic-bezier(.2,.7,.2,1);}
+.bar.top{top:0;border-bottom:1px solid rgba(231,178,74,.10);}
+.bar.bottom{bottom:0;border-top:1px solid rgba(231,178,74,.10);}
+.vignette{position:fixed;inset:0;z-index:40;pointer-events:none;
+  background:radial-gradient(125% 95% at 50% 45%,transparent 38%,rgba(0,0,0,.62) 100%);}
+.grain{position:fixed;inset:-60%;z-index:41;pointer-events:none;opacity:.045;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  animation:grain .5s steps(3) infinite;}
+@keyframes grain{0%{transform:translate(0,0)}33%{transform:translate(-2%,1%)}66%{transform:translate(2%,-1%)}100%{transform:translate(-1%,2%)}}
+.flash{position:fixed;inset:0;z-index:55;pointer-events:none;opacity:0;background:#fff;
+  transition:opacity .08s ease;}
+.flash.dark{background:#000;}
+
+/* ---- custom cursor ---- */
+#cursor{position:fixed;z-index:90;width:24px;height:24px;margin:-12px 0 0 -12px;pointer-events:none;
+  border:1px solid rgba(231,178,74,.55);border-radius:50%;
+  transition:width .2s,height .2s,margin .2s,border-color .2s,background .2s,opacity .3s;}
+#cursor::after{content:"";position:absolute;inset:9px;border-radius:50%;background:var(--gold);opacity:.7;}
+#cursor.hot{width:40px;height:40px;margin:-20px 0 0 -20px;border-color:var(--ember);}
+#cursor.hot::after{background:var(--ember);}
+
+/* ---- HUD ---- */
+#hud{position:fixed;z-index:30;top:calc(6.2vh + 16px);left:20px;right:20px;display:flex;
+  justify-content:space-between;align-items:flex-start;pointer-events:none;
+  font-family:"Courier New",monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;}
+#hud .col{display:flex;flex-direction:column;gap:10px;}
+#hud .col.r{align-items:flex-end;}
+.gauge{display:flex;flex-direction:column;gap:4px;min-width:178px;}
+.gauge .lab{color:var(--dim);display:flex;justify-content:space-between;}
+.gauge .lab b{color:var(--ink);font-weight:400;}
+.track{height:4px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;}
+.track i{display:block;height:100%;width:50%;border-radius:3px;transition:width .6s cubic-bezier(.2,.8,.2,1);}
+.track.light i{background:linear-gradient(90deg,#5a2c00,var(--ember),var(--gold));box-shadow:0 0 12px var(--ember);}
+.track.luc i{background:linear-gradient(90deg,#163b48,var(--cold),#bfe6f4);box-shadow:0 0 12px var(--cold);}
+.track.dark i{background:linear-gradient(90deg,#2a0a12,var(--blood));box-shadow:0 0 12px var(--blood);}
+#stat{color:var(--dim);text-align:right;line-height:1.9;}
+#stat .v{color:var(--gold);}
+#stat .warn{color:var(--blood);animation:blink 1.1s steps(2) infinite;}
+@keyframes blink{50%{opacity:.25}}
+
+/* ---- narrative panel ---- */
+#panel{position:fixed;z-index:35;left:50%;bottom:calc(6.2vh + 22px);transform:translateX(-50%) translateY(30px);
+  width:min(720px,92vw);background:var(--panel);backdrop-filter:blur(9px);
+  border:1px solid rgba(231,178,74,.14);border-radius:3px;padding:26px 30px 24px;
+  box-shadow:0 24px 80px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.04);
+  opacity:0;pointer-events:none;transition:opacity .55s ease,transform .6s cubic-bezier(.16,.84,.3,1);}
+#panel.on{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto;}
+#panel .kick{font-family:"Courier New",monospace;font-size:11px;letter-spacing:.34em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:14px;display:flex;justify-content:space-between;opacity:.9;}
+#panel .kick .t{color:var(--dim);}
+#panel .body{font-size:clamp(16px,2vw,21px);line-height:1.6;color:var(--ink);min-height:2.4em;}
+#panel .body em{color:#fff;font-style:italic;}
+#panel .body .c{color:var(--cold);} #panel .body .g{color:var(--gold);} #panel .body .b{color:var(--blood);}
+#panel .choices{margin-top:22px;display:flex;flex-direction:column;gap:9px;}
+.choice{display:flex;align-items:center;gap:14px;width:100%;text-align:left;cursor:none;
+  background:rgba(255,255,255,.015);border:1px solid rgba(255,255,255,.07);border-left:2px solid rgba(231,178,74,.3);
+  color:var(--ink);padding:13px 16px;font-family:inherit;font-size:15px;line-height:1.4;border-radius:2px;
+  transition:background .25s,border-color .25s,transform .2s,padding-left .25s;}
+.choice:hover{background:rgba(231,178,74,.09);border-left-color:var(--ember);padding-left:22px;transform:translateX(2px);}
+.choice .key{font-family:"Courier New",monospace;font-size:11px;color:var(--gold);border:1px solid rgba(231,178,74,.4);
+  border-radius:2px;padding:2px 7px;flex-shrink:0;}
+.choice .cost{margin-left:auto;font-family:"Courier New",monospace;font-size:11px;color:var(--dim);
+  letter-spacing:.05em;flex-shrink:0;text-align:right;}
+.choice .cost .neg{color:var(--blood);} .choice .cost .pos{color:var(--cold);}
+.choice.disabled{opacity:.32;pointer-events:none;}
+#panel .hintline{margin-top:14px;font-family:"Courier New",monospace;font-size:10.5px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--faint);}
+
+/* ---- memory log drawer ---- */
+#logBtn{position:fixed;z-index:30;left:20px;bottom:calc(6.2vh + 22px);
+  font-family:"Courier New",monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);
+  border:1px solid rgba(255,255,255,.1);background:var(--panel);padding:9px 14px;border-radius:2px;cursor:none;
+  transition:color .25s,border-color .25s;}
+#logBtn:hover{color:var(--gold);border-color:rgba(231,178,74,.4);}
+#logBtn b{color:var(--gold);}
+#drawer{position:fixed;z-index:70;top:0;right:0;height:100%;width:min(420px,90vw);background:rgba(6,7,12,.96);
+  backdrop-filter:blur(12px);border-left:1px solid rgba(231,178,74,.16);transform:translateX(100%);
+  transition:transform .5s cubic-bezier(.2,.8,.2,1);padding:calc(6.2vh + 28px) 26px 28px;overflow-y:auto;}
+#drawer.on{transform:translateX(0);}
+#drawer h2{font-size:13px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);
+  font-family:"Courier New",monospace;margin-bottom:6px;}
+#drawer .sub{color:var(--dim);font-size:12px;margin-bottom:24px;font-family:"Courier New",monospace;letter-spacing:.1em;}
+.mem{border-left:2px solid rgba(231,178,74,.25);padding:0 0 0 16px;margin-bottom:22px;
+  opacity:0;transform:translateX(14px);animation:memin .5s forwards;}
+@keyframes memin{to{opacity:1;transform:translateX(0);}}
+.mem .mh{font-family:"Courier New",monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:6px;}
+.mem .mb{font-size:15px;line-height:1.55;color:var(--ink);font-style:italic;}
+.mem .mb em{color:#fff;font-style:normal;}
+.relicTag{display:inline-block;margin:4px 6px 0 0;font-family:"Courier New",monospace;font-size:10px;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--cold);border:1px solid rgba(111,182,214,.3);
+  padding:3px 8px;border-radius:2px;}
+#drawerClose,#codexClose{position:absolute;top:calc(6.2vh + 24px);right:22px;color:var(--dim);cursor:none;font-size:20px;
+  font-family:"Courier New",monospace;}
+#drawerClose:hover,#codexClose:hover{color:var(--ember);}
+
+/* ---- codex overlay ---- */
+#codex{position:fixed;z-index:72;inset:0;background:rgba(4,5,10,.94);backdrop-filter:blur(10px);
+  padding:calc(6.2vh + 40px) max(8vw,30px) 8vh;overflow-y:auto;opacity:0;pointer-events:none;
+  transition:opacity .5s ease;}
+#codex.on{opacity:1;pointer-events:auto;}
+#codex h2{font-size:14px;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);
+  font-family:"Courier New",monospace;margin-bottom:6px;}
+#codex .sub{color:var(--dim);font-size:12px;margin-bottom:30px;font-family:"Courier New",monospace;letter-spacing:.12em;}
+#codex .sub b{color:var(--gold);}
+#codexBody{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;max-width:1100px;}
+.codexCard{border:1px solid rgba(255,255,255,.08);border-left:2px solid var(--gold);border-radius:3px;padding:18px 20px;
+  background:rgba(255,255,255,.012);}
+.codexCard .ch{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.codexCard .dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;box-shadow:0 0 12px currentColor;}
+.codexCard .nm{font-family:"Courier New",monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink);}
+.codexCard .lore{font-size:14px;line-height:1.6;color:var(--dim);font-style:italic;}
+.codexCard.relic{border-left-color:var(--cold);}
+
+/* ---- title & end screens ---- */
+.screen{position:fixed;inset:0;z-index:80;background:radial-gradient(120% 120% at 50% 30%,#0a0c14,#020308);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  transition:opacity 1.4s ease;padding:8vh 6vw;}
+.screen.hide{opacity:0;pointer-events:none;}
+.screen .sup{font-family:"Courier New",monospace;letter-spacing:.5em;text-transform:uppercase;font-size:11px;
+  color:var(--dim);opacity:0;animation:rise 1.6s .3s forwards;}
+.screen h1{font-size:clamp(44px,11vw,140px);font-weight:400;letter-spacing:.06em;line-height:.95;margin:18px 0;
+  background:linear-gradient(180deg,#fff,var(--gold) 60%,#7a5a1c);-webkit-background-clip:text;background-clip:text;
+  color:transparent;opacity:0;animation:rise 2s .6s forwards;text-shadow:0 0 80px rgba(231,178,74,.15);}
+.screen .lede{max-width:560px;color:var(--dim);font-size:clamp(15px,2vw,19px);line-height:1.7;font-style:italic;
+  opacity:0;animation:rise 1.8s 1.2s forwards;}
+.screen .lede b{color:var(--ink);font-style:normal;}
+.btn{margin-top:42px;padding:16px 50px;background:transparent;color:var(--ink);border:1px solid rgba(231,178,74,.4);
+  letter-spacing:.3em;text-transform:uppercase;font-size:12px;font-family:"Courier New",monospace;cursor:none;
+  opacity:0;animation:rise 1.6s 1.9s forwards;transition:background .4s,letter-spacing .4s,box-shadow .4s,color .4s;}
+.btn:hover{background:rgba(231,178,74,.12);letter-spacing:.44em;box-shadow:0 0 50px rgba(231,178,74,.22);color:#fff;}
+.btn.small{margin-top:18px;padding:11px 30px;font-size:10px;animation-delay:2.3s;border-color:rgba(255,255,255,.18);}
+.screen .meta{margin-top:46px;font-family:"Courier New",monospace;font-size:11px;letter-spacing:.2em;color:var(--faint);
+  opacity:0;animation:rise 1.6s 2.6s forwards;}
+.screen .meta b{color:var(--gold);}
+@keyframes rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+#endTitle.win{background:linear-gradient(180deg,#fff,var(--cold) 60%,#1c4a5a);-webkit-background-clip:text;background-clip:text;}
+#endTitle.lose{background:linear-gradient(180deg,#fff,var(--blood) 60%,#5a121c);-webkit-background-clip:text;background-clip:text;}
+
+/* ---- toasts ---- */
+#toasts{position:fixed;z-index:45;top:calc(6.2vh + 120px);left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:min(620px,90vw);}
+.toast{font-family:"Courier New",monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+  padding:9px 18px;border-radius:2px;background:rgba(8,9,14,.9);border:1px solid rgba(255,255,255,.1);
+  opacity:0;transform:translateY(-10px);animation:toast 4.2s forwards;text-align:center;}
+.toast.good{color:var(--cold);border-color:rgba(111,182,214,.35);}
+.toast.bad{color:var(--blood);border-color:rgba(214,72,90,.35);}
+.toast.gold{color:var(--gold);border-color:rgba(231,178,74,.4);}
+@keyframes toast{0%{opacity:0;transform:translateY(-10px)}10%{opacity:1;transform:translateY(0)}
+  85%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-8px)}}
+
+/* ---- audio toggle ---- */
+#audioBtn{position:fixed;z-index:65;right:20px;bottom:calc(6.2vh + 22px);width:38px;height:38px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.12);background:var(--panel);color:var(--dim);cursor:none;
+  display:flex;align-items:center;justify-content:center;font-size:14px;transition:color .25s,border-color .25s;}
+#audioBtn:hover{color:var(--gold);border-color:rgba(231,178,74,.4);}
+#audioBtn.on{color:var(--ember);border-color:rgba(255,138,60,.5);}
+
+.tip{position:fixed;z-index:30;left:50%;top:calc(6.2vh + 78px);transform:translateX(-50%);
+  font-family:"Courier New",monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);
+  pointer-events:none;transition:opacity .8s;text-align:center;}
+.tip b{color:var(--gold);}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:.95}}
+.pulse{animation:pulse 2.6s ease-in-out infinite;}
+::-webkit-scrollbar{width:7px;}::-webkit-scrollbar-thumb{background:rgba(231,178,74,.25);border-radius:4px;}
+</style>
+</head>
+<body>
+<canvas id="space"></canvas>
+
+<div class="bar top"></div>
+<div class="bar bottom"></div>
+<div class="vignette"></div>
+<div class="grain"></div>
+<div class="flash" id="flash"></div>
+
+<div id="hud">
+  <div class="col">
+    <div class="gauge"><div class="lab"><span>Lantern Light</span><b id="lightV">100</b></div>
+      <div class="track light"><i id="lightBar"></i></div></div>
+    <div class="gauge"><div class="lab"><span>Lucidity</span><b id="lucV">100</b></div>
+      <div class="track luc"><i id="lucBar"></i></div></div>
+    <div class="gauge"><div class="lab"><span>The Long Dark</span><b id="darkV">far</b></div>
+      <div class="track dark"><i id="darkBar"></i></div></div>
+  </div>
+  <div class="col r">
+    <div id="stat"></div>
+  </div>
+</div>
+
+<div class="tip pulse" id="tip">CLICK A LINKED STAR TO SAIL · <b>L</b> MEMORIES · <b>?</b> CODEX · <b>M</b> SOUND</div>
+
+<div id="panel">
+  <div class="kick"><span class="n" id="pKick">—</span><span class="t" id="pTag"></span></div>
+  <div class="body" id="pBody"></div>
+  <div class="choices" id="pChoices"></div>
+  <div class="hintline" id="pHint"></div>
+</div>
+
+<button id="logBtn">Memories · <b id="memCount">0</b></button>
+<button id="audioBtn" title="sound">♪</button>
+
+<div id="drawer">
+  <div id="drawerClose">✕</div>
+  <h2>The Cartographer's Memories</h2>
+  <div class="sub" id="drawerSub">fragments salvaged from the dark</div>
+  <div id="relics"></div>
+  <div id="memList"></div>
+</div>
+
+<div id="codex">
+  <div id="codexClose">✕</div>
+  <h2>The Cartographer's Codex</h2>
+  <div class="sub">what the dark is made of · press <b>?</b> to close</div>
+  <div id="codexBody"></div>
+</div>
+
+<div id="toasts"></div>
+
+<div class="screen" id="title">
+  <div class="sup">a generative voyage through dead stars</div>
+  <h1>AETHER</h1>
+  <div class="lede">You are the last <b>Cartographer</b>, and your lantern is going out.
+    Behind you, <b>the Long Dark</b> swallows the stars one by one. Ahead, somewhere, burns
+    <b>the Origin</b> — the first light, the only fire that does not die. Spend your light to cross
+    the void. Trade it for memory. Reach the Origin before the dark — or the dark inside you — arrives.</div>
+  <button class="btn" id="startBtn">light the lantern</button>
+  <button class="btn small" id="seedBtn">enter a named star-chart</button>
+  <div class="meta">Voyages survived: <b id="echoCount">0</b> · the deepest reach: <b id="bestReach">∞</b></div>
+</div>
+
+<div class="screen hide" id="end">
+  <div class="sup" id="endSup">the voyage ends</div>
+  <h1 id="endTitle">—</h1>
+  <div class="lede" id="endBody"></div>
+  <button class="btn" id="againBtn">sail again</button>
+  <div class="meta" id="endMeta"></div>
+</div>
+
+<div id="cursor"></div>
+
+<script>
+"use strict";
+/* ============================================================================
+   AETHER — THE LAST LANTERN
+   ----------------------------------------------------------------------------
+   A complete, single-file generative game. Sections:
+     0.  Utility / seeded RNG
+     1.  Content banks (the deep, recombinant text)
+     2.  Audio engine (procedural ambient + sfx via WebAudio)
+     3.  World generation (the star graph + the Origin + the Dark)
+     4.  Rendering (canvas: nebula, stars, edges, ship, dark, particles)
+     5.  Encounter engine (per-node generative situations + choices)
+     6.  Game flow (travel, resolve, advance the dark, win/lose)
+     7.  UI plumbing (HUD, panel, drawer, toasts, screens, input)
+     8.  Boot
+   ============================================================================ */
+
+/* ============================ 0. UTILITY / RNG ============================ */
+function mulberry32(a){
+  return function(){
+    a|=0; a=a+0x6D2B79F5|0;
+    let t=Math.imul(a^a>>>15,1|a);
+    t=t+Math.imul(t^t>>>7,61|t)^t;
+    return ((t^t>>>14)>>>0)/4294967296;
+  };
+}
+function hashStr(s){ let h=2166136261>>>0; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
+let RNG = Math.random;          // replaced per run with a seeded generator
+function rnd(){ return RNG(); }
+function ri(a,b){ return a + Math.floor(rnd()*(b-a+1)); }                 // inclusive int
+function rf(a,b){ return a + rnd()*(b-a); }
+function pick(arr){ return arr[Math.floor(rnd()*arr.length)]; }
+function chance(p){ return rnd()<p; }
+function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(rnd()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+function clamp(v,a,b){ return v<a?a:v>b?b:v; }
+function lerp(a,b,t){ return a+(b-a)*t; }
+function dist(ax,ay,bx,by){ const dx=ax-bx, dy=ay-by; return Math.sqrt(dx*dx+dy*dy); }
+function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+
+/* ============================ 1. CONTENT BANKS ============================ */
+/* Names are stitched from syllables so every star is unique-feeling. */
+const SYL_A=["Vel","Cor","Tha","Ny","Or","Pyr","Sel","Mor","Aza","Ith","Quel","Bra","Cae","Drath","Esh","Fen","Gha","Hael","Ix","Jor","Kael","Lune","Mir","Nox","Ob","Pha","Rho","Syl","Tor","Umbr","Vael","Wyr","Xan","Yssa","Zeph"];
+const SYL_B=["ara","oth","ix","une","ael","yrr","oma","esh","ion","ara","ux","eth","ora","ish","ael","yx","oon","ire","ad","ola","een","ys","arn","oth","eus","alis","ovae","ent","ara","is"];
+const SYL_C=["","'a","-9","Prime"," the Dim"," the Drowned"," Minor","'s Eye"," the Hollow"," the Late"," IX"," the Quiet",""];
+function starName(){ return cap(pick(SYL_A))+pick(SYL_B)+pick(SYL_C); }
+
+/* Node archetypes carry tone, color, and an encounter generator key. */
+const NODE_TYPES = {
+  star:   {key:"star",   col:"#e7b24a", glow:"#ff8a3c", label:"Dying Star",  weight:0.30},
+  ruin:   {key:"ruin",   col:"#8a93a8", glow:"#aab4cc", label:"Drift Ruin",  weight:0.20},
+  signal: {key:"signal", col:"#6fb6d6", glow:"#bfe6f4", label:"Lone Signal", weight:0.16},
+  bloom:  {key:"bloom",  col:"#c46fd6", glow:"#e6bff4", label:"Void Bloom",  weight:0.12},
+  grave:  {key:"grave",  col:"#6a6f7a", glow:"#9aa0ad", label:"Star Grave",  weight:0.12},
+  rift:   {key:"rift",   col:"#d6485a", glow:"#ff6f7f", label:"Black Rift",  weight:0.10},
+  beacon: {key:"beacon", col:"#9be7c4", glow:"#d6fff0", label:"Old Beacon", weight:0.07},
+  wake:   {key:"wake",   col:"#d6c46f", glow:"#fff0bf", label:"Cartographer's Wake", weight:0.07},
+};
+
+/* Encounter intros, keyed loosely by node type. Recombine with {} slots. */
+const FRAG = {
+  // generic atmospheric openers
+  opener:[
+    "The lantern gutters as {STAR} swings into view, {ADJ} and {ADJ2}.",
+    "You drop anchor in the gravity-shadow of {STAR}. The silence here has a {TEXTURE}.",
+    "{STAR} was a sun, once. Now it is only the <em>shape</em> of one, {ADJ} against the dark.",
+    "Something about {STAR} makes the light in your hands lean toward it, as if {LONGING}.",
+    "You arrive at {STAR}. The instruments read nothing. The dark behind you reads <em>closer</em>.",
+    "The chart called this place {STAR}. The chart did not mention the {TEXTURE} that fills it.",
+    "You let the vessel drift the last stretch to {STAR}, lantern dimmed, so as not to wake whatever the {TEXTURE} belongs to.",
+    "{STAR}. You have rehearsed this arrival a hundred times in the dark behind your eyes. The real thing is {ADJ}, and quieter.",
+    "The lantern recognizes {STAR} before you do — it brightens, {ADJ}, the way it only does for things that are {ADJ2}.",
+    "Here is {STAR}, exactly where the dead Cartographers said it would be, and exactly as {ADJ} as they warned.",
+  ],
+  ADJ:["cold","ash-grey","half-eaten","trembling","patient","beautiful in the wrong way","older than grief","wrong","quiet","unforgiven","luminous and dead","still warm","unbearably gentle","the colour of an apology","thin as a held breath","brave for no audience"],
+  TEXTURE:["weight to it","temperature","memory in it","sound just below hearing","pull, like undertow","texture like wet velvet","hunger to it","stillness that has teeth","grief with no owner","patience that outlasts suns"],
+  LONGING:["it remembers being a fire","it wants to go home","it has been waiting for you specifically","it is lonely in a way that has no word","it knows your name","it would follow you if it could","it mistook you for someone it lost","it is trying, very hard, to be remembered"],
+  // memory fragments — the collectible "deep content"
+  memory:[
+    "I learned to read the stars before I learned to read faces. I have never regretted this, and I have never stopped paying for it.",
+    "There was a hand I used to hold. I have forgotten the hand. I have not forgotten the holding.",
+    "The dark is not the absence of light. It is the <em>memory</em> of light, kept too long, gone sour.",
+    "Every map is a promise that the world will hold still long enough to be loved. Every map is a lie I keep telling.",
+    "I told them I would come back. The word <em>back</em> assumes there is a place that stays.",
+    "We named the stars so they would not be strangers when they died. It did not help. They died as strangers anyway.",
+    "I have spent my light to see one more star. I would do it again. This is either devotion or addiction. I no longer check which.",
+    "The Origin, they said, is the one fire that does not go out. Nobody who reached it ever came back to confirm.",
+    "I keep a list of everything I have lost. The lantern keeps a list of everything I burned to keep it. The lists are the same length.",
+    "A child asked me what was past the last star. I said <em>more dark</em>. I should have said <em>you, eventually, if you are not careful.</em>",
+    "Loneliness, this far out, stops being an emotion and becomes a kind of weather.",
+    "I have begun talking to the lantern. Worse: it has begun, in the dark behind my eyes, to answer.",
+    "They built me to chart the dying. They did not build me to grieve it. The second thing I taught myself.",
+    "Once I sailed a week toward a light that turned out to be my own reflection in a sheet of ice. I wept. Then I charted the ice.",
+    "If you are reading this, the dark took me here. Do not stop. Do not grieve. Take my light and <em>go.</em>",
+    "There is a kind of silence that is just silence, and a kind that is something listening. Out here you learn the difference, and then you cannot unlearn it.",
+    "I no longer remember the color of the sky I was born under. I remember that it had one. Some nights that is the only thing keeping me sailing.",
+    "Hope, this far from any fire, is just fear that has decided to keep moving.",
+    "The first star I ever charted, I named after no one. I have regretted the cowardice of that ever since.",
+    "Distance is the only honest god. It never pretends to be closer than it is.",
+    "I used to think the point of a map was to be followed. Now I think the point of a map is that someone, once, paid attention.",
+    "What the dark wants is not to destroy you. It only wants you to stop. Destruction is just what stopping looks like from outside.",
+    "I have been alone so long that company now feels like a kind of altitude — thrilling, and hard to breathe in.",
+    "Every star I burned to keep going, I promised to remember. The lantern is heavy with promises. That is most of what light is.",
+    "There is a star out here shaped exactly like the word <em>almost</em>. I do not sail toward it anymore.",
+    "When they ask what I do, I say I make the dying legible. I do not say that it is the only love I know how to give.",
+    "The deepest cold is not the cold between stars. It is the cold of a chart finished, and no one left to hand it to.",
+    "I forgive the dark. It is only doing what dark does. It is myself I cannot quite reach across the table to forgive.",
+    "If light is a debt, I have been generous to a fault, and I have never once regretted bankruptcy.",
+    "Somewhere I stopped sailing toward the Origin and started sailing away from the silence. They feel identical from inside the lantern.",
+    "The young ones ask how I'm not afraid. I am. I just learned that fear and direction can share a hull, if you make them.",
+    "I have charted nine hundred dead stars. I can describe the exact light of each one's last hour. I cannot describe my own mother's voice. This is the arithmetic of a long voyage.",
+    "Out here, kindness is the most expensive fuel there is, and the only one that burns clean.",
+    "I keep sailing toward the Origin because the alternative is admitting that the dark is the larger country, and I was only ever a visitor in the light.",
+    "A map is just grief with coordinates. You only ever bother to chart what you are afraid of losing.",
+    "They say the Origin remembers everyone who ever lit a lantern. I do not need it to remember me. I only need it to have been real, so that the sailing meant something.",
+    "I have started leaving my own messages in the wrecks now. <em>Keep going.</em> Just those two words. It is the only theology I still believe.",
+    "The lantern does not care whether I reach the Origin. It only wants to keep burning. In this, the lantern and I have finally stopped agreeing.",
+    "I met a sailor once who had given up. He was the calmest person I have ever known. I sailed away fast, before the calm could be catching.",
+    "We are not explorers. Explorers expect to return and be believed. We are something lonelier: witnesses, sailing in only one direction.",
+    "I have learned to read the dark the way I once read the stars. It has constellations too. None of them are kind, but all of them are honest.",
+    "There is a precise weight of light at which the fear stops and the work begins. I chase that weight more than I chase the Origin. God help me, I think I chase it more than I want to live.",
+    "I used to pray. Now I chart. I have come to suspect they were always the same verb: <em>to pay close, helpless, hopeful attention to something that will not save you.</em>",
+    "If you find this and the lantern beside it is dark, do not be sad for me. I spent every drop of my light <em>looking</em>. There are worse ways to run out.",
+    "The cruelest thing the Origin ever did was be real. A myth, I could have stopped sailing toward. A fact, I cannot.",
+    "Somewhere behind me is the first star I ever loved. It is gone now. I keep its coordinates anyway. A map is a way of refusing to agree that something is over.",
+  ],
+  // whispers: what the dark says when your mind frays (low lucidity)
+  whisper:[
+    "<span class='b'>(rest)</span>", "<span class='b'>(you are already home)</span>",
+    "<span class='b'>(no one is waiting)</span>", "<span class='b'>(the Origin is a story sailors tell to keep warm)</span>",
+    "<span class='b'>(let the light go — it is so heavy)</span>", "<span class='b'>(turn around · turn around · turn around)</span>",
+    "<span class='b'>(we have your name now)</span>", "<span class='b'>(stop pretending the dark is behind you)</span>",
+    "<span class='b'>(the lantern was always us)</span>", "<span class='b'>(you forgot their faces · we kept them · trade?)</span>",
+    "<span class='b'>(there is no Origin · there is only us · come)</span>", "<span class='b'>(how tired you are · how very tired)</span>",
+    "<span class='b'>(set it down · set it down · good)</span>", "<span class='b'>(we are not chasing you · we are walking you home)</span>",
+  ],
+  // wanderer / signal voices
+  voice:[
+    "\"You're real,\" the signal says, almost disappointed. \"I'd made peace with being the last one.\"",
+    "\"Don't trust the Origin stories,\" it crackles. \"I trusted them. Look where it put me.\"",
+    "\"Trade you,\" the voice says. \"Light for truth. You'll think you got the better deal. You won't have.\"",
+    "\"I can hear the dark from here,\" it whispers. \"It sounds like everyone I've ever forgotten, calling me by name.\"",
+    "\"Are you the Cartographer? The real one? Then map this for me before I go: which way is <em>home.</em>\"",
+    "\"I stopped sailing,\" the signal admits. \"I just... stopped. The dark is slower than you think, and rest is sweeter than you fear.\"",
+    "\"Tell me a star still burns somewhere,\" the voice begs. \"Lie if you have to. I've forgotten how to imagine it on my own.\"",
+    "\"You smell like a fresh lantern,\" it says, almost hungrily. \"Like someone who still thinks they're going to make it. I remember that smell. I miss it.\"",
+    "\"There's a trick to the dark,\" the signal offers. \"You stop running from it, and you start charting it, and one day you realize the fear was just unfinished cartography.\"",
+    "\"Do me one mercy,\" the voice says. \"When you reach the Origin — and you might, you really might — say my name into the fire. I'd like one warm thing to have happened to it.\"",
+  ],
+  // relic flavor
+  relicFlavor:[
+    "warm to the touch, though nothing out here is warm",
+    "humming a note you almost recognize",
+    "scarred, salvaged, and stubbornly still working",
+    "older than the chart that led you to it",
+    "light enough to forget, heavy enough to matter",
+    "etched with a name that has been deliberately scratched out",
+    "still ticking, faithful to a clock that no longer exists",
+  ],
+};
+
+/* Milestone reflections: quiet narrative beats fired the first time the
+   voyage crosses certain depths or states. Each is a small held breath. */
+const MILESTONES=[
+  {at:3,  flag:"m3",  txt:"Three jumps out. The home star is no longer the brightest thing behind you. The dark is."},
+  {at:6,  flag:"m6",  txt:"Six jumps. You have sailed further than most charts bother to imagine. There is a particular loneliness to being off the edge of even the pessimists' maps."},
+  {at:10, flag:"m10", txt:"Ten jumps deep. You no longer remember the exact moment the fear became routine. That, you suspect, was the moment you became a real Cartographer."},
+  {at:14, flag:"m14", txt:"Fourteen. The Origin is closer now than the dark — barely, but barely is the whole profession. Keep the lantern steady."},
+  {at:18, flag:"m18", txt:"Eighteen jumps. You begin to suspect the Origin is not a place you reach but a direction you refuse to stop facing. It does not make the lantern any lighter. It makes the carrying make sense."},
+  {at:22, flag:"m22", txt:"Twenty-two. So close now you can taste the warmth of it on the back of your teeth. Do not get careless. The dark is never so patient as in the last stretch before a fire."},
+];
+function checkMilestones(){
+  for(const m of MILESTONES){
+    if(Game.reach>=m.at && !Game[m.flag]){
+      Game[m.flag]=true;
+      toast(m.txt.length>64?m.txt.slice(0,61)+"…":m.txt,"gold");
+      Game.pendingReflection=m.txt;
+    }
+  }
+}
+
+/* Relics: passive modifiers. Each has a name builder + an apply hook. */
+const RELIC_NAMES_A=["The Salvager's","A Drowned","The Quiet","The First","A Borrowed","The Cartographer's","The Last","A Hollow","The Patient","The Unspent","A Forgiven","The Sailor's","An Orphaned","The Twice-Lost","A Faithful"];
+const RELIC_NAMES_B=["Compass","Ember","Lens","Reliquary","Tuning-Fork","Astrolabe","Wick","Ledger","Sextant","Mirror","Anchor","Candle","Lodestone","Hourglass","Bell","Keystone"];
+const RELICS = [
+  {id:"thrift",  name:()=>relicName(), desc:"Travel costs 20% less light.",            tag:"efficiency"},
+  {id:"clarity", name:()=>relicName(), desc:"Lucidity decays half as fast in the dark.",tag:"clarity"},
+  {id:"greed",   name:()=>relicName(), desc:"Dying stars give +40% light.",             tag:"harvest"},
+  {id:"ward",    name:()=>relicName(), desc:"The Long Dark advances one step slower.",   tag:"warding"},
+  {id:"echo",    name:()=>relicName(), desc:"Each memory you hold restores a little lucidity on arrival.",tag:"resonance"},
+  {id:"sight",   name:()=>relicName(), desc:"You can see one star further along the chart.",tag:"sight"},
+  {id:"gamble",  name:()=>relicName(), desc:"Risky choices swing harder — both ways.",  tag:"fortune"},
+];
+function relicName(){ return pick(RELIC_NAMES_A)+" "+pick(RELIC_NAMES_B); }
+
+/* ============================ 2. AUDIO ENGINE ============================ */
+const Audio_ = {
+  ctx:null, master:null, droneGain:null, on:false, voices:[], lfo:null,
+  init(){
+    if(this.ctx) return;
+    const AC = window.AudioContext||window.webkitAudioContext; if(!AC) return;
+    this.ctx = new AC();
+    this.master = this.ctx.createGain(); this.master.gain.value=0; this.master.connect(this.ctx.destination);
+    this.droneGain = this.ctx.createGain(); this.droneGain.gain.value=0.5; this.droneGain.connect(this.master);
+    // layered detuned oscillators = a slow cold drone
+    const base=[55,82.4,110,164.8];
+    base.forEach((f,i)=>{
+      const o=this.ctx.createOscillator(); o.type=i%2?"sine":"triangle"; o.frequency.value=f;
+      const g=this.ctx.createGain(); g.gain.value=0.12/(i+1);
+      const pan=this.ctx.createStereoPanner?this.ctx.createStereoPanner():null;
+      o.connect(g); if(pan){ pan.pan.value=(i%2?1:-1)*0.5; g.connect(pan); pan.connect(this.droneGain);} else g.connect(this.droneGain);
+      o.start(); this.voices.push({o,g});
+    });
+    // slow filter sweep for movement
+    this.lfo=this.ctx.createOscillator(); this.lfo.frequency.value=0.05;
+    const lg=this.ctx.createGain(); lg.gain.value=6; this.lfo.connect(lg);
+    lg.connect(this.voices[0].o.detune); this.lfo.start();
+  },
+  toggle(){
+    this.init(); if(!this.ctx) return false;
+    if(this.ctx.state==="suspended") this.ctx.resume();
+    this.on=!this.on;
+    this.master.gain.cancelScheduledValues(this.ctx.currentTime);
+    this.master.gain.linearRampToValueAtTime(this.on?0.5:0, this.ctx.currentTime+1.2);
+    return this.on;
+  },
+  // mood: shift the drone with depth of voyage / danger
+  mood(danger){
+    if(!this.ctx||!this.on) return;
+    const t=this.ctx.currentTime;
+    this.voices.forEach((v,i)=>{ v.o.detune.linearRampToValueAtTime(danger*40*(i+1), t+2); });
+  },
+  // one-shot sfx
+  blip(freq=440,dur=0.12,type="sine",vol=0.18){
+    if(!this.ctx||!this.on) return;
+    const t=this.ctx.currentTime;
+    const o=this.ctx.createOscillator(), g=this.ctx.createGain();
+    o.type=type; o.frequency.setValueAtTime(freq,t);
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.connect(g); g.connect(this.master); o.start(t); o.stop(t+dur+0.02);
+  },
+  travel(){ this.blip(523.25,0.18,"triangle",0.16); setTimeout(()=>this.blip(784,0.22,"sine",0.12),90); },
+  good(){ this.blip(659.25,0.18,"sine",0.16); setTimeout(()=>this.blip(987.77,0.25,"sine",0.12),110); },
+  bad(){ this.blip(174.61,0.3,"sawtooth",0.14); setTimeout(()=>this.blip(138.59,0.4,"sawtooth",0.12),120); },
+  reveal(){ this.blip(392,0.5,"sine",0.10); },
+  death(){ this.blip(110,1.6,"sine",0.2); setTimeout(()=>this.blip(82.4,2,"sine",0.16),200); },
+  win(){ [523,659,784,1046].forEach((f,i)=>setTimeout(()=>this.blip(f,0.6,"sine",0.14),i*180)); },
+};
+
+/* ============================ 3. WORLD GENERATION ============================ */
+const Game = {
+  nodes:[], edges:[], pos:0, origin:0, turn:0,
+  light:100, luc:100, darkR:0, darkX:0, darkY:0, darkStep:0,
+  relics:[], memories:[], visited:new Set(), seed:"", over:false, busy:false, reach:0,
+};
+const NODE_COUNT = 34;
+const VIEW = {x:0,y:0,scale:1}; // camera
+
+function weightedType(){
+  const entries=Object.values(NODE_TYPES);
+  let total=entries.reduce((s,e)=>s+e.weight,0), r=rnd()*total;
+  for(const e of entries){ if((r-=e.weight)<=0) return e.key; }
+  return "star";
+}
+
+function generateWorld(seedStr){
+  Game.seed=seedStr;
+  RNG = mulberry32(hashStr(seedStr));
+  Game.nodes=[]; Game.edges=[]; Game.visited=new Set();
+  Game.relics=[]; Game.memories=[]; Game.turn=0; Game.over=false; Game.busy=false; Game.reach=0;
+  Game.light=100; Game.luc=100; Game.darkStep=0;
+
+  // Poisson-ish scatter of nodes across a wide field
+  const FIELD=2600, MIN_D=190;
+  const pts=[];
+  let attempts=0;
+  while(pts.length<NODE_COUNT && attempts<4000){
+    attempts++;
+    const p={x:rf(-FIELD/2,FIELD/2), y:rf(-FIELD/2,FIELD/2)};
+    if(pts.every(q=>dist(p.x,p.y,q.x,q.y)>MIN_D)) pts.push(p);
+  }
+  // build nodes
+  pts.forEach((p,i)=>{
+    const type = i===0 ? "star" : weightedType();
+    Game.nodes.push({
+      id:i, x:p.x, y:p.y, type, name:starName(),
+      tdef:NODE_TYPES[type], visited:false, drained:false,
+      twinkle:rnd()*6.28, r:type==="rift"?9:type==="star"?8:6,
+    });
+  });
+  // connect via nearest neighbors (k≈3) for a navigable graph
+  const adj = Game.nodes.map(()=>new Set());
+  Game.nodes.forEach((n)=>{
+    const others=Game.nodes.filter(o=>o.id!==n.id)
+      .map(o=>({o,d:dist(n.x,n.y,o.x,o.y)})).sort((a,b)=>a.d-b.d);
+    const k=ri(2,3);
+    for(let j=0;j<k;j++){ if(others[j]){ adj[n.id].add(others[j].o.id); adj[others[j].o.id].add(n.id);} }
+  });
+  // ensure connectivity via a spanning pass from node 0 (BFS; link stragglers)
+  const seen=new Set([0]); const stack=[0];
+  while(stack.length){ const c=stack.pop(); adj[c].forEach(nb=>{ if(!seen.has(nb)){ seen.add(nb); stack.push(nb);} }); }
+  Game.nodes.forEach(n=>{
+    if(!seen.has(n.id)){
+      // link to nearest seen node
+      let best=null,bd=1e9;
+      seen.forEach(s=>{ const d=dist(n.x,n.y,Game.nodes[s].x,Game.nodes[s].y); if(d<bd){bd=d;best=s;} });
+      adj[n.id].add(best); adj[best].add(n.id); seen.add(n.id);
+      n.id!==undefined && stack.push(n.id);
+      // propagate
+      const st=[n.id]; while(st.length){ const c=st.pop(); adj[c].forEach(nb=>{ if(!seen.has(nb)){seen.add(nb);st.push(nb);} }); }
+    }
+  });
+  Game.adj=adj.map(s=>[...s]);
+  // edges for drawing (dedup)
+  const eset=new Set();
+  Game.adj.forEach((list,a)=>list.forEach(b=>{ const key=a<b?a+"-"+b:b+"-"+a; if(!eset.has(key)){ eset.add(key); Game.edges.push([a,b]); } }));
+
+  // start = node 0; origin = farthest node from start (graph-wise via euclid proxy)
+  Game.pos=0; Game.nodes[0].visited=true; Game.visited.add(0);
+  let far=0,fd=0;
+  Game.nodes.forEach(n=>{ const d=dist(0,0,n.x,n.y); if(d>fd){fd=d;far=n.id;} });
+  Game.origin=far; Game.nodes[far].type="origin";
+  Game.nodes[far].tdef={key:"origin",col:"#fff",glow:"#fff7e0",label:"The Origin"};
+  Game.nodes[far].r=13;
+
+  // the Dark starts beyond the start, opposite the origin, and creeps inward
+  const ox=Game.nodes[far].x, oy=Game.nodes[far].y;
+  const omag=Math.hypot(ox,oy)||1;
+  Game.darkX = -ox/omag * (FIELD*0.65);
+  Game.darkY = -oy/omag * (FIELD*0.65);
+  Game.darkR = 380;
+
+  // camera to start
+  VIEW.x=0; VIEW.y=0; VIEW.scale=1;
+  centerOn(Game.nodes[0], true);
+}
+
+/* graph distance (BFS) used for "reach" scoring + sight relic */
+function graphDist(from){
+  const d=new Array(Game.nodes.length).fill(Infinity); d[from]=0;
+  const q=[from]; while(q.length){ const c=q.shift(); for(const nb of Game.adj[c]){ if(d[nb]>d[c]+1){ d[nb]=d[c]+1; q.push(nb);} } }
+  return d;
+}
+
+/* ============================ 4. RENDERING ============================ */
+const cv=document.getElementById("space"), ctx=cv.getContext("2d");
+let W,H,DPR;
+function resize(){ DPR=Math.min(2,window.devicePixelRatio||1); W=cv.width=innerWidth*DPR; H=cv.height=innerHeight*DPR;
+  cv.style.width=innerWidth+"px"; cv.style.height=innerHeight+"px"; }
+addEventListener("resize",resize); resize();
+
+// background starfield (parallax, independent of map)
+const bgStars=[];
+for(let i=0;i<340;i++) bgStars.push({x:rf(0,1),y:rf(0,1),z:rf(0.2,1),r:rf(0.3,1.6),t:rf(0,6.28)});
+// nebula blobs
+const nebula=[];
+for(let i=0;i<6;i++) nebula.push({x:rf(0,1),y:rf(0,1),r:rf(0.3,0.8),h:ri(190,330),a:rf(0.025,0.06)});
+// embers around the ship
+const embers=[];
+for(let i=0;i<60;i++) embers.push({a:rf(0,6.28),d:rf(4,40),sp:rf(0.4,1.6),life:rf(0,1),size:rf(0.5,2.2)});
+// travel particle trail
+let trail=[];
+
+let camTarget={x:0,y:0,scale:1};
+function centerOn(node,instant){ camTarget.x=node.x; camTarget.y=node.y; camTarget.scale=1;
+  if(instant){ VIEW.x=node.x; VIEW.y=node.y; } }
+
+function worldToScreen(wx,wy){
+  return { x: (wx-VIEW.x)*VIEW.scale + W/2, y: (wy-VIEW.y)*VIEW.scale + H/2 };
+}
+let mouse={x:W/2,y:H/2}, mouseW={x:0,y:0};
+let hoverNode=-1;
+
+function reachableSet(){
+  if(!Game.adj||!Game.adj[Game.pos]) return new Set();
+  const set=new Set(Game.adj[Game.pos]);
+  // sight relic: also show 2-hop nodes (but still only adjacent are travelable)
+  return set;
+}
+
+function draw(ts){
+  // camera easing
+  VIEW.x+=(camTarget.x-VIEW.x)*0.06; VIEW.y+=(camTarget.y-VIEW.y)*0.06;
+  VIEW.scale+=(camTarget.scale-VIEW.scale)*0.06;
+
+  ctx.fillStyle="#04050a"; ctx.fillRect(0,0,W,H);
+
+  // nebula
+  nebula.forEach(nb=>{
+    const sx=nb.x*W, sy=nb.y*H, rad=nb.r*Math.max(W,H);
+    const g=ctx.createRadialGradient(sx,sy,0,sx,sy,rad);
+    g.addColorStop(0,`hsla(${nb.h},60%,50%,${nb.a})`); g.addColorStop(1,"hsla(0,0%,0%,0)");
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  });
+
+  // bg starfield with parallax tied to camera
+  const t=ts*0.001;
+  bgStars.forEach(s=>{
+    const px=((s.x*W - VIEW.x*s.z*0.04*DPR)%W+W)%W;
+    const py=((s.y*H - VIEW.y*s.z*0.04*DPR)%H+H)%H;
+    const tw=0.5+0.5*Math.sin(t*1.5+s.t);
+    ctx.globalAlpha=0.2+0.6*tw*s.z; ctx.fillStyle="#cfe2f0";
+    ctx.beginPath(); ctx.arc(px,py,s.r*s.z*DPR,0,6.28); ctx.fill();
+  });
+  ctx.globalAlpha=1;
+
+  if(Game.nodes.length){
+    drawEdges(t);
+    drawDark();
+    drawNodes(t);
+    drawShip(t);
+  }
+
+  // mouse → world for hover
+  mouseW.x=(mouse.x*DPR - W/2)/VIEW.scale + VIEW.x;
+  mouseW.y=(mouse.y*DPR - H/2)/VIEW.scale + VIEW.y;
+  updateHover();
+
+  requestAnimationFrame(draw);
+}
+
+function drawEdges(t){
+  const reach=reachableSet();
+  Game.edges.forEach(([a,b])=>{
+    const A=worldToScreen(Game.nodes[a].x,Game.nodes[a].y);
+    const B=worldToScreen(Game.nodes[b].x,Game.nodes[b].y);
+    const live = (a===Game.pos&&reach.has(b))||(b===Game.pos&&reach.has(a));
+    ctx.beginPath(); ctx.moveTo(A.x,A.y); ctx.lineTo(B.x,B.y);
+    if(live){
+      ctx.strokeStyle="rgba(231,178,74,.35)"; ctx.lineWidth=1.4*DPR;
+      ctx.setLineDash([2*DPR,6*DPR]); ctx.lineDashOffset=-t*40*DPR;
+    } else {
+      const seen=Game.nodes[a].visited&&Game.nodes[b].visited;
+      ctx.strokeStyle=seen?"rgba(140,150,170,.14)":"rgba(120,130,150,.06)";
+      ctx.lineWidth=1*DPR; ctx.setLineDash([]);
+    }
+    ctx.stroke(); ctx.setLineDash([]);
+  });
+}
+
+function drawDark(){
+  // the Long Dark: a creeping shadow disc that consumes the field
+  const c=worldToScreen(Game.darkX,Game.darkY);
+  const R=Game.darkR*VIEW.scale;
+  const g=ctx.createRadialGradient(c.x,c.y,R*0.4,c.x,c.y,R*1.3);
+  g.addColorStop(0,"rgba(0,0,0,0.97)");
+  g.addColorStop(0.7,"rgba(8,0,6,0.85)");
+  g.addColorStop(1,"rgba(20,2,10,0)");
+  ctx.fillStyle=g; ctx.beginPath(); ctx.arc(c.x,c.y,R*1.3,0,6.28); ctx.fill();
+  // ragged blood-edge
+  ctx.save(); ctx.globalAlpha=0.5; ctx.strokeStyle="rgba(214,72,90,.5)"; ctx.lineWidth=1.5*DPR;
+  ctx.beginPath();
+  for(let a=0;a<6.29;a+=0.18){
+    const wob=R*(1+0.06*Math.sin(a*7+performance.now()*0.001*2));
+    const x=c.x+Math.cos(a)*wob, y=c.y+Math.sin(a)*wob;
+    a===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.closePath(); ctx.stroke(); ctx.restore();
+}
+
+function nodeConsumed(n){ return dist(n.x,n.y,Game.darkX,Game.darkY) < Game.darkR; }
+
+function drawNodes(t){
+  const reach=reachableSet();
+  const gd = Game.sightDist || null;
+  Game.nodes.forEach(n=>{
+    const s=worldToScreen(n.x,n.y);
+    if(s.x<-80||s.x>W+80||s.y<-80||s.y>H+80) return;
+    const consumed=nodeConsumed(n) && n.id!==Game.pos;
+    const known = n.visited || reach.has(n.id) || n.revealed || Game.allRevealed || (gd && gd[n.id]<= (hasRelic("sight")?2:1)) || n.id===Game.origin;
+    const tw=0.6+0.4*Math.sin(t*2+n.twinkle);
+    const baseR=n.r*DPR*(0.9+0.2*tw);
+    const col=n.tdef.col, glow=n.tdef.glow;
+
+    if(consumed){
+      // swallowed: a faint cold husk
+      ctx.globalAlpha=0.25; ctx.fillStyle="#3a1020";
+      ctx.beginPath(); ctx.arc(s.x,s.y,baseR*0.7,0,6.28); ctx.fill(); ctx.globalAlpha=1; return;
+    }
+    if(!known){
+      ctx.globalAlpha=0.18; ctx.fillStyle="#555"; ctx.beginPath();
+      ctx.arc(s.x,s.y,2*DPR,0,6.28); ctx.fill(); ctx.globalAlpha=1; return;
+    }
+
+    // glow halo
+    const hg=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,baseR*4);
+    hg.addColorStop(0,glow); hg.addColorStop(0.25,glow+""); hg.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.globalAlpha=n.id===Game.origin?0.7:0.32; ctx.fillStyle=hg;
+    ctx.beginPath(); ctx.arc(s.x,s.y,baseR*4,0,6.28); ctx.fill(); ctx.globalAlpha=1;
+
+    // reachable ring
+    if(reach.has(n.id) && n.id!==Game.pos){
+      const pulse=0.5+0.5*Math.sin(t*3);
+      ctx.strokeStyle=`rgba(231,178,74,${0.4+0.4*pulse})`; ctx.lineWidth=1.5*DPR;
+      ctx.beginPath(); ctx.arc(s.x,s.y,baseR+8*DPR+pulse*4*DPR,0,6.28); ctx.stroke();
+    }
+    // hover ring
+    if(hoverNode===n.id && reach.has(n.id)){
+      ctx.strokeStyle="rgba(255,138,60,.9)"; ctx.lineWidth=2*DPR;
+      ctx.beginPath(); ctx.arc(s.x,s.y,baseR+14*DPR,0,6.28); ctx.stroke();
+    }
+
+    // core
+    ctx.fillStyle=n.drained?"#5a5448":col;
+    ctx.beginPath(); ctx.arc(s.x,s.y,baseR,0,6.28); ctx.fill();
+    if(n.id===Game.origin){
+      ctx.strokeStyle="rgba(255,255,255,.8)"; ctx.lineWidth=1.5*DPR;
+      ctx.beginPath(); ctx.arc(s.x,s.y,baseR+6*DPR+2*DPR*Math.sin(t*2),0,6.28); ctx.stroke();
+    }
+
+    // label
+    if(known && (reach.has(n.id)||n.visited||n.id===Game.origin)){
+      ctx.globalAlpha=hoverNode===n.id?1:0.55;
+      ctx.fillStyle=n.id===Game.origin?"#fff7e0":"#cdd4e0";
+      ctx.font=`${(n.id===Game.origin?13:11)*DPR}px "Courier New",monospace`;
+      ctx.textAlign="center";
+      ctx.fillText((n.id===Game.origin?"◆ ":"")+n.name+(n.id===Game.origin?" ◆":""), s.x, s.y - baseR - 12*DPR);
+      ctx.globalAlpha=0.4; ctx.font=`${9*DPR}px "Courier New",monospace`;
+      ctx.fillText(n.tdef.label.toUpperCase(), s.x, s.y + baseR + 16*DPR);
+      ctx.globalAlpha=1;
+    }
+  });
+  ctx.textAlign="left";
+}
+
+function drawShip(t){
+  const n=Game.nodes[Game.pos]; if(!n) return;
+  const s=worldToScreen(n.x,n.y);
+  // ember swarm
+  embers.forEach(e=>{
+    e.life+=0.01*e.sp; if(e.life>1){ e.life=0; e.a=rf(0,6.28); e.d=rf(4,40); }
+    const rad=e.d*DPR*(0.5+e.life);
+    const ex=s.x+Math.cos(e.a+t)*rad, ey=s.y+Math.sin(e.a+t)*rad - e.life*14*DPR;
+    ctx.globalAlpha=(1-e.life)*0.6; ctx.fillStyle=`hsl(${30+e.life*20},100%,${55+e.life*15}%)`;
+    ctx.beginPath(); ctx.arc(ex,ey,e.size*DPR*(1-e.life*0.5),0,6.28); ctx.fill();
+  });
+  ctx.globalAlpha=1;
+  // travel trail
+  trail=trail.filter(p=>p.life>0);
+  trail.forEach(p=>{ p.life-=0.02; ctx.globalAlpha=p.life*0.5; ctx.fillStyle="#ffb066";
+    const ps=worldToScreen(p.x,p.y); ctx.beginPath(); ctx.arc(ps.x,ps.y,3*DPR*p.life,0,6.28); ctx.fill(); });
+  ctx.globalAlpha=1;
+  // lantern core (intensity by light)
+  const inten=clamp(Game.light/100,0.15,1);
+  const lg=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,46*DPR*inten);
+  lg.addColorStop(0,`rgba(255,200,120,${0.9*inten})`); lg.addColorStop(0.5,`rgba(255,138,60,${0.4*inten})`);
+  lg.addColorStop(1,"rgba(0,0,0,0)");
+  ctx.fillStyle=lg; ctx.beginPath(); ctx.arc(s.x,s.y,46*DPR*inten,0,6.28); ctx.fill();
+  // little vessel diamond
+  ctx.save(); ctx.translate(s.x,s.y); ctx.rotate(t*0.3);
+  ctx.fillStyle="#fff2d8"; ctx.beginPath();
+  ctx.moveTo(0,-7*DPR); ctx.lineTo(5*DPR,0); ctx.lineTo(0,7*DPR); ctx.lineTo(-5*DPR,0); ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+
+function updateHover(){
+  if(Game.over||Game.busy){ hoverNode=-1; document.getElementById("cursor").classList.remove("hot"); return; }
+  const reach=reachableSet(); let found=-1, bd=30;
+  reach.forEach(id=>{
+    const s=worldToScreen(Game.nodes[id].x,Game.nodes[id].y);
+    const d=dist(s.x/DPR,s.y/DPR,mouse.x,mouse.y);
+    if(d<bd && !nodeConsumed(Game.nodes[id])){ bd=d; found=id; }
+  });
+  hoverNode=found;
+  document.getElementById("cursor").classList.toggle("hot",found>=0);
+}
+
+/* ============================ 5. ENCOUNTER ENGINE ============================ */
+/* Each generator returns {kick, body, choices:[{label,cost,act}], hint}. */
+function fillFrag(tpl, starNm){
+  return tpl
+    .replace(/{STAR}/g, `<em>${starNm}</em>`)
+    .replace(/{ADJ2}/g, pick(FRAG.ADJ))
+    .replace(/{ADJ}/g, ()=>pick(FRAG.ADJ))
+    .replace(/{TEXTURE}/g, pick(FRAG.TEXTURE))
+    .replace(/{LONGING}/g, pick(FRAG.LONGING));
+}
+
+function travelCost(toId){
+  const a=Game.nodes[Game.pos], b=Game.nodes[toId];
+  const base=8 + dist(a.x,a.y,b.x,b.y)/90;
+  let c=base;
+  if(hasRelic("thrift")) c*=0.8;
+  return Math.round(c);
+}
+
+function encounterFor(node){
+  const nm=node.name;
+  const opener=fillFrag(pick(FRAG.opener), nm);
+  switch(node.type){
+    case "star":   return enc_star(node,opener);
+    case "ruin":   return enc_ruin(node,opener);
+    case "signal": return enc_signal(node,opener);
+    case "bloom":  return enc_bloom(node,opener);
+    case "grave":  return enc_grave(node,opener);
+    case "rift":   return enc_rift(node,opener);
+    case "beacon": return enc_beacon(node,opener);
+    case "wake":   return enc_wake(node,opener);
+    case "origin": return enc_origin(node,opener);
+    default:       return enc_star(node,opener);
+  }
+}
+
+function gainMult(){ return hasRelic("greed")?1.4:1; }
+function gambleSwing(){ return hasRelic("gamble")?1.5:1; }
+
+function enc_star(node,opener){
+  const drained=node.drained;
+  const yield_=Math.round(rf(22,38)*gainMult());
+  return {
+    kick:"DYING STAR", body:`${opener} ${drained?"You have bled this star before; only a <span class='b'>thin residue</span> of fire remains.":"Its dying corona still holds <span class='g'>burnable light</span> — if you dare reach into it."}`,
+    choices: drained ? [
+      ch("Take the residue and move on", `+${Math.round(yield_*0.3)} light`, ()=>{ addLight(yield_*0.3); narrate("You scrape the last warmth from a star that has nothing left to give. It is enough. Barely."); }),
+      ch("Simply rest in its glow", `+6 lucidity`, ()=>{ addLuc(6); narrate("You let the dead star hold you a moment. Even ghosts of fire are warm, if you have forgotten what warm was."); }),
+    ] : [
+      ch("Harvest the corona", `+${yield_} light · −5 lucidity`, ()=>{ addLight(yield_); addLuc(-5); node.drained=true; Audio_.good(); narrate(`You plunge the lantern into the dying fire and <em>drink</em>. The light floods in, golden and screaming. <span class='g'>+${yield_} light.</span> Something in you dims to make room.`); }),
+      ch("Harvest gently, taking only what won't hurt", `+${Math.round(yield_*0.6)} light`, ()=>{ const g=Math.round(yield_*0.6); addLight(g); node.drained=true; narrate(`You take only the warmth at the edges. The star keeps its heart. <span class='g'>+${g} light.</span> Mercy is a cost you can sometimes afford.`); }),
+      ch("Chart it, and leave it whole", `+1 memory`, ()=>{ gainMemory(); narrate("You do not take. You only <em>witness</em> — and write down the exact shade of its dying, so that somewhere a record exists that it was beautiful."); }),
+    ],
+    hint:"Dying stars are the only reliable light. But light spent watching them is gone too.",
+  };
+}
+
+function enc_ruin(node,opener){
+  return {
+    kick:"DRIFT RUIN", body:`${opener} A <span class='c'>derelict</span> turns slowly in the dark — some vessel that stopped sailing long ago. Its airlocks gape like open mouths.`,
+    choices:[
+      ch("Board it and salvage", `risk · light/relic/loss`, ()=>{
+        const r=rnd()*gambleSwing();
+        if(r<0.4){ const g=Math.round(rf(14,26)); addLight(g); narrate(`Inside, a sealed reserve of lantern-oil, untouched. <span class='g'>+${g} light.</span> The dead, sometimes, are generous.`); }
+        else if(r<0.72){ gainRelic(); narrate(`Lashed to the captain's chair, a relic — ${pick(FRAG.relicFlavor)}. You take it. You whisper thanks to whoever stopped here.`); }
+        else { const l=Math.round(rf(8,16)); addLight(-l); addLuc(-8); Audio_.bad(); narrate(`The ruin is not empty. Something <span class='b'>moves</span> in the dark of it. You flee, and the lantern guttered in the running. <span class='b'>−${l} light, −8 lucidity.</span>`); }
+      }),
+      ch("Read its final log, then leave", `+1 memory · +4 lucidity`, ()=>{ gainMemory(); addLuc(4); narrate("You find the last entry and read it aloud, so the words are spoken one final time. Then you let the dead keep their house."); }),
+      ch("Leave it undisturbed", `—`, ()=>{ narrate("You let the derelict drift. Some graves are not for robbing, no matter how cold you are."); }),
+    ],
+    hint:"Ruins are a gamble: oil, relics, or a thing that should have stayed asleep.",
+  };
+}
+
+function enc_signal(node,opener){
+  const voice=pick(FRAG.voice);
+  return {
+    kick:"LONE SIGNAL", body:`${opener} A voice threads through the static — <span class='c'>another sailor</span>, or the memory of one. ${voice}`,
+    choices:[
+      ch("Trade light for their charts", `−12 light · +2 memory · sight`, ()=>{
+        if(Game.light<12){ narrate("You haven't the light to spare. The signal fades, unanswered. Out here, you cannot afford every kindness."); return; }
+        addLight(-12); gainMemory(); gainMemory(); narrate("You hand over a measure of your fire. In return: their charts, their warnings, their <em>names</em>. The dark is a little less anonymous now.");
+      }),
+      ch("Offer comfort, ask nothing", `+8 lucidity`, ()=>{ addLuc(8); narrate("You tell the signal that it mattered. That its voyage was seen. The static softens, almost like a held breath finally let go. You feel, briefly, less alone."); }),
+      ch("Take their coordinates and go", `+1 memory`, ()=>{ gainMemory(); narrate("You log the signal's position and sail on. Mercy is expensive; you are running a deficit. You will mourn this later, when you can afford to."); }),
+    ],
+    hint:"Signals are other sailors — comfort, charts, or company in the cold.",
+  };
+}
+
+function enc_bloom(node,opener){
+  return {
+    kick:"VOID BLOOM", body:`${opener} Impossibly, something <span style='color:#c46fd6'>grows</span> here — a slow violet bloom of life feeding on the dark itself. It pulses in time with your heartbeat. Or your heartbeat pulses in time with it.`,
+    choices:[
+      ch("Graft a cutting to your lantern", `risk · lucidity swing`, ()=>{
+        const r=rnd()*gambleSwing();
+        if(r<0.55){ addLuc(14); addLight(6); narrate("The bloom takes to the lantern like it was always meant to live there. Your mind clears; the light burns cleaner. <span class='c'>+14 lucidity, +6 light.</span>"); }
+        else { addLuc(-16); Audio_.bad(); narrate("The bloom does not want your lantern. It wants <em>you</em>. You tear it free, but its whispers stay lodged behind your eyes. <span class='b'>−16 lucidity.</span>"); }
+      }),
+      ch("Study it without touching", `+1 memory · +6 lucidity`, ()=>{ gainMemory(); addLuc(6); narrate("You watch life insist upon itself in a place that forbids it, and something in you steadies. If this can grow here, perhaps you can sail here."); }),
+      ch("Burn it for fear of it", `+10 light · −10 lucidity`, ()=>{ addLight(10); addLuc(-10); narrate("You set the bloom alight and warm your hands at its dying. It made a sound. You will hear that sound on the quiet nights for the rest of the voyage."); }),
+    ],
+    hint:"Blooms are alive — and what is alive out here is never only one thing.",
+  };
+}
+
+function enc_grave(node,opener){
+  return {
+    kick:"STAR GRAVE", body:`${opener} This is a <span style='color:#9aa0ad'>graveyard of suns</span> — a drift of cooled stellar cores, each one a star that finished dying before you were built. The cold here is total. The quiet, complete.`,
+    choices:[
+      ch("Hold vigil for the dead stars", `+12 lucidity · +1 memory`, ()=>{ addLuc(12); gainMemory(); narrate("You stop. You stay. You let yourself grieve the strangers — the suns no one was left to mourn. Grief, it turns out, is a kind of light too. It does not warm. But it <em>orients</em>."); }),
+      ch("Mine a core for dense fuel", `+${Math.round(20*gainMult())} light · −10 lucidity`, ()=>{ const g=Math.round(20*gainMult()); addLight(g); addLuc(-10); Audio_.good(); narrate(`You crack a dead star's heart and burn it. It gives more light than the living ever did. <span class='g'>+${g}.</span> You try not to think about what you just did. You fail.`); }),
+      ch("Pass through in silence", `−2 lucidity`, ()=>{ addLuc(-2); narrate("You sail through the graveyard without stopping, eyes forward. The dead stars watch you pass. You feel them not-forgive you for hurrying."); }),
+    ],
+    hint:"Graves hold the densest fuel and the heaviest cost to your mind.",
+  };
+}
+
+function enc_rift(node,opener){
+  return {
+    kick:"BLACK RIFT", body:`${opener} The chart simply <span class='b'>ends</span> here, torn — a rift in the dark where the rules of distance unravel. Stare too long and you feel it staring back, taking your measure.`,
+    choices:[
+      ch("Cast the lantern's light into the rift", `risk · large swing`, ()=>{
+        const r=rnd()*gambleSwing();
+        if(r<0.45){ const g=Math.round(rf(24,40)); addLight(g); gainMemory(); narrate(`The rift answers light with light — a flood of it, older than the lantern, older than the dark. <span class='g'>+${g} light, +1 memory.</span> You will never tell anyone what you saw in there.`); }
+        else { const l=Math.round(rf(16,28)); addLight(-l); addLuc(-14); Audio_.bad(); narrate(`The rift drinks your light and gives back only <em>cold</em>, and the certainty that it knows the exact hour you will fail. <span class='b'>−${l} light, −14 lucidity.</span>`); }
+      }),
+      ch("Map the edge of the unmappable", `+2 memory · −6 lucidity`, ()=>{ gainMemory(); gainMemory(); addLuc(-6); narrate("You chart the rim of the rift — the precise geometry of where understanding stops. It is the best work you have ever done. It costs you sleep you do not have."); }),
+      ch("Retreat from it", `−4 lucidity`, ()=>{ addLuc(-4); narrate("You pull away. Wisely. But some part of you will always wonder what the rift would have shown you, and wondering, too, has a price."); }),
+    ],
+    hint:"Rifts are the deep gamble — the largest light, the deepest harm.",
+  };
+}
+
+function enc_beacon(node,opener){
+  return {
+    kick:"OLD BEACON", body:`${opener} A <span style='color:#9be7c4'>beacon</span> stands here — ancient, automated, still faithfully sweeping its lamp across a dark that stopped having ships to warn a long time ago. Its light is steady. Steadiness, out here, is the rarest thing of all.`,
+    choices:[
+      ch("Synchronise your lantern to its rhythm", `+18 lucidity`, ()=>{ addLuc(18); Audio_.good(); narrate("You let your guttering, panicked light fall into step with the beacon's slow, certain pulse. In and out. In and out. For the first time in a long time, your mind stops <em>racing</em> and simply <em>keeps time</em>. <span class='c'>+18 lucidity.</span>"); }),
+      ch("Climb the beacon and read the dark from its height", `reveal the chart`, ()=>{ revealAll(); narrate("From the beacon's lamp-deck the whole chart lays itself out below you — every star you have not yet reached, every road through the dark. You will not be sailing blind again. <span class='c'>The chart is revealed.</span>"); }),
+      ch("Take the beacon's spare oil and go", `+${Math.round(16*gainMult())} light · −4 lucidity`, ()=>{ const g=Math.round(16*gainMult()); addLight(g); addLuc(-4); narrate(`You drain the beacon's reserve. Its light flickers, then steadies again on less. It will burn a little dimmer now, for a little less time. <span class='g'>+${g} light.</span> It does not complain. That is the worst part.`); }),
+    ],
+    hint:"Beacons mend the mind and lift the fog from the chart — but they are themselves dying.",
+  };
+}
+
+function enc_wake(node,opener){
+  const them=starName().replace(/'.*$/,"");
+  return {
+    kick:"CARTOGRAPHER'S WAKE", body:`${opener} You find the wreck of a lantern-vessel exactly like your own. <span class='g'>Another Cartographer</span> came this far — and no further. Their lantern is cold. Their charts are nearly finished. Their last entry is addressed, impossibly, to <em>whoever comes next.</em>`,
+    choices:[
+      ch("Take up their unfinished work", `+1 relic · −4 lucidity`, ()=>{ gainRelic(); addLuc(-4); narrate("You inherit their tools, their relic, their half-drawn road through the dark. You also inherit the knowledge that they were good, and careful, and brave — and the dark took them anyway. <span class='b'>−4 lucidity.</span> You sail on heavier, and better equipped."); }),
+      ch("Read their final entry aloud, and finish their map", `+2 memory · +6 lucidity`, ()=>{ gainMemory(); gainMemory(); addLuc(6); narrate("You finish what they started — draw the last few lines they did not live to draw — and read their last words into the dark so they are <em>spoken</em>, so the sending arrives. Somewhere, a circuit completes. You are less alone for having honored someone who was."); }),
+      ch("Salvage their light and move quickly on", `+${Math.round(14*gainMult())} light · −8 lucidity`, ()=>{ const g=Math.round(14*gainMult()); addLight(g); addLuc(-8); Audio_.good(); narrate(`You drain a dead colleague's lantern into your own and do not stop to mourn — there is no time, there is never time. <span class='g'>+${g} light.</span> You tell yourself they would understand. You are almost sure of it. Almost.`); }),
+    ],
+    hint:"A Wake is the surest source of relics — and the surest reminder of where this road ends.",
+  };
+}
+
+function revealAll(){ Game.nodes.forEach(n=>n.revealed=true); Game.allRevealed=true; }
+
+function enc_origin(node,opener){
+  return {
+    kick:"◆ THE ORIGIN ◆", body:`Ahead of you, impossibly, a fire that does not flicker. <em>The Origin.</em> The first light. The one flame the Long Dark has never reached and never will. Every story said it was a story. It is not. It is <span class='g'>right there</span>, and it is warm, and it is calling the lantern home.`,
+    choices:[
+      ch("Sail into the first light", `end the voyage`, ()=>{ winGame(); }),
+    ],
+    hint:"You made it. There is nothing left to spend. Go.",
+  };
+}
+
+function ch(label,cost,act){ return {label,cost,act}; }
+
+/* ============================ 6. GAME FLOW ============================ */
+function hasRelic(id){ return Game.relics.some(r=>r.id===id); }
+
+function addLight(d){ Game.light=clamp(Game.light+d,0,140); refreshHUD(); }
+function addLuc(d){ Game.luc=clamp(Game.luc+d,0,100); refreshHUD(); }
+
+function gainMemory(){
+  const txt=pick(FRAG.memory);
+  Game.memories.push({txt, where:Game.nodes[Game.pos].name, turn:Game.turn});
+  Audio_.reveal();
+  toast("A memory recovered","gold");
+  renderMemList();
+  refreshHUD();
+}
+function gainRelic(){
+  // pick a relic the player doesn't have yet, if possible
+  const owned=new Set(Game.relics.map(r=>r.id));
+  const pool=RELICS.filter(r=>!owned.has(r.id));
+  const def=(pool.length?pick(pool):pick(RELICS));
+  const inst={id:def.id, name:def.name(), desc:def.desc, tag:def.tag};
+  Game.relics.push(inst);
+  toast("Relic acquired · "+inst.name,"good");
+  Audio_.good();
+  renderRelics();
+}
+
+function travelTo(id){
+  if(Game.over||Game.busy) return;
+  if(!Game.adj[Game.pos].includes(id)) return;
+  if(nodeConsumed(Game.nodes[id])){ toast("That star is gone — the dark has it","bad"); Audio_.bad(); return; }
+  const cost=travelCost(id);
+  if(Game.light<cost){ toast("Not enough light to cross","bad"); Audio_.bad(); flash(true); return; }
+
+  Game.busy=true;
+  addLight(-cost);
+  // leave a trail from current to target
+  const A=Game.nodes[Game.pos], B=Game.nodes[id];
+  for(let k=0;k<14;k++){ trail.push({x:lerp(A.x,B.x,k/14),y:lerp(A.y,B.y,k/14),life:1}); }
+  Audio_.travel();
+
+  Game.pos=id; Game.nodes[id].visited=true; Game.visited.add(id);
+  centerOn(Game.nodes[id]);
+  Game.turn++;
+  // reach scoring = graph distance from start
+  Game.sightDist=graphDist(Game.pos);
+  const startDist=graphDist(0);
+  Game.reach=Math.max(Game.reach, startDist[id]||0);
+  checkMilestones();
+
+  // echo relic: memories restore a little lucidity on arrival
+  if(hasRelic("echo") && Game.memories.length) addLuc(Math.min(6,Game.memories.length));
+
+  advanceDark();
+  applyDarkPressure();
+
+  // narrative trigger: first moment the Origin becomes adjacent — the last jump
+  if(!Game.sawOriginNear && Game.adj[Game.pos].includes(Game.origin) && Game.pos!==Game.origin){
+    Game.sawOriginNear=true;
+    Game.pendingReflection="One jump. Just one jump now between your guttering lantern and the first light. After everything — the bled stars, the dead colleagues, the voice in the dark that knew your name — it comes down to a single, ordinary crossing. Make it count. Make it gently. Make it.";
+    toast("THE ORIGIN IS ONE JUMP AWAY","gold");
+    Audio_.reveal();
+  }
+
+  // small delay → encounter (let camera glide)
+  setTimeout(()=>{
+    if(Game.over) return;
+    if(id===Game.origin){ openEncounter(Game.nodes[id]); Game.busy=false; return; }
+    openEncounter(Game.nodes[id]);
+    Game.busy=false;
+  }, 520);
+
+  refreshHUD();
+  closePanel();
+}
+
+function advanceDark(){
+  // the dark creeps toward the player's *origin direction* — i.e. expands + drifts inward
+  let grow = 64;
+  if(hasRelic("ward")) grow*=0.7;
+  Game.darkR += grow + Game.turn*1.4;
+  // drift the dark's center slowly toward the average of visited nodes (chasing you)
+  Game.darkX += (Game.nodes[Game.pos].x - Game.darkX)*0.02;
+  Game.darkY += (Game.nodes[Game.pos].y - Game.darkY)*0.02;
+  Audio_.mood(clamp(Game.darkR/2000,0,1));
+}
+
+function applyDarkPressure(){
+  // distance from player to dark edge → lucidity pressure if close/inside
+  const d=dist(Game.nodes[Game.pos].x,Game.nodes[Game.pos].y,Game.darkX,Game.darkY);
+  const margin=d-Game.darkR;
+  let drain=0, label="far", frac=0;
+  if(margin<0){ drain=18; label="HERE"; frac=1; }
+  else if(margin<200){ drain=10; label="upon you"; frac=0.85; }
+  else if(margin<450){ drain=5; label="near"; frac=0.6; }
+  else if(margin<800){ drain=2; label="closing"; frac=0.35; }
+  else { drain=0; label="far"; frac=0.15; }
+  if(hasRelic("clarity")) drain*=0.5;
+  if(drain>0){ addLuc(-drain); if(drain>=10){ flash(true); Audio_.bad(); } }
+  Game.darkLabel=label; Game.darkFrac=frac;
+
+  checkDeath();
+}
+
+function checkDeath(){
+  if(Game.over) return;
+  if(Game.light<=0){ endGame(false,"light"); return; }
+  if(Game.luc<=0){ endGame(false,"luc"); return; }
+}
+
+function winGame(){ endGame(true); }
+
+/* Weave a closing line from whatever memories the player actually carried,
+   so the epilogue is unique to this voyage. If they arrived empty-handed,
+   the Origin notes the cost of that choice too. */
+function buildEpilogue(){
+  if(!Game.memories.length){
+    return `<b>You arrived carrying nothing</b> — you spent every memory on light, traded every story for one more jump.
+      The Origin does not judge this. It only notes, gently, that a fire with nothing to remember is just heat.`;
+  }
+  const m=pick(Game.memories).txt.replace(/<\/?em>/g,"");
+  const closers=[
+    "In the first light, you finally let yourself believe it:",
+    "And in the warmth, the last thing you charted was your own voice, saying:",
+    "The Origin asks for one memory in payment. You give it this one:",
+    "Of everything you carried, this is the line the first fire chose to keep:",
+  ];
+  return `<i style="opacity:.85">${pick(closers)} “${m}”</i>`;
+}
+
+function endGame(won,cause){
+  if(Game.over) return;
+  Game.over=true; Game.busy=true;
+  closePanel(); closeDrawer();
+  // meta progression
+  const meta=loadMeta();
+  meta.echoes=(meta.echoes||0)+1;
+  meta.best=Math.max(meta.best||0, Game.reach);
+  if(won) meta.wins=(meta.wins||0)+1;
+  saveMeta(meta);
+
+  const end=document.getElementById("end");
+  const tEl=document.getElementById("endTitle");
+  const sup=document.getElementById("endSup");
+  const body=document.getElementById("endBody");
+  const m=document.getElementById("endMeta");
+
+  if(won){
+    Audio_.win(); flash(false);
+    tEl.textContent="THE ORIGIN"; tEl.className="win"; sup.textContent="the voyage is complete";
+    body.innerHTML=`You sail into the first light, and the lantern — your faithful, hungry, dying lantern — finally <b>rests</b>.
+      You carried <b>${Game.memories.length} memories</b> across the dark. The Origin keeps them now. It keeps you too.
+      ${buildEpilogue()}
+      You are the only Cartographer who ever arrived. The dark will not have the last word tonight.`;
+  } else {
+    Audio_.death(); flash(true);
+    tEl.className="lose";
+    if(cause==="light"){
+      tEl.textContent="THE DARK"; sup.textContent="the lantern has gone out";
+      body.innerHTML=`Your light reached zero. The lantern dims, flickers, and is simply <b>gone</b> — and so are you,
+        somewhere between ${Game.nodes[Game.pos].name} and a star you will never reach.
+        You charted <b>${Game.reach}</b> jumps into the dark and gathered <b>${Game.memories.length} memories</b>.
+        Someone, someday, may find them. That will have to be enough.`;
+    } else {
+      tEl.textContent="THE LONG DARK"; sup.textContent="the dark inside arrived first";
+      body.innerHTML=`Your lucidity failed before your light did. The dark you could not outrun was never the one behind you —
+        it was the one you carried. You stop sailing. You sit in the glow of a dead star and you <b>rest</b>, at last,
+        and the Long Dark, patient as it always was, simply catches up. <b>${Game.memories.length} memories</b>, ungiven.`;
+    }
+  }
+  m.innerHTML=`Voyages survived: <b>${meta.echoes}</b> · Origins reached: <b>${meta.wins||0}</b> · Deepest reach: <b>${meta.best}</b> jumps · Star-chart: <b>${Game.seed}</b>`;
+  setTimeout(()=>{ end.classList.remove("hide"); }, won?1400:1100);
+}
+
+/* ============================ 7. UI PLUMBING ============================ */
+function refreshHUD(){
+  document.getElementById("lightV").textContent=Math.round(Game.light);
+  document.getElementById("lucV").textContent=Math.round(Game.luc);
+  document.getElementById("lightBar").style.width=clamp(Game.light/140*100,0,100)+"%";
+  document.getElementById("lucBar").style.width=clamp(Game.luc,0,100)+"%";
+  document.getElementById("darkV").textContent=Game.darkLabel||"far";
+  document.getElementById("darkBar").style.width=clamp((Game.darkFrac||0.15)*100,0,100)+"%";
+  document.getElementById("memCount").textContent=Game.memories.length;
+
+  const gd=Game.sightDist||graphDist(Game.pos);
+  const toOrigin=gd[Game.origin];
+  const here=Game.nodes[Game.pos];
+  let stat=`<div>VESSEL AT</div><div class="v">${here?here.name:"—"}</div>
+    <div style="margin-top:8px">JUMPS TO ORIGIN</div><div class="v">${isFinite(toOrigin)?toOrigin:"—"}</div>
+    <div style="margin-top:8px">RELICS · <span class="v">${Game.relics.length}</span></div>
+    <div>TURN · <span class="v">${Game.turn}</span></div>`;
+  if((Game.darkLabel==="upon you"||Game.darkLabel==="HERE")) stat+=`<div class="warn" style="margin-top:8px">◀ THE DARK IS HERE</div>`;
+  if(Game.light<22) stat+=`<div class="warn">◀ LIGHT FAILING</div>`;
+  if(Game.luc<22) stat+=`<div class="warn">◀ MIND FAILING</div>`;
+  document.getElementById("stat").innerHTML=stat;
+}
+
+/* When lucidity frays, the dark begins editing your encounters:
+   it slips a whisper into the prose and offers a seductive false choice
+   that "rests" the lantern — i.e. quietly bleeds you. The lower your mind,
+   the louder it gets. This is both atmosphere and a real difficulty curve. */
+function hallucinate(enc){
+  if(Game.luc>=40) return enc;
+  const intensity=clamp((40-Game.luc)/40,0,1); // 0..1
+  // inject a whisper into the body
+  if(chance(0.5+intensity*0.4)){
+    const w=pick(FRAG.whisper);
+    enc.body+=` &nbsp; ${w}`;
+  }
+  // offer the dark's false bargain
+  if(chance(0.35+intensity*0.5)){
+    enc.choices.push(ch(
+      pick(["Stop here. Rest the lantern.","Listen to the voice. It sounds kind.","Set down the light, just for a moment.","Answer the dark when it calls your name."]),
+      "the dark whispers",
+      ()=>{
+        const cost=Math.round(rf(10,22)*(1+intensity));
+        addLight(-cost); addLuc(-Math.round(rf(4,10)));
+        Audio_.bad(); flash(true);
+        narrate(`You stop. The voice was so <em>kind</em>. For one warm, weightless moment you are not afraid — and the lantern bleeds <span class='b'>${cost} light</span> into the dark while you rest. You wake colder. The dark did not lie. It simply did not mention the price.`);
+      }
+    ));
+  }
+  return enc;
+}
+
+let currentEnc=null;
+function openEncounter(node){
+  currentEnc=hallucinate(encounterFor(node));
+  // fold a pending milestone reflection into the opening prose, once
+  if(Game.pendingReflection){
+    currentEnc.body=`<i style="color:#9aa0ad">${Game.pendingReflection}</i><br><br>`+currentEnc.body;
+    Game.pendingReflection=null;
+  }
+  const p=document.getElementById("panel");
+  document.getElementById("pKick").textContent=currentEnc.kick;
+  document.getElementById("pTag").textContent=node.name+" · "+node.tdef.label;
+  // typewriter the body
+  typewrite(document.getElementById("pBody"), currentEnc.body, ()=>{ renderChoices(currentEnc); });
+  document.getElementById("pChoices").innerHTML="";
+  document.getElementById("pHint").textContent="";
+  p.classList.add("on");
+}
+
+let typingTimer=null;
+function typewrite(el, html, done){
+  clearInterval(typingTimer);
+  // strip to plain for speed but keep simple — we reveal by character on a temp
+  el.innerHTML="";
+  // We type the visible text but preserve tags: simple approach — split into tokens
+  const tokens=[]; let i=0;
+  while(i<html.length){
+    if(html[i]==="<"){ const j=html.indexOf(">",i); tokens.push(html.slice(i,j+1)); i=j+1; }
+    else { tokens.push(html[i]); i++; }
+  }
+  let k=0, acc="";
+  typingTimer=setInterval(()=>{
+    if(k>=tokens.length){ clearInterval(typingTimer); if(done) done(); return; }
+    acc+=tokens[k++];
+    // keep typing through tags without delay
+    while(k<tokens.length && tokens[k-1].startsWith("<")){ acc+=tokens[k++]; }
+    el.innerHTML=acc;
+    if(k%3===0) Audio_.blip(880+rnd()*120,0.02,"square",0.015);
+  }, 12);
+}
+
+function renderChoices(enc){
+  const wrap=document.getElementById("pChoices"); wrap.innerHTML="";
+  enc.choices.forEach((c,idx)=>{
+    const b=document.createElement("button"); b.className="choice";
+    b.innerHTML=`<span class="key">${idx+1}</span><span>${c.label}</span><span class="cost">${costFmt(c.cost)}</span>`;
+    b.onclick=()=>resolveChoice(c);
+    wrap.appendChild(b);
+  });
+  document.getElementById("pHint").textContent=enc.hint||"";
+}
+function costFmt(s){
+  return (s||"").replace(/\+(\d+[^·]*)/g,'<span class="pos">+$1</span>').replace(/−(\d+[^·]*)/g,'<span class="neg">−$1</span>');
+}
+
+function resolveChoice(c){
+  if(Game.over) return;
+  // run the choice's effect, which narrates a follow-up
+  c.act();
+  // After acting, lock choices and show a "continue" until next travel
+  const wrap=document.getElementById("pChoices");
+  wrap.innerHTML="";
+  const cont=document.createElement("button");
+  cont.className="choice"; cont.innerHTML=`<span class="key">↵</span><span>Sail on — choose a linked star</span>`;
+  cont.onclick=()=>{ closePanel(); toast("Choose a linked star to continue the voyage","gold"); };
+  wrap.appendChild(cont);
+  refreshHUD();
+  checkDeath();
+}
+
+// narrate: replace the body with an outcome line (typed)
+function narrate(html){
+  typewrite(document.getElementById("pBody"), html, null);
+}
+
+function closePanel(){ document.getElementById("panel").classList.remove("on"); }
+
+function toast(msg,kind){
+  const t=document.createElement("div"); t.className="toast "+(kind||""); t.textContent=msg;
+  document.getElementById("toasts").appendChild(t);
+  setTimeout(()=>t.remove(),4200);
+}
+function flash(dark){
+  const f=document.getElementById("flash"); f.classList.toggle("dark",!!dark);
+  f.style.opacity=dark?"0.5":"0.35";
+  setTimeout(()=>f.style.opacity="0",90);
+}
+
+function renderMemList(){
+  const list=document.getElementById("memList"); list.innerHTML="";
+  if(!Game.memories.length){ list.innerHTML="<div style='color:#4a463d;font-style:italic'>No memories yet. The dark has not given anything back. Not yet.</div>"; }
+  [...Game.memories].reverse().forEach((m,i)=>{
+    const d=document.createElement("div"); d.className="mem"; d.style.animationDelay=(i*0.04)+"s";
+    d.innerHTML=`<div class="mh">recovered at ${m.where} · turn ${m.turn}</div><div class="mb">${m.txt}</div>`;
+    list.appendChild(d);
+  });
+  document.getElementById("drawerSub").textContent=`${Game.memories.length} fragments salvaged from the dark`;
+}
+function renderRelics(){
+  const wrap=document.getElementById("relics"); wrap.innerHTML="";
+  if(Game.relics.length){
+    const h=document.createElement("div"); h.style.marginBottom="18px";
+    Game.relics.forEach(r=>{
+      const t=document.createElement("div"); t.className="relicTag"; t.title=r.desc;
+      t.textContent=r.name+" — "+r.desc;
+      t.style.display="block"; t.style.margin="0 0 6px 0";
+      h.appendChild(t);
+    });
+    wrap.appendChild(h);
+  }
+}
+function openDrawer(){ document.getElementById("drawer").classList.add("on"); renderMemList(); renderRelics(); }
+function closeDrawer(){ document.getElementById("drawer").classList.remove("on"); }
+
+/* The Codex: lore for every star-archetype and relic, built from the data
+   tables so it can never drift out of sync with the actual game. */
+const CODEX_LORE={
+  star:"A sun in the long act of dying. The only dependable light left in the void — and every measure you take from it is a measure it will never give again.",
+  ruin:"A vessel that stopped sailing. Some hold oil and relics; some hold the reason their crews stopped. You rarely learn which until you are already aboard.",
+  signal:"A voice in the static — another sailor, living or remembered. Out here, company is a resource as real as light, and twice as scarce.",
+  bloom:"Life, growing where life is forbidden, feeding on the dark itself. Beautiful. Patient. Never only one thing.",
+  grave:"A drift of cooled stellar hearts — stars that finished dying alone. The densest fuel in the void, and the heaviest toll on the mind that burns it.",
+  rift:"A wound in distance where the chart simply ends. The deepest gamble: the largest light, the deepest harm, and the certainty it is looking back.",
+  beacon:"An automated lamp still faithfully warning ships that stopped existing an age ago. It mends the mind and lifts the fog — by spending the last of itself.",
+  wake:"The wreck of a Cartographer who sailed before you, and no further. The surest place to find relics, and to remember exactly where this road ends.",
+  origin:"The first light. The one fire the Long Dark has never reached. Every story said it was only a story. The stories were wrong.",
+};
+function renderCodex(){
+  const body=document.getElementById("codexBody"); body.innerHTML="";
+  const order=["star","beacon","wake","signal","ruin","bloom","grave","rift","origin"];
+  order.forEach(k=>{
+    const def = k==="origin" ? {col:"#fff",glow:"#fff7e0",label:"The Origin"} : NODE_TYPES[k];
+    const c=document.createElement("div"); c.className="codexCard";
+    c.style.borderLeftColor=def.col;
+    c.innerHTML=`<div class="ch"><span class="dot" style="background:${def.glow};color:${def.glow}"></span>
+      <span class="nm">${def.label}</span></div><div class="lore">${CODEX_LORE[k]}</div>`;
+    body.appendChild(c);
+  });
+  // relics section
+  RELICS.forEach(r=>{
+    const owned=hasRelic(r.id);
+    const c=document.createElement("div"); c.className="codexCard relic";
+    c.innerHTML=`<div class="ch"><span class="dot" style="background:#6fb6d6;color:#6fb6d6"></span>
+      <span class="nm">Relic · ${r.tag}${owned?" · CARRIED":""}</span></div>
+      <div class="lore">${r.desc} ${owned?"<span style='color:#6fb6d6'>You carry one such relic now.</span>":""}</div>`;
+    body.appendChild(c);
+  });
+}
+function openCodex(){ renderCodex(); document.getElementById("codex").classList.add("on"); }
+function closeCodex(){ document.getElementById("codex").classList.remove("on"); }
+
+/* ---- meta persistence (best-effort; localStorage may be unavailable) ---- */
+function loadMeta(){ try{ return JSON.parse(localStorage.getItem("aether_meta")||"{}"); }catch(e){ return {}; } }
+function saveMeta(m){ try{ localStorage.setItem("aether_meta",JSON.stringify(m)); }catch(e){} }
+function refreshTitleMeta(){
+  const m=loadMeta();
+  document.getElementById("echoCount").textContent=m.echoes||0;
+  document.getElementById("bestReach").textContent=(m.best?m.best+" jumps":"∞");
+}
+
+/* ---- input ---- */
+const cursorEl=document.getElementById("cursor");
+addEventListener("pointermove",e=>{ mouse.x=e.clientX; mouse.y=e.clientY;
+  cursorEl.style.left=e.clientX+"px"; cursorEl.style.top=e.clientY+"px"; });
+addEventListener("pointerdown",()=>cursorEl.style.transform="scale(.85)");
+addEventListener("pointerup",()=>cursorEl.style.transform="scale(1)");
+
+cv.addEventListener("click",()=>{ if(hoverNode>=0) travelTo(hoverNode); });
+
+addEventListener("keydown",e=>{
+  if(e.key==="l"||e.key==="L"){ const d=document.getElementById("drawer"); d.classList.contains("on")?closeDrawer():openDrawer(); }
+  if(e.key==="m"||e.key==="M"){ toggleAudio(); }
+  if(e.key==="?"||e.key==="/"){ const c=document.getElementById("codex"); c.classList.contains("on")?closeCodex():openCodex(); }
+  if(e.key==="Escape"){ closeDrawer(); closeCodex(); }
+  // number keys pick choices if panel open
+  if(/^[1-9]$/.test(e.key)){
+    const btns=document.querySelectorAll("#pChoices .choice");
+    const idx=parseInt(e.key)-1; if(btns[idx]) btns[idx].click();
+  }
+  if(e.key==="Enter"){ const c=document.querySelector("#pChoices .choice"); if(c && document.getElementById("panel").classList.contains("on")){
+    const last=document.querySelectorAll("#pChoices .choice"); if(last.length===1) last[0].click(); } }
+});
+
+document.getElementById("logBtn").onclick=()=>{ const d=document.getElementById("drawer"); d.classList.contains("on")?closeDrawer():openDrawer(); };
+document.getElementById("drawerClose").onclick=closeDrawer;
+document.getElementById("codexClose").onclick=closeCodex;
+
+function toggleAudio(){ const on=Audio_.toggle(); document.getElementById("audioBtn").classList.toggle("on",on); }
+document.getElementById("audioBtn").onclick=toggleAudio;
+
+/* ---- tip auto-hide ---- */
+let tipHidden=false;
+function hideTip(){ if(!tipHidden){ tipHidden=true; document.getElementById("tip").style.opacity="0"; } }
+
+/* The one outfitting decision before you sail: which single relic do you
+   carry into the dark? Three are offered from the salvage at your home star;
+   the choice shapes the whole voyage, and you live with it. */
+function offerStartingRelic(){
+  const pool=shuffle([...RELICS]).slice(0,3);
+  const wrap=document.getElementById("pChoices"); wrap.innerHTML="";
+  document.getElementById("pHint").textContent="Choose ONE relic to carry. You cannot come back for the others — out here, nothing waits.";
+  pool.forEach((def,idx)=>{
+    const inst={id:def.id, name:def.name(), desc:def.desc, tag:def.tag};
+    const b=document.createElement("button"); b.className="choice";
+    b.innerHTML=`<span class="key">${idx+1}</span><span><b style="color:#bfe6f4">${inst.name}</b> — ${inst.desc}</span><span class="cost">take</span>`;
+    b.onclick=()=>{
+      Game.relics.push(inst); renderRelics(); Audio_.good();
+      toast("You sail carrying · "+inst.name,"good");
+      narrate(`You take up <b style="color:#bfe6f4">${inst.name}</b> — ${pick(FRAG.relicFlavor)} — and leave the rest in the cold. The lantern brightens, just slightly, as if it approves. Now: <em>choose a linked star, and sail.</em>`);
+      const w2=document.getElementById("pChoices"); w2.innerHTML="";
+      const cont=document.createElement("button"); cont.className="choice";
+      cont.innerHTML=`<span class="key">↵</span><span>Cast off — click a pulsing star to make your first jump</span>`;
+      cont.onclick=()=>{ closePanel(); toast("Hover a ringed star and click to travel","gold"); };
+      w2.appendChild(cont);
+      document.getElementById("pHint").textContent="Each jump costs light and feeds the Long Dark. Watch your mind as closely as your fuel.";
+    };
+    wrap.appendChild(b);
+  });
+}
+
+/* ============================ 8. BOOT ============================ */
+function startVoyage(seedStr){
+  document.getElementById("title").classList.add("hide");
+  document.getElementById("end").classList.add("hide");
+  generateWorld(seedStr);
+  Game.sightDist=graphDist(Game.pos);
+  Game.darkLabel="far"; Game.darkFrac=0.15;
+  refreshHUD(); renderMemList(); renderRelics();
+  // opening beat
+  setTimeout(()=>{
+    openEncounter(Game.nodes[0]);
+    // node 0 is treated as a star; override its opener to a launch monologue:
+    const intro=`The lantern is lit. Behind you, the <span class='b'>Long Dark</span> has already begun to eat the chart.
+      Ahead, ${Game.nodes[Game.origin].name} burns — <span class='g'>the Origin</span>, ${isFinite(graphDist(0)[Game.origin])?graphDist(0)[Game.origin]:"many"} jumps through the void.
+      You have one tank of light and one fragile mind. <em>Spend them well.</em>`;
+    typewrite(document.getElementById("pBody"), intro, ()=>{
+      document.getElementById("pKick").textContent="EMBARKATION";
+      document.getElementById("pTag").textContent=Game.nodes[0].name+" · Home Star";
+      offerStartingRelic();
+    });
+  },700);
+  hideTip(); setTimeout(hideTip,8000);
+}
+
+document.getElementById("startBtn").onclick=()=>{
+  if(!Audio_.on){ /* don't autostart; user can toggle */ }
+  startVoyage("AETHER-"+Date.now().toString(36)+"-"+Math.floor(Math.random()*1e6).toString(36));
+};
+document.getElementById("seedBtn").onclick=()=>{
+  const s=prompt("Name your star-chart (same name → same voyage):","the-quiet-hadal");
+  if(s){ startVoyage(s.trim()); }
+};
+document.getElementById("againBtn").onclick=()=>{
+  document.getElementById("end").classList.add("hide");
+  document.getElementById("title").classList.remove("hide");
+  refreshTitleMeta();
+};
+
+refreshTitleMeta();
+requestAnimationFrame(draw);
+
+/* ----------------------------------------------------------------------------
+   HOW TO PLAY (all self-contained, no network, no saves except a tiny meta tally):
+     • Click any pulsing, ringed star linked to your vessel to SAIL there.
+       Each jump spends LIGHT (your fuel and your life) and feeds the Long Dark.
+     • At every star you face a generative ENCOUNTER. Choose with the mouse
+       or number keys 1–9. Choices spend or earn light, lucidity, memories, relics.
+     • LIGHT hitting 0 ends you (the lantern goes out).
+       LUCIDITY hitting 0 ends you (the dark inside arrives first). Below 40,
+       the dark starts editing your encounters — whispers, false bargains. Beware.
+     • The LONG DARK expands every turn and drifts toward you. Outrun it to the
+       ◆ ORIGIN ◆ — the one fire that never dies — to win.
+     • Keys:  L = memories drawer   ? = codex of star-types & relics
+              M = toggle generative ambient sound   Esc = close panels
+     • Named star-charts are deterministic: the same name = the same voyage,
+       so you can share a chart, or re-sail one that nearly killed you.
+   Every star, every story, every line of music is made at runtime from seeds.
+   No two voyages are the same. You will not, the first time, reach the Origin.
+   ---------------------------------------------------------------------------- */
+// gentle idle pressure: if the player lingers without acting, the dark still breathes (visual only handled in draw)
+</script>
+</body>
+</html>
