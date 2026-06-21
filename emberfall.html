@@ -239,10 +239,18 @@
 /* ------------------------- Audio engine ------------------------- */
 const Audio2 = (() => {
   let ctx, master, musicGain, sfxGain, musicTimer=null, enabled=true;
+  let unlocked=false, pendingMood=null, pendingVol=0.6;
+  // The browser blocks audio until the player interacts with the page.
+  // Nothing touches the AudioContext until unlock() runs inside a real gesture.
+  function unlock(){
+    if(!unlocked){ unlocked=true; init(); }
+    if(ctx && ctx.state==='suspended') ctx.resume();
+    if(pendingMood) startMusic(pendingMood);
+  }
   function init(){
-    if(ctx) return;
+    if(ctx || !unlocked) return;
     ctx = new (window.AudioContext||window.webkitAudioContext)();
-    master = ctx.createGain(); master.gain.value=0.6; master.connect(ctx.destination);
+    master = ctx.createGain(); master.gain.value=pendingVol; master.connect(ctx.destination);
     musicGain = ctx.createGain(); musicGain.gain.value=0.35; musicGain.connect(master);
     sfxGain = ctx.createGain(); sfxGain.gain.value=0.7; sfxGain.connect(master);
   }
@@ -292,7 +300,10 @@ const Audio2 = (() => {
   };
   let curMood='town', step=0;
   function startMusic(mood){
-    init(); curMood=mood; if(musicTimer) clearInterval(musicTimer); step=0;
+    pendingMood=mood; curMood=mood;
+    if(!unlocked || !ctx){ return; }          // remember it; real start happens on unlock
+    if(ctx.state==='suspended') ctx.resume();
+    if(musicTimer) clearInterval(musicTimer); step=0;
     const m=moods[mood]||moods.field;
     musicTimer=setInterval(()=>{
       if(!enabled) return;
@@ -304,8 +315,8 @@ const Audio2 = (() => {
     }, m.tempo);
   }
   function setEnabled(v){ enabled=v; if(!v&&musicTimer){clearInterval(musicTimer); musicTimer=null;} }
-  function setVol(v){ if(master) master.gain.value=v; }
-  return {init,sfx,startMusic,setEnabled,setVol,get enabled(){return enabled;}};
+  function setVol(v){ pendingVol=v; if(master) master.gain.value=v; }
+  return {init,unlock,sfx,startMusic,setEnabled,setVol,get enabled(){return enabled;}};
 })();
 
 /* ------------------------- Utility ------------------------- */
@@ -534,7 +545,7 @@ const Game=(()=>{
       const b=document.createElement('button');
       b.className='mbtn'+(i===menuSel?' sel':'')+(m.disabled?' ':'');
       b.textContent=m.label; b.disabled=!!m.disabled;
-      b.onclick=()=>{ if(!m.disabled){ Audio2.init(); Audio2.sfx.select(); m.act(); } };
+      b.onclick=()=>{ if(!m.disabled){ Audio2.unlock(); Audio2.sfx.select(); m.act(); } };
       b.onmouseenter=()=>{ menuSel=i; renderTitleMenu(); };
       el.appendChild(b);
     });
@@ -542,7 +553,7 @@ const Game=(()=>{
   function menuNav(k){
     if(k==='arrowup'){ do{menuSel=(menuSel-1+menuItems.length)%menuItems.length;}while(menuItems[menuSel].disabled); Audio2.sfx&&Audio2.sfx.ui(); renderTitleMenu(); }
     if(k==='arrowdown'){ do{menuSel=(menuSel+1)%menuItems.length;}while(menuItems[menuSel].disabled); Audio2.sfx&&Audio2.sfx.ui(); renderTitleMenu(); }
-    if(k==='enter'){ const m=menuItems[menuSel]; if(!m.disabled){ Audio2.init(); Audio2.sfx.select(); m.act(); } }
+    if(k==='enter'){ const m=menuItems[menuSel]; if(!m.disabled){ Audio2.unlock(); Audio2.sfx.select(); m.act(); } }
   }
 
   /* ---------------- Screen transitions ---------------- */
@@ -600,7 +611,7 @@ const Game=(()=>{
     </div>`;
   }
   function setOption(k,v){
-    opt[k]=v; Audio2.init();
+    opt[k]=v; Audio2.unlock();
     if(k==='vol') Audio2.setVol(v);
     if(k==='music'||k==='sfx'){ Audio2.setEnabled(opt.music||opt.sfx); if(opt.music) Audio2.startMusic(world?world.biome.music:'town'); }
     Audio2.sfx.ui&&Audio2.sfx.ui();
@@ -1996,6 +2007,19 @@ const Game=(()=>{
 })();
 
 window.addEventListener('load',()=>Game.boot());
+
+// Resume audio on the very first user interaction (click, key, or touch),
+// satisfying the browser autoplay policy without console warnings.
+(function(){
+  function go(){ Audio2.unlock();
+    window.removeEventListener('pointerdown',go);
+    window.removeEventListener('keydown',go);
+    window.removeEventListener('touchstart',go);
+  }
+  window.addEventListener('pointerdown',go);
+  window.addEventListener('keydown',go);
+  window.addEventListener('touchstart',go);
+})();
 </script>
 </body>
 </html>
