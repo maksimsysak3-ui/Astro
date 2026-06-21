@@ -2006,6 +2006,10 @@ const Game=(()=>{
     returnTownFromPause, confirmQuit, _pendingName:'', _sellMode:false };
 })();
 
+// Expose Game on window so inline onclick="Game.*()" handlers can resolve it.
+// (A top-level `const` lives in the lexical scope, not on window, and inline
+// HTML event attributes look names up on the window object.)
+window.Game = Game;
 window.addEventListener('load',()=>Game.boot());
 
 // Resume audio on the very first user interaction (click, key, or touch),
