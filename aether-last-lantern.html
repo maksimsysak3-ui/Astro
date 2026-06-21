@@ -797,13 +797,13 @@ function drawShip(t){
     const rad=e.d*DPR*(0.5+e.life);
     const ex=s.x+Math.cos(e.a+t)*rad, ey=s.y+Math.sin(e.a+t)*rad - e.life*14*DPR;
     ctx.globalAlpha=(1-e.life)*0.6; ctx.fillStyle=`hsl(${30+e.life*20},100%,${55+e.life*15}%)`;
-    ctx.beginPath(); ctx.arc(ex,ey,e.size*DPR*(1-e.life*0.5),0,6.28); ctx.fill();
+    ctx.beginPath(); ctx.arc(ex,ey,Math.max(0,e.size*DPR*(1-e.life*0.5)),0,6.28); ctx.fill();
   });
   ctx.globalAlpha=1;
   // travel trail
   trail=trail.filter(p=>p.life>0);
   trail.forEach(p=>{ p.life-=0.02; ctx.globalAlpha=p.life*0.5; ctx.fillStyle="#ffb066";
-    const ps=worldToScreen(p.x,p.y); ctx.beginPath(); ctx.arc(ps.x,ps.y,3*DPR*p.life,0,6.28); ctx.fill(); });
+    const ps=worldToScreen(p.x,p.y); ctx.beginPath(); ctx.arc(ps.x,ps.y,Math.max(0,3*DPR*p.life),0,6.28); ctx.fill(); });
   ctx.globalAlpha=1;
   // lantern core (intensity by light)
   const inten=clamp(Game.light/100,0.15,1);
