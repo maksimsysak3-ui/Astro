@@ -8,17 +8,20 @@
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 :root {
-  --primary: #1d428a;
-  --secondary: #c8102e;
-  --accent: #fdb927;
-  --bg: #0d1117;
-  --surface: #161b22;
-  --surface2: #21262d;
-  --surface3: #30363d;
-  --text: #ffffff;
-  --text-dim: #8b949e;
-  --border: rgba(255,255,255,0.08);
-  --glow: rgba(29,66,138,0.3);
+  --primary: #2563eb;
+  --secondary: #dc2626;
+  --accent: #f59e0b;
+  --bg: #0f0f13;
+  --surface: #1a1a24;
+  --surface2: #242435;
+  --surface3: #2e2e42;
+  --text: #f1f1f5;
+  --text-dim: #6b7280;
+  --border: rgba(255,255,255,0.06);
+  --glow: rgba(37,99,235,0.25);
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
 }
 body { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; }
 .hidden { display: none !important; }
@@ -51,8 +54,8 @@ body { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; background: var(
 .team-card .team-city { font-size: 0.8rem; opacity: 0.7; }
 
 #game-screen { position: fixed; inset: 0; display: flex; background: var(--bg); }
-#sidebar { width: 230px; background: linear-gradient(180deg, var(--surface) 0%, #0d0d1a 100%); border-right: 1px solid var(--border); padding: 0; overflow-y: auto; flex-shrink: 0; }
-#sidebar .team-header { padding: 22px 20px 18px; border-bottom: 1px solid var(--border); background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 20%, transparent), transparent); }
+#sidebar { width: 240px; background: linear-gradient(180deg, #12121f 0%, #0a0a14 100%); border-right: 1px solid rgba(255,255,255,0.04); padding: 0; overflow-y: auto; flex-shrink: 0; }
+#sidebar .team-header { padding: 24px 22px 20px; border-bottom: 1px solid rgba(255,255,255,0.04); background: linear-gradient(135deg, rgba(37,99,235,0.08), transparent); }
 #sidebar .team-header h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 3px; }
 #sidebar .team-header .record { color: var(--text-dim); font-size: 0.8rem; }
 .nav-section { padding: 16px 22px 6px; font-size: 0.55rem; font-weight: 900; letter-spacing: 2.5px; color: color-mix(in srgb, var(--primary) 60%, var(--text-dim)); text-transform: uppercase; margin-top: 6px; }
@@ -183,7 +186,8 @@ body { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; background: var(
 .game-clock .quarter { font-size: 0.8rem; color: var(--text-dim); }
 .game-clock .time { font-size: 1.5rem; font-weight: 700; }
 .court-container { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; padding: 20px; }
-.court { width: 100%; max-width: 850px; height: 420px; background: #c17b3a; border: 3px solid #fff; border-radius: 8px; position: relative; overflow: hidden; }
+.court { width: 100%; max-width: 900px; height: 450px; background: linear-gradient(135deg, #c4903d 0%, #d4a04d 30%, #b8842f 60%, #c4903d 100%); border: 4px solid #fff; border-radius: 4px; position: relative; overflow: hidden; box-shadow: inset 0 0 60px rgba(0,0,0,0.3), 0 20px 60px rgba(0,0,0,0.5); }
+.court::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(0,0,0,0.02) 40px, rgba(0,0,0,0.02) 42px); }
 .court-line { position: absolute; border: 2px solid rgba(255,255,255,0.6); }
 .court .half-line { left: 50%; top: 0; bottom: 0; width: 0; border-left: 2px solid rgba(255,255,255,0.6); }
 .court .center-circle { left: 50%; top: 50%; width: 100px; height: 100px; border-radius: 50%; transform: translate(-50%,-50%); border: 2px solid rgba(255,255,255,0.6); }
@@ -194,10 +198,10 @@ body { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; background: var(
 .court .team-label { position: absolute; top: 50%; font-size: 1.8rem; font-weight: 900; opacity: 0.15; transform: translateY(-50%); letter-spacing: 3px; }
 .court .team-label.home-label { right: 30px; }
 .court .team-label.away-label { left: 30px; }
-.court .game-player { position: absolute; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: 900; color: #fff; transition: all 0.8s ease; border: 2px solid rgba(255,255,255,0.7); box-shadow: 0 2px 6px rgba(0,0,0,0.4); }
+.court .game-player { position: absolute; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 900; color: #fff; transition: all 0.6s cubic-bezier(0.4,0,0.2,1); border: 3px solid rgba(255,255,255,0.9); box-shadow: 0 4px 12px rgba(0,0,0,0.5), 0 0 20px rgba(255,255,255,0.1); }
 .shot-arrow { position: absolute; pointer-events: none; }
 @keyframes shotAnim { from{stroke-dashoffset:200} to{stroke-dashoffset:0} }
-.ball { position: absolute; width: 16px; height: 16px; background: #f57c00; border-radius: 50%; border: 2px solid #000; transition: all 0.5s ease; box-shadow: 0 0 10px rgba(245,124,0,0.5); z-index: 50; }
+.ball { position: absolute; width: 18px; height: 18px; background: radial-gradient(circle at 30% 30%, #ff8f00, #e65100); border-radius: 50%; border: 2px solid #4a2800; transition: all 0.4s cubic-bezier(0.4,0,0.2,1); box-shadow: 0 0 15px rgba(255,143,0,0.6), 0 3px 8px rgba(0,0,0,0.4); z-index: 50; }
 .play-by-play { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.9); padding: 12px 20px; max-height: 130px; overflow-y: auto; }
 .play-by-play .play { padding: 3px 0; font-size: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.04); }
 .play-by-play .play .time-stamp { color: var(--accent); margin-right: 8px; font-weight: 600; }
@@ -391,10 +395,17 @@ body { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; background: var(
   </div>
   <div class="game-controls">
     <button onclick="callTimeout()">TIMEOUT</button>
+    <button onclick="callPlay('iso')">ISO PLAY</button>
+    <button onclick="callPlay('pick')">PICK & ROLL</button>
+    <button onclick="callPlay('three')">FORCE 3PT</button>
+    <button onclick="callPlay('post')">POST UP</button>
+    <button onclick="toggleDefense()">DEFENSE</button>
     <button onclick="simToEnd()">SIM TO END</button>
+    <button onclick="toggleSpeed()">SPEED</button>
     <button onclick="toggleBoxScore()">BOX SCORE</button>
     <button onclick="exitGame()">EXIT</button>
     <span style="margin-left:auto;color:var(--text-dim);font-size:0.8rem" id="game-momentum">Momentum: Neutral</span>
+    <span style="color:var(--text-dim);font-size:0.75rem;margin-left:12px" id="game-playcall">Play: Default</span>
   </div>
 </div>
 
@@ -824,21 +835,60 @@ function showTradeTeam(){
   updateTradeBalance();
 }
 function proposeTrade(){
-  if(!tradeSelMine.length&&!tradePicksMine.length){alert('Select your assets!');return;}
-  if(!tradeSelOther.length&&!tradePicksOther.length){alert('Select their assets!');return;}
-  const myVal=tradeSelMine.reduce((s,id)=>s+getTradeValue(getMyTeam().players.find(p=>p.id===id)||{ovr:0,potential:0,age:25,salary:0}),0)+tradePicksMine.length*30;
+  if(!tradeSelMine.length&&!tradePicksMine.length){showToast('Select your assets!','error');return;}
+  if(!tradeSelOther.length&&!tradePicksOther.length){showToast('Select their assets!','error');return;}
   const tid=document.getElementById('trade-team').value;
-  const otherVal=tradeSelOther.reduce((s,id)=>s+getTradeValue(G.allTeams[tid].players.find(p=>p.id===id)||{ovr:0,potential:0,age:25,salary:0}),0)+tradePicksOther.length*30;
-  if(myVal<otherVal*0.9){showToast('Trade rejected! Offer more value.','error');return;}
-  if(myVal>=otherVal*0.9){
-    const myP=tradeSelMine.map(id=>getMyTeam().players.find(p=>p.id===id)).filter(Boolean);
-    const otherP=tradeSelOther.map(id=>G.allTeams[tid].players.find(p=>p.id===id)).filter(Boolean);
-    G.allTeams[G.team].players=G.allTeams[G.team].players.filter(p=>!tradeSelMine.includes(p.id)).concat(otherP);
-    G.allTeams[tid].players=G.allTeams[tid].players.filter(p=>!tradeSelOther.includes(p.id)).concat(myP);
-    tradePicksMine.sort((a,b)=>b-a).forEach(i=>G.draftPicks.splice(i,1));
-    G.chemistry=Math.max(30,G.chemistry-5);generateNews('trade',{otherTeam:tid});showToast('Trade accepted!','success');G.tradeCount=(G.tradeCount||0)+1;checkAchievements();
-    tradeSelMine=[];tradeSelOther=[];tradePicksMine=[];tradePicksOther=[];saveGame();showPage('trades');
+  const myPlayers=tradeSelMine.map(id=>getMyTeam().players.find(p=>p.id===id)).filter(Boolean);
+  const otherPlayers=tradeSelOther.map(id=>G.allTeams[tid].players.find(p=>p.id===id)).filter(Boolean);
+
+  // Salary matching check (within 125%)
+  const mySalary=myPlayers.reduce((s,p)=>s+p.salary,0);
+  const otherSalary=otherPlayers.reduce((s,p)=>s+p.salary,0);
+  if(mySalary>0&&otherSalary>0&&(mySalary>otherSalary*1.25||otherSalary>mySalary*1.25)&&mySalary>15e6){
+    showToast('Salaries must be within 125% of each other for trades over $15M!','error');return;
   }
+
+  // Value calculation with realistic factors
+  const calcValue=(p)=>{
+    let val=p.ovr*3;
+    val+=(p.potential-p.ovr)*2;
+    val+=(30-p.age)*1.5;
+    if(p.ovr>=90)val+=30;
+    if(p.ovr>=85)val+=15;
+    val-=p.salary/3000000;
+    if(p.age>32)val-=10;
+    return Math.max(5,val);
+  };
+
+  const myVal=myPlayers.reduce((s,p)=>s+calcValue(p),0)+tradePicksMine.length*35;
+  const otherVal=otherPlayers.reduce((s,p)=>s+calcValue(p),0)+tradePicksOther.length*35;
+
+  // AI reluctance for stars
+  const hasStar=otherPlayers.some(p=>p.ovr>=88);
+  const threshold=hasStar?1.15:0.85;
+
+  // Position need bonus
+  const otherTeamPositions=G.allTeams[tid].players.map(p=>p.pos);
+  const positionNeedBonus=myPlayers.some(p=>{
+    const count=otherTeamPositions.filter(pos=>pos===p.pos).length;
+    return count<=1;
+  })?10:0;
+
+  if(myVal+positionNeedBonus<otherVal*threshold){
+    const diff=Math.round((otherVal*threshold)-(myVal+positionNeedBonus));
+    showToast(`Trade rejected! ${hasStar?'They won\'t give up their star easily. ':''}Need ~${diff} more value.`,'error');
+    return;
+  }
+
+  // Execute trade
+  G.allTeams[G.team].players=G.allTeams[G.team].players.filter(p=>!tradeSelMine.includes(p.id)).concat(otherPlayers);
+  G.allTeams[tid].players=G.allTeams[tid].players.filter(p=>!tradeSelOther.includes(p.id)).concat(myPlayers);
+  tradePicksMine.sort((a,b)=>b-a).forEach(i=>G.draftPicks.splice(i,1));
+  G.chemistry=Math.max(30,G.chemistry-5);
+  generateNews('trade',{otherTeam:tid});
+  showToast('Trade accepted!','success');
+  G.tradeCount=(G.tradeCount||0)+1;checkAchievements();
+  tradeSelMine=[];tradeSelOther=[];tradePicksMine=[];tradePicksOther=[];saveGame();showPage('trades');
 }
 
 // ===== CONTRACTS =====
@@ -1267,20 +1317,93 @@ function toggleBoxScore(){G.boxScoreVisible=!G.boxScoreVisible;updateBoxScorePan
 
 function gameLoop(){
   if(gameState.paused){setTimeout(gameLoop,100);return;}
-  if(gameState.quarter>4){endLiveGame();return;}
-  if(gameState.time<=0){if(gameState.quarter===2&&!gameState.halftimeDone){showHalftime();return;}gameState.quarter++;gameState.time=720;if(gameState.quarter>4){endLiveGame();return;}updateGameDisplay();}
-  gameState.time-=Math.floor(8+Math.random()*16);if(gameState.time<0)gameState.time=0;
+  if(gameState.quarter>4&&gameState.homeScore!==gameState.awayScore){endLiveGame();return;}
+  if(gameState.quarter>4&&gameState.homeScore===gameState.awayScore){gameState.quarter=5;gameState.time=300;}
+  if(gameState.time<=0){
+    if(gameState.quarter===2&&!gameState.halftimeDone){showHalftime();return;}
+    if(gameState.quarter>=4&&gameState.homeScore!==gameState.awayScore){endLiveGame();return;}
+    gameState.quarter++;gameState.time=720;
+    if(gameState.quarter>5){endLiveGame();return;}
+    updateGameDisplay();
+  }
+  const possTime=Math.floor(14+Math.random()*10);
+  gameState.time-=possTime;if(gameState.time<0)gameState.time=0;
+
   const myP=getStarters();const oppP=G.allTeams[gameState.opponent].players.slice(0,5);
   const myOvr=myP.reduce((s,p)=>s+p.ovr,0)/5;const oppOvr=oppP.reduce((s,p)=>s+p.ovr,0)/5;
-  const hca=gameState.isHome?2:0;
-  const chemB=G.chemistry>80?0.015:G.chemistry<50?-0.015:0;
-  const hc=0.44+(myOvr-oppOvr+hca)/200+gameState.momentum*0.008+chemB;
-  if(Math.random()<hc){const pts=Math.random()<0.28?3:Math.random()<0.55?2:0;if(pts>0){if(gameState.isHome)gameState.homeScore+=pts;else gameState.awayScore+=pts;addPlayEvent(true,pts,myP);}else{const miss=myP[Math.floor(Math.random()*myP.length)];const mk=gameState.isHome?'home':'away';if(G.liveBoxScore[mk]&&G.liveBoxScore[mk][miss.id])G.liveBoxScore[mk][miss.id].fga++;}}
-  gameState.time-=Math.floor(5+Math.random()*12);if(gameState.time<0)gameState.time=0;
-  const ac=0.44+(oppOvr-myOvr-hca)/200-gameState.momentum*0.008;
-  if(Math.random()<ac){const pts=Math.random()<0.28?3:Math.random()<0.55?2:0;if(pts>0){if(gameState.isHome)gameState.awayScore+=pts;else gameState.homeScore+=pts;addPlayEvent(false,pts,oppP);}else{const miss=oppP[Math.floor(Math.random()*oppP.length)];const ok=gameState.isHome?'away':'home';if(G.liveBoxScore[ok]&&G.liveBoxScore[ok][miss.id])G.liveBoxScore[ok][miss.id].fga++;}}
+  const qFatigue=gameState.quarter>=4?0.02:0;
+  const hca=gameState.isHome?1.5:0;
+  const chemB=G.chemistry>80?0.01:G.chemistry<50?-0.01:0;
+
+  // My team possession
+  const myChance=0.46+(myOvr-oppOvr+hca)/250+gameState.momentum*0.005+chemB-qFatigue;
+  const turnover1=Math.random()<0.12;
+  if(!turnover1){
+    if(Math.random()<myChance){
+      const shotType=getShotType(myP);
+      const pts=shotType==='three'?3:2;
+      if(gameState.isHome)gameState.homeScore+=pts;else gameState.awayScore+=pts;addPlayEvent(true,pts,myP,shotType);
+    } else {missEvent(true,myP);}
+  } else {turnoverEvent(true,myP,oppP);}
+
+  // Opponent possession
+  gameState.time-=Math.floor(10+Math.random()*8);if(gameState.time<0)gameState.time=0;
+  const oppChance=0.46+(oppOvr-myOvr-hca)/250-gameState.momentum*0.005-qFatigue;
+  const turnover2=Math.random()<0.12;
+  if(!turnover2){
+    if(Math.random()<oppChance){
+      const shotType=getShotType(oppP);
+      const pts=shotType==='three'?3:2;
+      if(gameState.isHome)gameState.awayScore+=pts;else gameState.homeScore+=pts;addPlayEvent(false,pts,oppP,shotType);
+    } else {missEvent(false,oppP);}
+  } else {turnoverEvent(false,oppP,myP);}
+
+  // Free throw chance
+  if(Math.random()<0.08){
+    const isMyFT=Math.random()<0.5;
+    const ftPts=Math.random()<0.7?2:Math.random()<0.5?1:0;
+    if(ftPts>0){
+      const team=isMyFT?myP:oppP;
+      const shooter=team[Math.floor(Math.random()*5)];
+      if(isMyFT){if(gameState.isHome)gameState.homeScore+=ftPts;else gameState.awayScore+=ftPts;}
+      else{if(gameState.isHome)gameState.awayScore+=ftPts;else gameState.homeScore+=ftPts;}
+      const k=isMyFT?(gameState.isHome?'home':'away'):(gameState.isHome?'away':'home');
+      if(G.liveBoxScore[k][shooter.id]){G.liveBoxScore[k][shooter.id].pts+=ftPts;G.liveBoxScore[k][shooter.id].fga++;G.liveBoxScore[k][shooter.id].fgm++;}
+    }
+  }
+
   movePlayersRandomly();animateBall();updateGameDisplay();updateBoxScorePanel();
-  setTimeout(gameLoop,1200/gameState.speed);
+  setTimeout(gameLoop,1000/gameState.speed);
+}
+
+function getShotType(players){
+  const r=Math.random();
+  if(gameState.activePlay==='three')return Math.random()<0.6?'three':'midrange';
+  if(gameState.activePlay==='post')return Math.random()<0.5?'layup':'midrange';
+  if(gameState.activePlay==='iso')return Math.random()<0.4?'midrange':Math.random()<0.6?'layup':'three';
+  if(r<0.3)return'three';
+  if(r<0.55)return'midrange';
+  if(r<0.8)return'layup';
+  return'dunk';
+}
+
+function missEvent(isMyTeam,players){
+  const shooter=players[Math.floor(Math.random()*5)];
+  const k=isMyTeam?(gameState.isHome?'home':'away'):(gameState.isHome?'away':'home');
+  if(G.liveBoxScore[k]&&G.liveBoxScore[k][shooter.id])G.liveBoxScore[k][shooter.id].fga++;
+  const rebounder=players[Math.floor(Math.random()*5)];
+  if(G.liveBoxScore[k]&&G.liveBoxScore[k][rebounder.id])G.liveBoxScore[k][rebounder.id].reb+=1;
+}
+
+function turnoverEvent(isMyTeam,offTeam,defTeam){
+  const m=Math.floor(gameState.time/60),s=gameState.time%60;
+  const pbp=document.getElementById('play-by-play');const div=document.createElement('div');div.className='play';
+  const player=offTeam[Math.floor(Math.random()*5)];
+  const stealer=defTeam[Math.floor(Math.random()*5)];
+  div.innerHTML=`<span class="time-stamp">Q${gameState.quarter} ${m}:${s.toString().padStart(2,'0')}</span> <span style="color:#ef4444">TURNOVER</span> ${player.name} - stolen by ${stealer.name}`;
+  pbp.insertBefore(div,pbp.firstChild);if(pbp.children.length>30)pbp.removeChild(pbp.lastChild);
+  if(isMyTeam)gameState.momentum-=0.5;else gameState.momentum+=0.5;
+  gameState.momentum=Math.max(-8,Math.min(8,gameState.momentum));
 }
 
 function addPlayEvent(isMyTeam,pts,players){
