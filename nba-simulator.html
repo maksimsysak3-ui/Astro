@@ -29,7 +29,7 @@ body { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; background: var(
 #intro-screen { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; }
 #intro-screen .studio-logo { opacity: 0; font-size: 3rem; font-weight: 900; letter-spacing: 8px; text-transform: uppercase; animation: fadeInOut 3s ease forwards; }
 #intro-screen .studio-logo.s2 { animation-delay: 3.5s; font-size: 2rem; letter-spacing: 4px; color: var(--accent); }
-#intro-screen .studio-logo.s3 { animation-delay: 7s; font-size: 4rem; background: linear-gradient(135deg, #c8102e, #fdb927); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+#intro-screen .studio-logo.s3 { animation-delay: 7s; font-size: 4rem; background: linear-gradient(135deg, #f59e0b, #ef4444, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 #intro-screen .subtitle { opacity: 0; animation: fadeIn 2s ease 9s forwards; color: #666; font-size: 1rem; margin-top: 10px; letter-spacing: 6px; }
 #intro-screen .skip-btn { position: absolute; bottom: 30px; right: 30px; background: none; border: 1px solid #333; color: #555; padding: 8px 20px; cursor: pointer; font-size: 0.8rem; letter-spacing: 2px; }
 .particles { position: absolute; inset: 0; overflow: hidden; }
@@ -38,11 +38,12 @@ body { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; background: var(
 @keyframes fadeIn { to{opacity:1} }
 @keyframes particleFloat { 0%{opacity:0;transform:translateY(0)} 50%{opacity:0.8} 100%{opacity:0;transform:translateY(-200px)} }
 
-#main-menu { position: fixed; inset: 0; background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3a 50%, #0a0a1a 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; }
-#main-menu h1 { font-size: 4rem; font-weight: 900; background: linear-gradient(135deg, var(--secondary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; }
-#main-menu .tagline { color: var(--text-dim); letter-spacing: 4px; margin-bottom: 50px; font-size: 0.9rem; }
-.menu-btn { display: block; width: 300px; padding: 16px; margin: 8px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); color: var(--text); font-size: 1.1rem; cursor: pointer; border-radius: 8px; transition: all 0.3s; letter-spacing: 1px; }
-.menu-btn:hover { background: rgba(255,255,255,0.08); border-color: var(--accent); transform: translateX(5px); }
+#main-menu { position: fixed; inset: 0; background: radial-gradient(ellipse at 50% 30%, #161630 0%, #0a0a14 60%, #050508 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+#main-menu h1 { font-size: 4.5rem; font-weight: 900; background: linear-gradient(135deg, #f59e0b, #ef4444, #f59e0b); background-size: 200% 200%; animation: shimmer 3s ease infinite; -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; text-shadow: none; }
+@keyframes shimmer { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+#main-menu .tagline { color: rgba(255,255,255,0.3); letter-spacing: 6px; margin-bottom: 50px; font-size: 0.8rem; text-transform: uppercase; }
+.menu-btn { display: block; width: 320px; padding: 18px; margin: 6px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); color: var(--text); font-size: 1rem; cursor: pointer; border-radius: 12px; transition: all 0.3s; letter-spacing: 2px; font-weight: 600; text-transform: uppercase; backdrop-filter: blur(10px); }
+.menu-btn:hover { background: rgba(37,99,235,0.15); border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(37,99,235,0.2); }
 .menu-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 #team-select { position: fixed; inset: 0; background: var(--bg); overflow-y: auto; padding: 40px; }
@@ -59,9 +60,9 @@ body { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; background: var(
 #sidebar .team-header h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 3px; }
 #sidebar .team-header .record { color: var(--text-dim); font-size: 0.8rem; }
 .nav-section { padding: 16px 22px 6px; font-size: 0.55rem; font-weight: 900; letter-spacing: 2.5px; color: color-mix(in srgb, var(--primary) 60%, var(--text-dim)); text-transform: uppercase; margin-top: 6px; }
-.nav-item { padding: 11px 22px; cursor: pointer; transition: all 0.25s; font-size: 0.84rem; border-left: 3px solid transparent; color: rgba(255,255,255,0.55); position: relative; font-weight: 500; letter-spacing: 0.2px; }
-.nav-item:hover { background: rgba(255,255,255,0.04); color: #fff; border-left-color: rgba(255,255,255,0.2); padding-left: 26px; }
-.nav-item.active { background: linear-gradient(90deg, color-mix(in srgb, var(--primary) 20%, transparent), transparent); border-left-color: var(--primary); color: #fff; font-weight: 700; box-shadow: inset 0 0 20px color-mix(in srgb, var(--primary) 5%, transparent); }
+.nav-item { padding: 10px 18px; margin: 2px 10px; cursor: pointer; transition: all 0.2s; font-size: 0.82rem; border-radius: 8px; color: rgba(255,255,255,0.5); position: relative; font-weight: 500; letter-spacing: 0.2px; }
+.nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+.nav-item.active { background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 25%, transparent), color-mix(in srgb, var(--primary) 10%, transparent)); color: #fff; font-weight: 700; box-shadow: 0 0 20px color-mix(in srgb, var(--primary) 10%, transparent); }
 #main-content { flex: 1; overflow-y: auto; padding: 30px 35px; background: linear-gradient(180deg, var(--bg) 0%, #0d0d18 100%); }
 
 .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; padding-bottom: 18px; border-bottom: 1px solid var(--border); position: relative; }
@@ -74,8 +75,8 @@ body { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; background: var(
 .tab:hover { color: var(--text); background: rgba(255,255,255,0.06); }
 .tab.active { background: linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 70%, var(--secondary))); color: #fff; box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 50%, transparent), inset 0 1px 0 rgba(255,255,255,0.1); text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
 
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; position: relative; overflow: hidden; }
-.card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--primary), var(--secondary)); opacity: 0.6; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; position: relative; overflow: hidden; backdrop-filter: blur(10px); }
+.card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--primary), var(--accent)); opacity: 0.4; }
 .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
 .card-header h3 { font-size: 0.95rem; font-weight: 700; }
 .card-header .badge { padding: 3px 10px; background: color-mix(in srgb, var(--primary) 20%, transparent); border: 1px solid color-mix(in srgb, var(--primary) 40%, transparent); color: var(--primary); border-radius: 20px; font-size: 0.7rem; font-weight: 700; }
@@ -96,11 +97,11 @@ body { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; background: var(
 .data-table tr.highlighted { background: color-mix(in srgb, var(--primary) 12%, transparent); }
 
 .ovr { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 8px; font-weight: 800; font-size: 0.8rem; }
-.ovr-elite { background: linear-gradient(135deg, #4caf50, #2e7d32); color: #fff; box-shadow: 0 2px 6px rgba(76,175,80,0.3); }
-.ovr-star { background: linear-gradient(135deg, #8bc34a, #558b2f); color: #fff; }
-.ovr-starter { background: linear-gradient(135deg, #ffc107, #f57f17); color: #000; }
-.ovr-bench { background: linear-gradient(135deg, #ff9800, #e65100); color: #fff; }
-.ovr-low { background: linear-gradient(135deg, #f44336, #b71c1c); color: #fff; }
+.ovr-elite { background: linear-gradient(135deg, #10b981, #059669); color: #fff; box-shadow: 0 2px 8px rgba(16,185,129,0.3); }
+.ovr-star { background: linear-gradient(135deg, #34d399, #059669); color: #fff; }
+.ovr-starter { background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; }
+.ovr-bench { background: linear-gradient(135deg, #f97316, #c2410c); color: #fff; }
+.ovr-low { background: linear-gradient(135deg, #ef4444, #991b1b); color: #fff; }
 
 .btn { padding: 10px 20px; border: none; border-radius: 8px; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px; }
 .btn-primary { background: linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 70%, #000)); color: #fff; box-shadow: 0 3px 12px color-mix(in srgb, var(--primary) 40%, transparent); }
@@ -176,12 +177,12 @@ body { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; background: var(
 .fa-player:hover { border-color: color-mix(in srgb, var(--primary) 40%, transparent); }
 
 /* LIVE GAME */
-#live-game { position: fixed; inset: 0; background: #0a0a0f; z-index: 5000; display: flex; flex-direction: column; }
-.game-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: rgba(0,0,0,0.5); }
-.game-score { display: flex; align-items: center; gap: 30px; }
-.game-score .team-info { text-align: center; }
-.game-score .score { font-size: 3rem; font-weight: 900; }
-.game-score .vs { color: var(--text-dim); font-size: 1.2rem; }
+#live-game { position: fixed; inset: 0; background: linear-gradient(180deg, #080810 0%, #0a0a14 100%); z-index: 5000; display: flex; flex-direction: column; }
+.game-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 30px; background: linear-gradient(180deg, rgba(0,0,0,0.8), rgba(0,0,0,0.4)); border-bottom: 1px solid rgba(255,255,255,0.05); }
+.game-score { display: flex; align-items: center; gap: 40px; }
+.game-score .team-info { text-align: center; min-width: 120px; }
+.game-score .score { font-size: 3.5rem; font-weight: 900; letter-spacing: -2px; text-shadow: 0 0 30px rgba(255,255,255,0.1); }
+.game-score .vs { color: rgba(255,255,255,0.15); font-size: 0.9rem; font-weight: 800; letter-spacing: 2px; }
 .game-clock { text-align: center; }
 .game-clock .quarter { font-size: 0.8rem; color: var(--text-dim); }
 .game-clock .time { font-size: 1.5rem; font-weight: 700; }
@@ -202,12 +203,12 @@ body { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; background: var(
 .shot-arrow { position: absolute; pointer-events: none; }
 @keyframes shotAnim { from{stroke-dashoffset:200} to{stroke-dashoffset:0} }
 .ball { position: absolute; width: 18px; height: 18px; background: radial-gradient(circle at 30% 30%, #ff8f00, #e65100); border-radius: 50%; border: 2px solid #4a2800; transition: all 0.4s cubic-bezier(0.4,0,0.2,1); box-shadow: 0 0 15px rgba(255,143,0,0.6), 0 3px 8px rgba(0,0,0,0.4); z-index: 50; }
-.play-by-play { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.9); padding: 12px 20px; max-height: 130px; overflow-y: auto; }
-.play-by-play .play { padding: 3px 0; font-size: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.04); }
-.play-by-play .play .time-stamp { color: var(--accent); margin-right: 8px; font-weight: 600; }
-.game-controls { padding: 12px 30px; background: rgba(0,0,0,0.6); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-.game-controls button { padding: 8px 16px; background: var(--surface); border: 1px solid rgba(255,255,255,0.1); color: var(--text); border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
-.game-controls button:hover { background: var(--primary); }
+.play-by-play { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(180deg, rgba(0,0,0,0.7), rgba(0,0,0,0.95)); padding: 10px 20px; max-height: 140px; overflow-y: auto; backdrop-filter: blur(8px); border-top: 1px solid rgba(255,255,255,0.05); }
+.play-by-play .play { padding: 4px 0; font-size: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.03); line-height: 1.4; }
+.play-by-play .play .time-stamp { color: var(--accent); margin-right: 10px; font-weight: 700; font-size: 0.7rem; font-variant-numeric: tabular-nums; }
+.game-controls { padding: 10px 20px; background: linear-gradient(180deg, rgba(0,0,0,0.7), rgba(0,0,0,0.9)); display: flex; gap: 6px; flex-wrap: wrap; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); }
+.game-controls button { padding: 7px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); color: var(--text); border-radius: 6px; cursor: pointer; font-size: 0.72rem; font-weight: 600; transition: all 0.2s; letter-spacing: 0.3px; text-transform: uppercase; }
+.game-controls button:hover { background: var(--primary); border-color: var(--primary); transform: translateY(-1px); }
 
 /* BOX SCORE PANEL */
 .box-score-panel { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.9); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; max-height: 300px; overflow-y: auto; width: 280px; font-size: 0.7rem; z-index: 100; }
@@ -275,9 +276,9 @@ body { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; background: var(
 /* Toast notifications */
 .toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px}
 .toast{padding:12px 20px;border-radius:8px;font-size:0.82rem;font-weight:600;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,0.4);transition:opacity 0.3s,transform 0.3s;animation:toastIn 0.3s ease}
-.toast-success{background:linear-gradient(135deg,#2e7d32,#4caf50)}
-.toast-error{background:linear-gradient(135deg,#b71c1c,#f44336)}
-.toast-info{background:linear-gradient(135deg,#1565c0,#1976d2)}
+.toast-success{background:linear-gradient(135deg,#059669,#10b981)}
+.toast-error{background:linear-gradient(135deg,#991b1b,#ef4444)}
+.toast-info{background:linear-gradient(135deg,#1d4ed8,#2563eb)}
 @keyframes toastIn{from{opacity:0;transform:translateX(100%)}to{opacity:1;transform:translateX(0)}}
 
 /* Nav active glow */
@@ -1406,26 +1407,25 @@ function turnoverEvent(isMyTeam,offTeam,defTeam){
   gameState.momentum=Math.max(-8,Math.min(8,gameState.momentum));
 }
 
-function addPlayEvent(isMyTeam,pts,players){
-  const weights=players.slice(0,5).map(p=>p.ovr);const total=weights.reduce((s,w)=>s+w,0);let r=Math.random()*total,idx=0;for(let i=0;i<weights.length;i++){r-=weights[i];if(r<=0){idx=i;break;}}
+function addPlayEvent(isMyTeam,pts,players,shotType){
+  const weights=players.slice(0,5).map(p=>p.ovr+Math.random()*15);const total=weights.reduce((s,w)=>s+w,0);let r=Math.random()*total,idx=0;for(let i=0;i<weights.length;i++){r-=weights[i];if(r<=0){idx=i;break;}}
   const shooter=players[idx];
-  const plays=['drives to the basket','pulls up','hits from deep','finishes at the rim','fades away','steps back'];
-  const play=plays[Math.floor(Math.random()*plays.length)];
+  const plays={three:['drains a three','hits from deep','splashes from downtown','buries a triple'],midrange:['pulls up from midrange','hits the fadeaway','nails the elbow jumper'],layup:['drives for the layup','finishes at the rim','scoops it in'],dunk:['throws it down','SLAM DUNK','hammers it home','posterizes the defender']};
+  const st=shotType||'midrange';
+  const play=(plays[st]||plays.midrange)[Math.floor(Math.random()*(plays[st]||plays.midrange).length)];
   const m=Math.floor(gameState.time/60),s=gameState.time%60;
   const team=isMyTeam?getTeamData(G.team):getTeamData(gameState.opponent);
-  const sc=isMyTeam?(gameState.isHome?gameState.homeScore:gameState.awayScore):(gameState.isHome?gameState.awayScore:gameState.homeScore);
   const pbp=document.getElementById('play-by-play');const div=document.createElement('div');div.className='play';
-  div.innerHTML=`<span class="time-stamp">Q${gameState.quarter} ${m}:${s.toString().padStart(2,'0')}</span> ${shooter.name} ${play} - ${pts}PTS (${team.name} ${sc})`;
-  pbp.insertBefore(div,pbp.firstChild);if(pbp.children.length>25)pbp.removeChild(pbp.lastChild);
-  // Update box score
+  const ptColor=pts===3?'#f59e0b':pts===2?'#10b981':'#fff';
+  div.innerHTML=`<span class="time-stamp">Q${gameState.quarter} ${m}:${s.toString().padStart(2,'0')}</span> <span style="color:${ptColor};font-weight:700">${pts}PT</span> ${shooter.name} ${play} (${team.name})`;
+  pbp.insertBefore(div,pbp.firstChild);if(pbp.children.length>30)pbp.removeChild(pbp.lastChild);
   const k=isMyTeam?(gameState.isHome?'home':'away'):(gameState.isHome?'away':'home');
   if(G.liveBoxScore[k][shooter.id]){const bs=G.liveBoxScore[k][shooter.id];bs.pts+=pts;bs.fga++;bs.fgm++;}
-  // Rebounds and assists for random teammates
   const rebounder=players[Math.floor(Math.random()*players.length)];
-  if(G.liveBoxScore[k][rebounder.id])G.liveBoxScore[k][rebounder.id].reb+=Math.random()<0.4?1:0;
+  if(G.liveBoxScore[k][rebounder.id])G.liveBoxScore[k][rebounder.id].reb+=Math.random()<0.35?1:0;
   const passer=players[Math.floor(Math.random()*players.length)];
-  if(G.liveBoxScore[k][passer.id]&&passer.id!==shooter.id)G.liveBoxScore[k][passer.id].ast+=Math.random()<0.6?1:0;
-  if(isMyTeam)gameState.momentum+=0.3;else gameState.momentum-=0.3;
+  if(G.liveBoxScore[k][passer.id]&&passer.id!==shooter.id)G.liveBoxScore[k][passer.id].ast+=Math.random()<0.55?1:0;
+  if(isMyTeam)gameState.momentum+=0.4;else gameState.momentum-=0.4;
   gameState.momentum=Math.max(-8,Math.min(8,gameState.momentum));
   showShotArrow(isMyTeam,pts);
 }
@@ -1517,6 +1517,30 @@ function showPostGameInterview(my,opp,result){
 }
 
 function exitGame(){if(confirm('Exit? Progress lost.')){document.getElementById('live-game').classList.add('hidden');document.getElementById('game-screen').classList.remove('hidden');}}
+
+function callPlay(type){
+  if(!gameState.activePlay)gameState.activePlay=null;
+  gameState.activePlay=type;
+  const names={iso:'Isolation',pick:'Pick & Roll',three:'3-Point Focus',post:'Post Up'};
+  document.getElementById('game-playcall').textContent='Play: '+names[type];
+  document.getElementById('game-playcall').style.color='var(--accent)';
+  showToast('Running '+names[type]+'!','info');
+  if(type==='three')gameState.momentum+=0.5;
+  if(type==='iso')gameState.momentum+=0.3;
+  setTimeout(()=>{gameState.activePlay=null;const el=document.getElementById('game-playcall');if(el){el.textContent='Play: Default';el.style.color='var(--text-dim)';}},15000);
+}
+
+function toggleDefense(){
+  gameState.defenseMode=gameState.defenseMode==='tight'?'normal':'tight';
+  showToast('Defense: '+(gameState.defenseMode==='tight'?'Tight (more steals, more fouls)':'Normal'),'info');
+}
+
+function toggleSpeed(){
+  if(gameState.speed===1)gameState.speed=3;
+  else if(gameState.speed===3)gameState.speed=8;
+  else gameState.speed=1;
+  showToast('Speed: '+gameState.speed+'x','info');
+}
 
 // ===== STAFF =====
 function renderStaff(el){
